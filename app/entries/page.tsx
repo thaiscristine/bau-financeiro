@@ -2,10 +2,9 @@ import Link from "next/link";
 import { requireSession } from "@/lib/dal";
 import { listEntries } from "@/lib/entries";
 import { formatBRL, formatDate } from "@/lib/format";
-import { CATEGORY_LABELS } from "@/lib/validation";
 import { Nav } from "@/components/nav";
 import { deleteEntry } from "./actions";
-import { DeleteEntryButton } from "./delete-entry-button";
+import { DeleteButton } from "@/components/delete-button";
 
 export default async function EntriesPage() {
   await requireSession();
@@ -42,6 +41,9 @@ export default async function EntriesPage() {
                     Categoria
                   </th>
                   <th className="py-2 pr-4 font-medium text-zinc-500">
+                    Pagador / Fornecedor
+                  </th>
+                  <th className="py-2 pr-4 font-medium text-zinc-500">
                     Valor
                   </th>
                   <th className="py-2 pr-4 font-medium text-zinc-500">
@@ -65,8 +67,9 @@ export default async function EntriesPage() {
                       {entry.type === "income" ? "Entrada" : "Saída"}
                     </td>
                     <td className="py-2 pr-4">
-                      {CATEGORY_LABELS[entry.category]}
+                      {entry.categoryName}
                     </td>
+                    <td className="py-2 pr-4">{entry.counterparty ?? ""}</td>
                     <td
                       className={`py-2 pr-4 ${
                         entry.type === "income"
@@ -80,18 +83,35 @@ export default async function EntriesPage() {
                       {entry.note ?? ""}
                     </td>
                     <td className="py-2 text-right whitespace-nowrap">
-                      <div className="flex justify-end gap-3">
-                        <Link
-                          href={`/entries/${entry.id}/edit`}
-                          className="text-zinc-500 underline-offset-4 hover:text-zinc-900 hover:underline dark:hover:text-zinc-100"
-                        >
-                          Editar
-                        </Link>
-                        <DeleteEntryButton
-                          action={deleteEntry.bind(null, entry.id)}
-                          variant="link"
-                        />
-                      </div>
+                      {entry.saleId || entry.itemId ? (
+                        <div className="flex justify-end">
+                          <Link
+                            href={
+                              entry.saleId
+                                ? `/sales/${entry.saleId}`
+                                : `/inventory/${entry.itemId}`
+                            }
+                            className="text-zinc-500 underline-offset-4 hover:text-zinc-900 hover:underline dark:hover:text-zinc-100"
+                          >
+                            {entry.saleId ? "Ver venda" : "Ver estoque"}
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className="flex justify-end gap-3">
+                          <Link
+                            href={`/entries/${entry.id}/edit`}
+                            className="text-zinc-500 underline-offset-4 hover:text-zinc-900 hover:underline dark:hover:text-zinc-100"
+                          >
+                            Editar
+                          </Link>
+                          <DeleteButton
+                            action={deleteEntry.bind(null, entry.id)}
+                            label="Excluir"
+                            confirmMessage="Excluir este lançamento? Não dá para desfazer."
+                            variant="link"
+                          />
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

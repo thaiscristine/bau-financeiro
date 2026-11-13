@@ -1,13 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormAction } from "@/components/form";
 import { login } from "./actions";
 
 export function LoginForm() {
-  const [state, formAction, pending] = useActionState(login, undefined);
+  const [state, formProps, pending] = useFormAction(login);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form {...formProps} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <label
           htmlFor="email"
