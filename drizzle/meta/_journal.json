@@ -8,6 +8,48 @@
       "when": 1794599790519,
       "tag": "0000_natural_morbius",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794606472625,
+      "tag": "0001_inventory",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794606473025,
+      "tag": "0002_categories_data",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794606478900,
+      "tag": "0003_drop_category_enum",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794607531233,
+      "tag": "0004_entry_counterparty",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794609650431,
+      "tag": "0005_category_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794609650773,
+      "tag": "0006_cantina_and_rules_data",
+      "breakpoints": true
     }
   ]
 }

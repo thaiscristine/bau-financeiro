@@ -1,10 +1,12 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { requireSession } from "@/lib/dal";
 import { getEntry } from "@/lib/entries";
+import { listCategories } from "@/lib/categories";
+import { listKids } from "@/lib/kids";
 import { Nav } from "@/components/nav";
 import { EntryForm } from "../../entry-form";
 import { updateEntry, deleteEntry } from "../../actions";
-import { DeleteEntryButton } from "../../delete-entry-button";
+import { DeleteButton } from "@/components/delete-button";
 
 export default async function EditEntryPage({
   params,
@@ -14,16 +16,33 @@ export default async function EditEntryPage({
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id <= 0) notFound();
 
-  const entry = await getEntry(id);
-  if (!entry) notFound();
+  const [row, categories, kids] = await Promise.all([
+    getEntry(id),
+    listCategories(),
+    listKids(),
+  ]);
+  if (!row) notFound();
+  // Installment payments and restock purchases are changed from where they came from
+  if (row.saleId) redirect(`/sales/${row.saleId}`);
+  if (row.itemId) redirect(`/inventory/${row.itemId}`);
+  const { entry } = row;
 
   return (
     <>
       <Nav />
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-8">
         <h1 className="text-2xl font-semibold">Editar lançamento</h1>
-        <EntryForm action={updateEntry.bind(null, id)} entry={entry} />
-        <DeleteEntryButton action={deleteEntry.bind(null, id)} />
+        <EntryForm
+          action={updateEntry.bind(null, id)}
+          categories={categories}
+          kids={kids}
+          entry={entry}
+        />
+        <DeleteButton
+          action={deleteEntry.bind(null, id)}
+          label="Excluir lançamento"
+          confirmMessage="Excluir este lançamento? Não dá para desfazer."
+        />
       </main>
     </>
   );

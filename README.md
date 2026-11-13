@@ -1,6 +1,8 @@
 # Baú Financeiro
 
-A small control panel for a shop: log in, record what came in (entradas) and what went out (saídas), and see the balance per month.
+A small control panel for the organization's shop: log in, record what came in (entradas) and what went out (saídas), and see the balance per month and per origin (categoria).
+
+It also keeps the inventory: items (products with stock, or services like a van rental), the bandeirantes (members, called kids in the code) who buy them, and sales paid in monthly installments (parcelas). Marking an installment as paid records the matching income entry automatically.
 
 Built with Next.js, Auth.js (credentials login), Drizzle ORM and Postgres.
 
@@ -31,3 +33,9 @@ Built with Next.js, Auth.js (credentials login), Drizzle ORM and Postgres.
    ```bash
    npm run dev
    ```
+
+## Tests
+
+```bash
+npm test
+```
