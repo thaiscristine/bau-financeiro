@@ -1,5 +1,5 @@
 import "server-only";
-import { desc, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { entries } from "@/db/schema";
 
@@ -8,6 +8,15 @@ export async function listEntries() {
     .select()
     .from(entries)
     .orderBy(desc(entries.entryDate), desc(entries.id));
+}
+
+export async function getEntry(id: number) {
+  const [entry] = await db
+    .select()
+    .from(entries)
+    .where(eq(entries.id, id))
+    .limit(1);
+  return entry;
 }
 
 export async function getTotals() {

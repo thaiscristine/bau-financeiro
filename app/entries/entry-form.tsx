@@ -1,25 +1,42 @@
 "use client";
 
 import { useActionState } from "react";
-import { createEntry } from "./actions";
+import type { EntryFormState } from "./actions";
 import { CATEGORIES, CATEGORY_LABELS } from "@/lib/validation";
+import type { Entry } from "@/db/schema";
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function EntryForm() {
-  const [state, formAction, pending] = useActionState(createEntry, undefined);
+export function EntryForm({
+  action,
+  entry,
+}: {
+  action: (state: EntryFormState, formData: FormData) => Promise<EntryFormState>;
+  entry?: Entry;
+}) {
+  const [state, formAction, pending] = useActionState(action, undefined);
 
   return (
     <form action={formAction} className="flex max-w-xl flex-col gap-4">
       <fieldset className="flex gap-4">
         <label className="flex items-center gap-2 text-sm">
-          <input type="radio" name="type" value="income" defaultChecked />
+          <input
+            type="radio"
+            name="type"
+            value="income"
+            defaultChecked={entry?.type !== "cost"}
+          />
           Entrada
         </label>
         <label className="flex items-center gap-2 text-sm">
-          <input type="radio" name="type" value="cost" />
+          <input
+            type="radio"
+            name="type"
+            value="cost"
+            defaultChecked={entry?.type === "cost"}
+          />
           Saída
         </label>
       </fieldset>
@@ -35,6 +52,7 @@ export function EntryForm() {
           step="0.01"
           min="0.01"
           required
+          defaultValue={entry?.amount}
           className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
         />
       </div>
@@ -48,7 +66,7 @@ export function EntryForm() {
           name="entryDate"
           type="date"
           required
-          defaultValue={today()}
+          defaultValue={entry?.entryDate ?? today()}
           className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
         />
       </div>
@@ -61,6 +79,7 @@ export function EntryForm() {
           id="category"
           name="category"
           required
+          defaultValue={entry?.category}
           className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
         >
           {CATEGORIES.map((category) => (
@@ -79,6 +98,7 @@ export function EntryForm() {
           id="note"
           name="note"
           type="text"
+          defaultValue={entry?.note ?? ""}
           className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
         />
       </div>
