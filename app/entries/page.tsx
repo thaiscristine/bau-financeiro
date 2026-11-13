@@ -4,6 +4,8 @@ import { listEntries } from "@/lib/entries";
 import { formatBRL, formatDate } from "@/lib/format";
 import { CATEGORY_LABELS } from "@/lib/validation";
 import { Nav } from "@/components/nav";
+import { deleteEntry } from "./actions";
+import { DeleteEntryButton } from "./delete-entry-button";
 
 export default async function EntriesPage() {
   await requireSession();
@@ -42,7 +44,12 @@ export default async function EntriesPage() {
                   <th className="py-2 pr-4 font-medium text-zinc-500">
                     Valor
                   </th>
-                  <th className="py-2 font-medium text-zinc-500">Nota</th>
+                  <th className="py-2 pr-4 font-medium text-zinc-500">
+                    Nota
+                  </th>
+                  <th className="py-2">
+                    <span className="sr-only">Ações</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -69,8 +76,22 @@ export default async function EntriesPage() {
                     >
                       {formatBRL(Number(entry.amount))}
                     </td>
-                    <td className="py-2 text-zinc-500">
+                    <td className="py-2 pr-4 text-zinc-500">
                       {entry.note ?? ""}
+                    </td>
+                    <td className="py-2 text-right whitespace-nowrap">
+                      <div className="flex justify-end gap-3">
+                        <Link
+                          href={`/entries/${entry.id}/edit`}
+                          className="text-zinc-500 underline-offset-4 hover:text-zinc-900 hover:underline dark:hover:text-zinc-100"
+                        >
+                          Editar
+                        </Link>
+                        <DeleteEntryButton
+                          action={deleteEntry.bind(null, entry.id)}
+                          variant="link"
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}
