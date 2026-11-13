@@ -4,7 +4,12 @@ import { useState } from "react";
 import type { ItemFormState } from "./actions";
 import type { Category } from "@/db/schema";
 import { Field, FormError, SubmitButton, useFormAction } from "@/components/form";
-import { inputClass } from "@/components/styles";
+import {
+  checkboxClass,
+  formCardClass,
+  hintClass,
+  inputClass,
+} from "@/components/styles";
 
 type ItemValues = {
   name: string;
@@ -26,7 +31,7 @@ export function ItemForm({
   const [tracksStock, setTracksStock] = useState(item?.tracksStock ?? true);
 
   return (
-    <form {...formProps} className="flex max-w-xl flex-col gap-4">
+    <form {...formProps} className={formCardClass}>
       <Field id="name" label="Nome">
         <input
           id="name"
@@ -67,17 +72,17 @@ export function ItemForm({
         />
       </Field>
 
-      <label className="flex items-start gap-2 text-sm">
+      <label className="flex cursor-pointer items-start gap-3 border border-line bg-canvas p-4">
         <input
           type="checkbox"
           name="tracksStock"
           checked={tracksStock}
           onChange={(event) => setTracksStock(event.target.checked)}
-          className="mt-0.5"
+          className={`mt-0.5 ${checkboxClass}`}
         />
-        <span>
-          <span className="font-medium">Controlar estoque</span>
-          <span className="block text-xs text-zinc-500">
+        <span className="flex flex-col gap-1">
+          <span className="text-[15px]">Controlar estoque</span>
+          <span className={hintClass}>
             Desmarque para serviços, como o aluguel da van, que não têm quantidade
             guardada.
           </span>

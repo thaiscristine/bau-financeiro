@@ -1,25 +1,70 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --canvas: #faf9f6;
+  --surface: #ffffff;
+  --sunken: #f1eee9;
+  --line: #dedbd6;
+  --line-soft: #ece9e4;
+  --ink: #111111;
+  --muted: #6b6862;
+  --blue: #0007cb;
+  --orange: #ff5600;
+  --income: #0007cb;
+  --cost: #c2410c;
+  --pending: #a16207;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: dark;
+    --canvas: #111110;
+    --surface: #1a1918;
+    --sunken: #232220;
+    --line: #34322f;
+    --line-soft: #2a2826;
+    --ink: #f1eee9;
+    --muted: #a19d96;
+    --blue: #6f75ff;
+    --orange: #ff7a33;
+    --income: #8c91ff;
+    --cost: #ff8a4c;
+    --pending: #f2c14e;
   }
 }
 
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-blue: var(--blue);
+  --color-orange: var(--orange);
+  --color-income: var(--income);
+  --color-cost: var(--cost);
+  --color-pending: var(--pending);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-source-serif);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+@layer base {
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.5;
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%238a867f' stroke-width='1.5'%3E%3Cpath d='m2.5 4.5 3.5 3.5 3.5-3.5'/%3E%3C/svg%3E");
+    background-position: right 14px center;
+    background-repeat: no-repeat;
+  }
 }

@@ -1,6 +1,6 @@
 import { requireSession } from "@/lib/dal";
 import { listSales } from "@/lib/sales";
-import { Page } from "@/components/page";
+import { EmptyState, Page } from "@/components/page";
 import { SalesTable } from "./sales-table";
 
 export default async function SalesPage() {
@@ -10,7 +10,7 @@ export default async function SalesPage() {
   return (
     <Page title="Vendas" action={{ href: "/sales/new", label: "Nova venda" }}>
       {rows.length === 0 ? (
-        <p className="text-sm text-zinc-500">Nenhuma venda ainda.</p>
+        <EmptyState>Nenhuma venda ainda.</EmptyState>
       ) : (
         <SalesTable rows={rows} />
       )}

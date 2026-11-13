@@ -5,9 +5,17 @@ import { getItem, listStockMovements } from "@/lib/inventory";
 import { listCategories } from "@/lib/categories";
 import { formatBRL, formatDate } from "@/lib/format";
 import { STOCK_MOVEMENT_REASON_LABELS } from "@/lib/validation";
-import { Page } from "@/components/page";
+import { Eyebrow, Page } from "@/components/page";
 import { DeleteButton } from "@/components/delete-button";
-import { linkClass, tableHeadCell, tableHeadRow, tableRow } from "@/components/styles";
+import {
+  linkClass,
+  tableCell,
+  tableClass,
+  tableHeadCell,
+  tableHeadRow,
+  tableRow,
+  tableWrapClass,
+} from "@/components/styles";
 import { ItemForm } from "../item-form";
 import { StockMovementForm } from "../stock-movement-form";
 import { StockLabel } from "../stock-label";
@@ -36,8 +44,8 @@ export default async function ItemPage({ params }: PageProps<"/inventory/[id]">)
       {item.tracksStock && (
         <section className="flex flex-col gap-4">
           <div className="flex items-baseline justify-between gap-3">
-            <h2 className="text-lg font-medium">Estoque</h2>
-            <p className="text-sm">
+            <Eyebrow as="h2">Estoque</Eyebrow>
+            <p className="text-[15px]">
               Disponível: <StockLabel tracksStock stock={item.stock} />
             </p>
           </div>
@@ -50,8 +58,8 @@ export default async function ItemPage({ params }: PageProps<"/inventory/[id]">)
           />
 
           {movements.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+            <div className={tableWrapClass}>
+              <table className={tableClass}>
                 <thead>
                   <tr className={tableHeadRow}>
                     <th className={tableHeadCell}>Data</th>
@@ -59,7 +67,7 @@ export default async function ItemPage({ params }: PageProps<"/inventory/[id]">)
                     <th className={tableHeadCell}>Quantidade</th>
                     <th className={tableHeadCell}>Pago</th>
                     <th className={tableHeadCell}>Nota</th>
-                    <th className="py-2">
+                    <th className={tableHeadCell}>
                       <span className="sr-only">Ações</span>
                     </th>
                   </tr>
@@ -67,8 +75,8 @@ export default async function ItemPage({ params }: PageProps<"/inventory/[id]">)
                 <tbody>
                   {movements.map((movement) => (
                     <tr key={movement.id} className={tableRow}>
-                      <td className="py-2 pr-4">{formatDate(movement.movementDate)}</td>
-                      <td className="py-2 pr-4">
+                      <td className={tableCell}>{formatDate(movement.movementDate)}</td>
+                      <td className={tableCell}>
                         {movement.saleId ? (
                           <Link href={`/sales/${movement.saleId}`} className={linkClass}>
                             {STOCK_MOVEMENT_REASON_LABELS[movement.reason]}
@@ -78,26 +86,26 @@ export default async function ItemPage({ params }: PageProps<"/inventory/[id]">)
                         )}
                       </td>
                       <td
-                        className={`py-2 pr-4 ${
-                          movement.quantity > 0 ? "text-emerald-600" : "text-red-600"
+                        className={`${tableCell} ${
+                          movement.quantity > 0 ? "text-income" : "text-cost"
                         }`}
                       >
                         {movement.quantity > 0 ? `+${movement.quantity}` : movement.quantity}
                       </td>
-                      <td className="py-2 pr-4">
+                      <td className={tableCell}>
                         {movement.cost && (
                           <>
-                            <span className="whitespace-nowrap text-red-600">
+                            <span className="whitespace-nowrap text-cost">
                               {formatBRL(Number(movement.cost))}
                             </span>
                             {movement.supplier && (
-                              <span className="block text-zinc-500">{movement.supplier}</span>
+                              <span className="block text-muted">{movement.supplier}</span>
                             )}
                           </>
                         )}
                       </td>
-                      <td className="py-2 pr-4 text-zinc-500">{movement.note ?? ""}</td>
-                      <td className="py-2 text-right">
+                      <td className={`${tableCell} text-muted`}>{movement.note ?? ""}</td>
+                      <td className={`${tableCell} text-right`}>
                         {!movement.saleId && (
                           <DeleteButton
                             action={deleteStockMovement.bind(null, movement.id)}
@@ -121,7 +129,7 @@ export default async function ItemPage({ params }: PageProps<"/inventory/[id]">)
       )}
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">Dados do item</h2>
+        <Eyebrow as="h2">Dados do item</Eyebrow>
         <ItemForm action={updateItem.bind(null, id)} categories={categories} item={item} />
       </section>
 

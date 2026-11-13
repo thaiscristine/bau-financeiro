@@ -1,19 +1,18 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
+import { dangerButtonClass } from "./styles";
 
 const STYLES = {
   // Full-width button at the bottom of an edit page
   button: {
-    form: "max-w-xl border-t border-zinc-200 pt-6 dark:border-zinc-800",
-    button:
-      "w-full rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 dark:border-red-900 dark:hover:bg-red-950",
+    form: "flex max-w-xl",
+    button: `${dangerButtonClass} h-11 w-full`,
   },
   // Inline text action in a table
   link: {
     form: "inline",
-    button:
-      "text-red-600 underline-offset-4 hover:underline disabled:opacity-60",
+    button: "text-cost underline-offset-4 hover:underline disabled:opacity-60",
   },
 };
 

@@ -2,7 +2,7 @@
 
 import { startTransition, useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { primaryButtonClass } from "./styles";
+import { hintClass, labelClass, primaryButtonClass } from "./styles";
 
 // Like useActionState, but keeps what the person typed when the action returns
 // an error. React resets a form after its action runs; submitting through a
@@ -36,26 +36,75 @@ export function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-sm font-medium">
+    <div className="flex flex-col gap-2">
+      <label htmlFor={id} className={labelClass}>
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-zinc-500">{hint}</p>}
+      {hint && <p className={hintClass}>{hint}</p>}
     </div>
+  );
+}
+
+const SQUARE_TONES = {
+  blue: "bg-blue",
+  orange: "bg-orange",
+  ink: "bg-ink",
+};
+
+// Radio buttons drawn as a segmented control
+export function ChoiceGroup<Value extends string>({
+  name,
+  legend,
+  value,
+  onChange,
+  options,
+}: {
+  name: string;
+  legend: string;
+  value: Value;
+  onChange: (value: Value) => void;
+  options: { value: Value; label: string; tone?: keyof typeof SQUARE_TONES }[];
+}) {
+  return (
+    <fieldset
+      className="grid border border-line"
+      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+    >
+      <legend className="sr-only">{legend}</legend>
+      {options.map((option) => (
+        <label
+          key={option.value}
+          className="flex h-10 cursor-pointer items-center justify-center gap-2 font-mono text-xs tracking-[0.05em] text-muted uppercase transition-colors not-last:border-r not-last:border-line hover:text-ink has-checked:bg-ink has-checked:text-canvas has-focus-visible:ring-2 has-focus-visible:ring-blue"
+        >
+          <input
+            type="radio"
+            name={name}
+            value={option.value}
+            checked={value === option.value}
+            onChange={() => onChange(option.value)}
+            className="sr-only"
+          />
+          {option.tone && (
+            <span aria-hidden className={`size-2 ${SQUARE_TONES[option.tone]}`} />
+          )}
+          {option.label}
+        </label>
+      ))}
+    </fieldset>
   );
 }
 
 export function FormError({ error }: { error?: string }) {
   if (!error) return null;
-  return <p className="text-sm text-red-600">{error}</p>;
+  return <p className="font-serif text-[15px] text-cost">{error}</p>;
 }
 
 export function SubmitButton({
   pending,
   label = "Salvar",
   pendingLabel = "Salvando...",
-  className = `mt-2 ${primaryButtonClass}`,
+  className = `${primaryButtonClass} h-11`,
 }: {
   pending?: boolean;
   label?: string;

@@ -1,18 +1,16 @@
 "use client";
 
-import { useFormAction } from "@/components/form";
+import { FormError, SubmitButton, useFormAction } from "@/components/form";
+import { inputClass, labelClass } from "@/components/styles";
 import { login } from "./actions";
 
 export function LoginForm() {
   const [state, formProps, pending] = useFormAction(login);
 
   return (
-    <form {...formProps} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <label
-          htmlFor="email"
-          className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-        >
+    <form {...formProps} className="flex flex-col gap-5">
+      <div className="flex flex-col gap-2">
+        <label htmlFor="email" className={labelClass}>
           E-mail
         </label>
         <input
@@ -21,14 +19,11 @@ export function LoginForm() {
           type="email"
           required
           defaultValue={state?.email}
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className={inputClass}
         />
       </div>
-      <div className="flex flex-col gap-1">
-        <label
-          htmlFor="password"
-          className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-        >
+      <div className="flex flex-col gap-2">
+        <label htmlFor="password" className={labelClass}>
           Senha
         </label>
         <input
@@ -36,19 +31,11 @@ export function LoginForm() {
           name="password"
           type="password"
           required
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className={inputClass}
         />
       </div>
-      {state?.error && (
-        <p className="text-sm text-red-600">{state.error}</p>
-      )}
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-2 rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-900"
-      >
-        {pending ? "Entrando..." : "Entrar"}
-      </button>
+      <FormError error={state?.error} />
+      <SubmitButton pending={pending} label="Entrar" pendingLabel="Entrando..." />
     </form>
   );
 }

@@ -4,8 +4,15 @@ import { getKid } from "@/lib/kids";
 import { listSales } from "@/lib/sales";
 import { listKidEntries } from "@/lib/entries";
 import { formatBRL, formatDate } from "@/lib/format";
-import { tableHeadCell, tableHeadRow, tableRow } from "@/components/styles";
-import { Page } from "@/components/page";
+import {
+  tableCell,
+  tableClass,
+  tableHeadCell,
+  tableHeadRow,
+  tableRow,
+  tableWrapClass,
+} from "@/components/styles";
+import { EmptyState, Eyebrow, Page } from "@/components/page";
 import { DeleteButton } from "@/components/delete-button";
 import { SalesTable } from "@/app/sales/sales-table";
 import { KidForm } from "../kid-form";
@@ -30,21 +37,21 @@ export default async function KidPage({ params }: PageProps<"/kids/[id]">) {
       action={{ href: `/sales/new?kidId=${id}`, label: "Nova venda" }}
     >
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">Vendas</h2>
+        <Eyebrow as="h2">Vendas</Eyebrow>
         {kidSales.length === 0 ? (
-          <p className="text-sm text-zinc-500">Nenhuma venda para este bandeirante.</p>
+          <EmptyState>Nenhuma venda para este bandeirante.</EmptyState>
         ) : (
           <SalesTable rows={kidSales} showKid={false} />
         )}
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">Contribuições</h2>
+        <Eyebrow as="h2">Contribuições</Eyebrow>
         {kidEntries.length === 0 ? (
-          <p className="text-sm text-zinc-500">Nenhuma contribuição registrada.</p>
+          <EmptyState>Nenhuma contribuição registrada.</EmptyState>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+          <div className={tableWrapClass}>
+            <table className={tableClass}>
               <thead>
                 <tr className={tableHeadRow}>
                   <th className={tableHeadCell}>Data</th>
@@ -56,12 +63,12 @@ export default async function KidPage({ params }: PageProps<"/kids/[id]">) {
               <tbody>
                 {kidEntries.map((entry) => (
                   <tr key={entry.id} className={tableRow}>
-                    <td className="py-2 pr-4">{formatDate(entry.entryDate)}</td>
-                    <td className="py-2 pr-4">{entry.categoryName}</td>
-                    <td className="py-2 pr-4 whitespace-nowrap text-emerald-600">
+                    <td className={tableCell}>{formatDate(entry.entryDate)}</td>
+                    <td className={tableCell}>{entry.categoryName}</td>
+                    <td className={`${tableCell} whitespace-nowrap text-income`}>
                       {formatBRL(Number(entry.amount))}
                     </td>
-                    <td className="py-2 pr-4 text-zinc-500">{entry.note ?? ""}</td>
+                    <td className={`${tableCell} text-muted`}>{entry.note ?? ""}</td>
                   </tr>
                 ))}
               </tbody>
@@ -71,7 +78,7 @@ export default async function KidPage({ params }: PageProps<"/kids/[id]">) {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">Dados</h2>
+        <Eyebrow as="h2">Dados</Eyebrow>
         <KidForm action={updateKid.bind(null, id)} kid={kid} />
       </section>
 

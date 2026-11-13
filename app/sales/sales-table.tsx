@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { formatBRL, formatDate } from "@/lib/format";
-import { linkClass, tableHeadCell, tableHeadRow, tableRow } from "@/components/styles";
+import {
+  linkClass,
+  tableCell,
+  tableClass,
+  tableHeadCell,
+  tableHeadRow,
+  tableRow,
+  tableWrapClass,
+} from "@/components/styles";
 import type { listSales } from "@/lib/sales";
 
 type SaleRow = Awaited<ReturnType<typeof listSales>>[number];
@@ -13,8 +21,8 @@ export function SalesTable({
   showKid?: boolean;
 }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm">
+    <div className={tableWrapClass}>
+      <table className={tableClass}>
         <thead>
           <tr className={tableHeadRow}>
             <th className={tableHeadCell}>Data</th>
@@ -22,7 +30,7 @@ export function SalesTable({
             <th className={tableHeadCell}>Item</th>
             <th className={tableHeadCell}>Total</th>
             <th className={tableHeadCell}>Parcelas pagas</th>
-            <th className="py-2">
+            <th className={tableHeadCell}>
               <span className="sr-only">Ações</span>
             </th>
           </tr>
@@ -32,25 +40,25 @@ export function SalesTable({
             const settled = sale.paidCount === sale.installmentCount;
             return (
               <tr key={sale.id} className={tableRow}>
-                <td className="py-2 pr-4">{formatDate(sale.saleDate)}</td>
-                {showKid && <td className="py-2 pr-4">{sale.kidName}</td>}
-                <td className="py-2 pr-4">
+                <td className={tableCell}>{formatDate(sale.saleDate)}</td>
+                {showKid && <td className={tableCell}>{sale.kidName}</td>}
+                <td className={tableCell}>
                   {sale.itemName}
                   {sale.quantity > 1 && (
-                    <span className="text-zinc-500"> × {sale.quantity}</span>
+                    <span className="text-muted"> × {sale.quantity}</span>
                   )}
                 </td>
-                <td className="py-2 pr-4 whitespace-nowrap">
+                <td className={`${tableCell} whitespace-nowrap`}>
                   {formatBRL(Number(sale.total))}
                 </td>
                 <td
-                  className={`py-2 pr-4 whitespace-nowrap ${
-                    settled ? "text-emerald-600" : "text-amber-600"
+                  className={`${tableCell} whitespace-nowrap ${
+                    settled ? "text-income" : "text-pending"
                   }`}
                 >
                   {sale.paidCount}/{sale.installmentCount}
                 </td>
-                <td className="py-2 text-right">
+                <td className={`${tableCell} text-right`}>
                   <Link href={`/sales/${sale.id}`} className={linkClass}>
                     Ver
                   </Link>

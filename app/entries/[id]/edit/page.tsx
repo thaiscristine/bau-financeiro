@@ -3,7 +3,7 @@ import { requireSession } from "@/lib/dal";
 import { getEntry } from "@/lib/entries";
 import { listCategories } from "@/lib/categories";
 import { listKids } from "@/lib/kids";
-import { Nav } from "@/components/nav";
+import { Page } from "@/components/page";
 import { EntryForm } from "../../entry-form";
 import { updateEntry, deleteEntry } from "../../actions";
 import { DeleteButton } from "@/components/delete-button";
@@ -28,10 +28,8 @@ export default async function EditEntryPage({
   const { entry } = row;
 
   return (
-    <>
-      <Nav />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-8">
-        <h1 className="text-2xl font-semibold">Editar lançamento</h1>
+    <Page title="Editar lançamento">
+      <div className="flex max-w-xl flex-col gap-6">
         <EntryForm
           action={updateEntry.bind(null, id)}
           categories={categories}
@@ -43,7 +41,7 @@ export default async function EditEntryPage({
           label="Excluir lançamento"
           confirmMessage="Excluir este lançamento? Não dá para desfazer."
         />
-      </main>
-    </>
+      </div>
+    </Page>
   );
 }

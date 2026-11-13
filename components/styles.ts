@@ -1,15 +1,43 @@
 export const inputClass =
-  "rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900";
+  "h-10 rounded-[4px] border border-line bg-surface px-3 text-[15px] text-ink outline-none transition-colors placeholder:text-muted/70 hover:border-muted focus:border-ink focus:ring-1 focus:ring-ink";
 
 export const primaryButtonClass =
-  "rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-900";
+  "inline-flex h-10 items-center justify-center rounded-[4px] bg-ink px-4 text-[15px] whitespace-nowrap text-canvas transition-opacity hover:opacity-85 disabled:opacity-50";
 
 export const secondaryButtonClass =
-  "rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-50 disabled:opacity-60 dark:border-zinc-700 dark:hover:bg-zinc-900";
+  "inline-flex h-10 items-center justify-center rounded-[4px] border border-ink px-4 text-[15px] whitespace-nowrap text-ink transition-colors hover:bg-ink hover:text-canvas disabled:opacity-50";
 
-export const tableHeadCell = "py-2 pr-4 font-medium text-zinc-500";
-export const tableHeadRow = "border-b border-zinc-200 dark:border-zinc-800";
-export const tableRow = "border-b border-zinc-100 dark:border-zinc-900";
+export const dangerButtonClass =
+  "inline-flex h-10 items-center justify-center rounded-[4px] border border-cost px-4 text-[15px] text-cost transition-colors hover:bg-cost hover:text-canvas disabled:opacity-50";
+
+export const cardClass = "border border-line bg-surface";
+
+// A form laid out as a white card
+export const formCardClass = `flex max-w-xl flex-col gap-6 p-6 sm:p-8 ${cardClass}`;
+
+// A group of fields nested inside a form card
+export const panelClass = "flex flex-col gap-4 border border-line bg-canvas p-4";
+
+export const labelClass =
+  "font-mono text-xs tracking-[0.05em] text-muted uppercase";
+
+export const hintClass = "text-[13px] leading-snug text-muted";
+
+export const eyebrowClass =
+  "flex items-center gap-2 font-mono text-xs tracking-[0.05em] text-ink uppercase";
+
+export const checkboxClass = "size-4 accent-ink";
+
+// relative: the sr-only "Ações" headers are absolutely positioned and would
+// otherwise escape the scroll container and widen the whole page
+export const tableWrapClass = `relative overflow-x-auto ${cardClass}`;
+export const tableClass = "w-full text-left text-[15px] tabular-nums";
+export const tableHeadCell =
+  "px-5 py-3 font-mono text-xs font-normal tracking-[0.05em] whitespace-nowrap text-muted uppercase";
+export const tableHeadRow = "border-b border-line bg-sunken/60";
+export const tableRow =
+  "border-b border-line-soft transition-colors last:border-b-0 hover:bg-canvas";
+export const tableCell = "px-5 py-3.5";
 
 export const linkClass =
-  "text-zinc-500 underline-offset-4 hover:text-zinc-900 hover:underline dark:hover:text-zinc-100";
+  "text-muted underline-offset-4 transition-colors hover:text-ink hover:underline";

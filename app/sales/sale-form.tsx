@@ -6,7 +6,12 @@ import { formatBRL, formatDate, todayISO } from "@/lib/format";
 import { planInstallments, toCents } from "@/lib/installments";
 import { NEW_KID } from "@/lib/validation";
 import { Field, FormError, SubmitButton, useFormAction } from "@/components/form";
-import { inputClass } from "@/components/styles";
+import {
+  formCardClass,
+  hintClass,
+  inputClass,
+  panelClass,
+} from "@/components/styles";
 
 type KidOption = { id: number; name: string };
 type ItemOption = {
@@ -56,7 +61,7 @@ export function SaleForm({
       : [];
 
   return (
-    <form {...formProps} className="flex max-w-xl flex-col gap-4">
+    <form {...formProps} className={formCardClass}>
       <Field id="kidId" label="Bandeirante">
         <select
           id="kidId"
@@ -76,7 +81,7 @@ export function SaleForm({
       </Field>
 
       {kidChoice === NEW_KID && (
-        <div className="grid grid-cols-1 gap-4 rounded-xl border border-zinc-200 p-4 sm:grid-cols-2 dark:border-zinc-800">
+        <div className={`${panelClass} grid grid-cols-1 sm:grid-cols-2`}>
           <Field id="newKidName" label="Nome do novo bandeirante">
             <input id="newKidName" name="newKidName" required className={inputClass} />
           </Field>
@@ -88,7 +93,7 @@ export function SaleForm({
               className={inputClass}
             />
           </Field>
-          <p className="text-xs text-zinc-500 sm:col-span-2">
+          <p className={`${hintClass} sm:col-span-2`}>
             O bandeirante é cadastrado junto com a venda.
           </p>
         </div>
@@ -193,13 +198,15 @@ export function SaleForm({
       </div>
 
       {plan.length > 0 && (
-        <div className="rounded-xl border border-zinc-200 p-4 text-sm dark:border-zinc-800">
-          <p className="flex justify-between font-medium">
-            <span>Total</span>
-            <span>{formatBRL(totalCents / 100)}</span>
+        <div className={`${panelClass} gap-3 tabular-nums`}>
+          <p className="flex items-baseline justify-between">
+            <span className="font-mono text-xs tracking-[0.05em] uppercase">Total</span>
+            <span className="text-2xl tracking-[-0.02em]">
+              {formatBRL(totalCents / 100)}
+            </span>
           </p>
           {plan.length > 1 && (
-            <ul className="mt-2 flex flex-col gap-1 text-zinc-500">
+            <ul className="flex flex-col gap-1 border-t border-line pt-3 text-sm text-muted">
               {plan.map((installment) => (
                 <li key={installment.number} className="flex justify-between">
                   <span>
