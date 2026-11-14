@@ -20,6 +20,17 @@ export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
   coordenacao: "Coordenadores/Diretoria",
 };
 
+// The CSS background of each age group's swatch. GAs are striped burgundy and
+// white: they are moving on from Guias to the adult coordination.
+export const AGE_GROUP_COLORS: Record<AgeGroup, string> = {
+  ciranda: "var(--ramo-ciranda)",
+  b1: "var(--ramo-b1)",
+  b2: "var(--ramo-b2)",
+  guias: "var(--ramo-guias)",
+  gas: "repeating-linear-gradient(135deg, var(--ramo-guias) 0 2px, var(--ramo-white) 2px 4px)",
+  coordenacao: "var(--ramo-coordenacao)",
+};
+
 // Everyone but the coordination pays the contribuição mensal
 export const PAYING_AGE_GROUPS: readonly AgeGroup[] = AGE_GROUPS.filter(
   (group) => group !== "coordenacao"
