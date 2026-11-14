@@ -10,6 +10,7 @@ import {
   hintClass,
   inputClass,
 } from "@/components/styles";
+import { RestockCostFields } from "./restock-cost-fields";
 
 type ItemValues = {
   name: string;
@@ -21,10 +22,13 @@ type ItemValues = {
 export function ItemForm({
   action,
   categories,
+  costCategories = [],
   item,
 }: {
   action: (state: ItemFormState, formData: FormData) => Promise<ItemFormState>;
   categories: Category[];
+  // Only needed when creating, for what was paid for the initial stock
+  costCategories?: Category[];
   item?: ItemValues;
 }) {
   const [state, formProps, pending] = useFormAction(action);
@@ -59,7 +63,7 @@ export function ItemForm({
         </select>
       </Field>
 
-      <Field id="price" label="Preço (R$)">
+      <Field id="price" label="Preço de venda (R$)">
         <input
           id="price"
           name="price"
@@ -90,17 +94,23 @@ export function ItemForm({
       </label>
 
       {!item && tracksStock && (
-        <Field id="initialStock" label="Quantidade inicial em estoque">
-          <input
-            id="initialStock"
-            name="initialStock"
-            type="number"
-            step="1"
-            min="0"
-            defaultValue={0}
-            className={inputClass}
+        <>
+          <Field id="initialStock" label="Quantidade inicial em estoque">
+            <input
+              id="initialStock"
+              name="initialStock"
+              type="number"
+              step="1"
+              min="0"
+              defaultValue={0}
+              className={inputClass}
+            />
+          </Field>
+          <RestockCostFields
+            categories={costCategories}
+            costLabel="Valor da mercadoria (R$)"
           />
-        </Field>
+        </>
       )}
 
       <FormError error={state?.error} />
