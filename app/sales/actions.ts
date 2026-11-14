@@ -24,7 +24,7 @@ import { requireSession } from "@/lib/dal";
 import { fromCents, planInstallments, toCents } from "@/lib/installments";
 
 export type SaleFormState = { error: string } | undefined;
-export type PaymentFormState = { error: string } | undefined;
+export type PaymentFormState = { error?: string; paid?: boolean } | undefined;
 
 type Outcome<T> = { error: string } | T;
 
@@ -275,6 +275,7 @@ export async function payInstallment(
 
   revalidateSales();
   revalidatePath(`/sales/${outcome.saleId}`);
+  return { paid: true };
 }
 
 // Marks an installment as unpaid again by removing the income entry it created

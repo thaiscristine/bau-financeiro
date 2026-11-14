@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Source_Serif_4 } from "next/font/google";
 import { cookies } from "next/headers";
 import { parseTheme, THEME_COOKIE } from "@/lib/theme";
+import { ConfettiProvider } from "@/components/confetti";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,7 +36,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       {/* Extensions like Grammarly add attributes to <body> before React loads */}
       <body suppressHydrationWarning className="flex min-h-full flex-col font-sans">
-        {children}
+        <ConfettiProvider>{children}</ConfettiProvider>
       </body>
     </html>
   );

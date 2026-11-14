@@ -13,6 +13,7 @@ import {
   useFormAction,
 } from "@/components/form";
 import { useFormDialog } from "@/components/form-dialog";
+import { useCelebrate } from "@/components/confetti";
 import { formCardClass, hintClass, inputClass, modalFormClass } from "@/components/styles";
 
 export function EntryForm({
@@ -26,7 +27,15 @@ export function EntryForm({
   kids: { id: number; name: string }[];
   entry?: Entry;
 }) {
-  const [state, formProps, pending] = useFormAction(action);
+  // Money coming in is good news for the group, so a new income gets confetti
+  const celebrate = useCelebrate();
+  const [state, formProps, pending] = useFormAction(
+    async (prevState: EntryFormState, formData: FormData) => {
+      const next = await action(prevState, formData);
+      if (next?.savedType === "income") celebrate();
+      return next;
+    }
+  );
   const inDialog = useFormDialog(state?.saved);
   const [type, setType] = useState(entry?.type ?? "income");
 
