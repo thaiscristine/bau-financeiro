@@ -51,7 +51,39 @@ body {
   color: var(--ink);
 }
 
+@layer components {
+  /* A drop-down in the main menu: a popover under the button that opens it */
+  .nav-menu {
+    inset: auto;
+    margin: 0;
+    height: auto;
+    min-inline-size: 11rem;
+  }
+
+  @supports (position-area: block-end) {
+    .nav-menu {
+      position: absolute;
+      position-area: block-end span-inline-end;
+      position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+      margin-block-start: 0.25rem;
+    }
+  }
+
+  /* The menu's script places it under its button instead */
+  @supports not (position-area: block-end) {
+    .nav-menu {
+      position: fixed;
+    }
+  }
+}
+
 @layer base {
+  /* Tailwind leaves buttons with the arrow; show they can be clicked */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
   /* Links to a section of the same page (like the help topics) glide there.
      Only on pages that ask for it, so changing pages still starts at the top
      right away. */
