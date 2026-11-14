@@ -1,59 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import type { UserFormState } from "./actions";
 import { Field, FormError, SubmitButton, useFormAction } from "@/components/form";
-import { Modal, openModal } from "@/components/modal";
-import { inputClass, primaryButtonClass } from "@/components/styles";
+import { useFormDialog } from "@/components/form-dialog";
+import { inputClass, modalFormClass } from "@/components/styles";
 import { PASSWORD_MAX_BYTES, PASSWORD_MIN_LENGTH } from "@/lib/validation";
 
 type UserAction = (state: UserFormState, formData: FormData) => Promise<UserFormState>;
 
-export function NewUserDialog({ action }: { action: UserAction }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  // A new key on every close gives the next opening an empty form, without
-  // what was typed or an old error
-  const [formKey, setFormKey] = useState(0);
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => openModal(dialogRef.current)}
-        className={primaryButtonClass}
-      >
-        Novo usuário
-      </button>
-      <Modal
-        ref={dialogRef}
-        title="Novo usuário"
-        onClose={() => setFormKey((key) => key + 1)}
-      >
-        <NewUserForm
-          key={formKey}
-          action={action}
-          onSaved={() => dialogRef.current?.close()}
-        />
-      </Modal>
-    </>
-  );
-}
-
-function NewUserForm({
-  action,
-  onSaved,
-}: {
-  action: UserAction;
-  onSaved: () => void;
-}) {
+// Opened in a FormDialog, which it closes once the user is added
+export function NewUserForm({ action }: { action: UserAction }) {
   const [state, formProps, pending] = useFormAction(action);
-
-  useEffect(() => {
-    if (state?.saved) onSaved();
-  }, [state?.saved, onSaved]);
+  useFormDialog(state?.saved);
 
   return (
-    <form {...formProps} className="flex flex-col gap-6">
+    <form {...formProps} className={modalFormClass}>
       <Field id="user-name" label="Nome">
         <input id="user-name" name="name" required data-autofocus className={inputClass} />
       </Field>
