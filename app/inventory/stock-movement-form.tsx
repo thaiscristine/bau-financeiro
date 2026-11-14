@@ -11,12 +11,8 @@ import {
   SubmitButton,
   useFormAction,
 } from "@/components/form";
-import {
-  formCardClass,
-  hintClass,
-  inputClass,
-  panelClass,
-} from "@/components/styles";
+import { formCardClass, inputClass } from "@/components/styles";
+import { RestockCostFields } from "./restock-cost-fields";
 
 export function StockMovementForm({
   action,
@@ -41,10 +37,6 @@ export function StockMovementForm({
   useEffect(() => {
     if (state?.saved) formRef.current?.reset();
   }, [state?.saved]);
-
-  const defaultCostCategory =
-    categories.find((category) => category.name === "Fornecedores") ??
-    categories[0];
 
   return (
     <form ref={formRef} {...formProps} className={formCardClass}>
@@ -86,43 +78,7 @@ export function StockMovementForm({
         </Field>
       </div>
 
-      {reason === "restock" && (
-        <div className={panelClass}>
-          <p className={hintClass}>
-            Se a organização pagou por estes itens, informe o valor: a saída é
-            registrada nas transações. Deixe em branco para itens doados.
-          </p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field id="cost" label="Valor pago (R$)">
-              <input
-                id="cost"
-                name="cost"
-                type="number"
-                step="0.01"
-                min="0.01"
-                className={inputClass}
-              />
-            </Field>
-            <Field id="supplier" label="Fornecedor">
-              <input id="supplier" name="supplier" className={inputClass} />
-            </Field>
-          </div>
-          <Field id="costCategoryId" label="Categoria da saída">
-            <select
-              id="costCategoryId"
-              name="costCategoryId"
-              defaultValue={defaultCostCategory?.id}
-              className={inputClass}
-            >
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
-      )}
+      {reason === "restock" && <RestockCostFields categories={categories} />}
 
       <Field id="movementNote" label="Nota (opcional)">
         <input id="movementNote" name="note" className={inputClass} />

@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, ne, TransactionRollbackError } from "drizzle-orm";
+import type { z } from "zod";
 import { db } from "@/db";
 import { categories, entries, items, sales, stockMovements } from "@/db/schema";
 import {
@@ -31,6 +32,69 @@ function parseItemForm(formData: FormData) {
   } as const;
 }
 
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+// Inserts a stock movement and, when something was paid for it, the matching
+// cost entry
+async function recordStockMovement(
+  tx: Transaction,
+  {
+    itemId,
+    itemName,
+    userId,
+    reason,
+    quantity,
+    movementDate,
+    note,
+    cost,
+    supplier,
+    costCategoryId,
+  }: z.infer<typeof stockMovementFormSchema> & {
+    itemId: number;
+    itemName: string;
+    userId: number;
+  }
+): Promise<{ error?: string }> {
+  let entryId: number | null = null;
+  if (cost !== undefined && costCategoryId !== undefined) {
+    const [category] = await tx
+      .select({
+        requiresKid: categories.requiresKid,
+        allowsManualEntry: categories.allowsManualEntry,
+      })
+      .from(categories)
+      .where(eq(categories.id, costCategoryId));
+    if (!category?.allowsManualEntry || category.requiresKid) {
+      return { error: "Escolha outra categoria para a saída." };
+    }
+
+    const [entry] = await tx
+      .insert(entries)
+      .values({
+        type: "cost",
+        amount: cost.toFixed(2),
+        categoryId: costCategoryId,
+        counterparty: supplier ? supplier : null,
+        entryDate: movementDate,
+        note: `Reposição: ${quantity} × ${itemName}`,
+        createdById: userId,
+      })
+      .returning({ id: entries.id });
+    entryId = entry.id;
+  }
+
+  await tx.insert(stockMovements).values({
+    itemId,
+    reason,
+    quantity,
+    movementDate,
+    entryId,
+    note: note ? note : null,
+    createdById: userId,
+  });
+  return {};
+}
+
 function revalidateInventory() {
   revalidatePath("/inventory");
   revalidatePath("/categories");
@@ -51,24 +115,53 @@ export async function createItem(
     return { error: "A quantidade inicial deve ser um número inteiro." };
   }
 
-  await db.transaction(async (tx) => {
-    const [item] = await tx
-      .insert(items)
-      .values(result.values)
-      .returning({ id: items.id });
-
-    if (result.values.tracksStock && initialStock > 0) {
-      await tx.insert(stockMovements).values({
-        itemId: item.id,
-        quantity: initialStock,
+  // The initial stock is a restock, so what was paid for it is validated and
+  // recorded the same way
+  const hasInitialStock = result.values.tracksStock && initialStock > 0;
+  if (!hasInitialStock && formData.get("cost")) {
+    return { error: "Informe a quantidade inicial que foi paga." };
+  }
+  const restock = hasInitialStock
+    ? parseForm(stockMovementFormSchema, {
         reason: "restock",
-        note: "Estoque inicial",
+        quantity: initialStock,
         movementDate: todayISO(),
-        createdById: Number(session.user.id),
-      });
-    }
-  });
+        note: "Estoque inicial",
+        cost: formData.get("cost") ?? undefined,
+        supplier: formData.get("supplier") ?? undefined,
+        costCategoryId: formData.get("costCategoryId") ?? undefined,
+      })
+    : undefined;
+  if (restock && !restock.ok) return { error: restock.error };
 
+  let error: string | undefined;
+  await db
+    .transaction(async (tx) => {
+      const [item] = await tx
+        .insert(items)
+        .values(result.values)
+        .returning({ id: items.id });
+
+      if (restock) {
+        ({ error } = await recordStockMovement(tx, {
+          ...restock.data,
+          itemId: item.id,
+          itemName: result.values.name,
+          userId: Number(session.user.id),
+        }));
+        // Drops the new item too
+        if (error) tx.rollback();
+      }
+    })
+    .catch((reason) => {
+      if (!(reason instanceof TransactionRollbackError)) throw reason;
+    });
+  if (error) return { error };
+
+  if (restock?.data.cost !== undefined) {
+    revalidatePath("/entries");
+    revalidatePath("/dashboard");
+  }
   revalidateInventory();
   redirect("/inventory");
 }
@@ -132,9 +225,6 @@ export async function addStockMovement(
   });
   if (!result.ok) return { error: result.error };
 
-  const { reason, quantity, movementDate, note, cost, supplier, costCategoryId } =
-    result.data;
-
   const outcome = await db.transaction(async (tx) => {
     const [item] = await tx
       .select({ name: items.name })
@@ -142,44 +232,12 @@ export async function addStockMovement(
       .where(eq(items.id, itemId));
     if (!item) return { error: "Este item não existe mais." };
 
-    let entryId: number | null = null;
-    if (cost !== undefined && costCategoryId !== undefined) {
-      const [category] = await tx
-        .select({
-          requiresKid: categories.requiresKid,
-          allowsManualEntry: categories.allowsManualEntry,
-        })
-        .from(categories)
-        .where(eq(categories.id, costCategoryId));
-      if (!category?.allowsManualEntry || category.requiresKid) {
-        return { error: "Escolha outra categoria para a saída." };
-      }
-
-      const [entry] = await tx
-        .insert(entries)
-        .values({
-          type: "cost",
-          amount: cost.toFixed(2),
-          categoryId: costCategoryId,
-          counterparty: supplier ? supplier : null,
-          entryDate: movementDate,
-          note: `Reposição: ${quantity} × ${item.name}`,
-          createdById: userId,
-        })
-        .returning({ id: entries.id });
-      entryId = entry.id;
-    }
-
-    await tx.insert(stockMovements).values({
+    return recordStockMovement(tx, {
+      ...result.data,
       itemId,
-      reason,
-      quantity,
-      movementDate,
-      entryId,
-      note: note ? note : null,
-      createdById: userId,
+      itemName: item.name,
+      userId,
     });
-    return {};
   });
   if (outcome.error) return { error: outcome.error };
 

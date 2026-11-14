@@ -10,7 +10,13 @@ export default async function NewItemPage() {
 
   return (
     <Page title="Novo item">
-      <ItemForm action={createItem} categories={categories} />
+      <ItemForm
+        action={createItem}
+        categories={categories}
+        costCategories={categories.filter(
+          (category) => category.allowsManualEntry && !category.requiresKid
+        )}
+      />
     </Page>
   );
 }
