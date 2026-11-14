@@ -7,15 +7,9 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { parseForm, userFormSchema } from "@/lib/validation";
 import { requireSession } from "@/lib/dal";
+import { pgErrorCode, PG_UNIQUE_VIOLATION } from "@/lib/db-errors";
 
 export type UserFormState = { error?: string; saved?: number } | undefined;
-
-const PG_UNIQUE_VIOLATION = "23505";
-
-function pgErrorCode(error: unknown) {
-  const cause = (error as { cause?: { code?: string } })?.cause;
-  return cause?.code ?? (error as { code?: string })?.code;
-}
 
 export async function createUser(
   _prevState: UserFormState,

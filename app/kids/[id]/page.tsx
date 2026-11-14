@@ -12,7 +12,8 @@ import {
   tableRow,
   tableWrapClass,
 } from "@/components/styles";
-import { EmptyState, Eyebrow, Page } from "@/components/page";
+import { EmptyState, Page } from "@/components/page";
+import { Eyebrow } from "@/components/eyebrow";
 import { DeleteButton } from "@/components/delete-button";
 import { SalesTable } from "@/app/sales/sales-table";
 import { KidForm } from "../kid-form";
