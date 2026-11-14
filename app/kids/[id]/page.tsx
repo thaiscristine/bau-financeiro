@@ -3,29 +3,30 @@ import { requireSession } from "@/lib/dal";
 import { getKid } from "@/lib/kids";
 import { listSales } from "@/lib/sales";
 import { listKidEntries } from "@/lib/entries";
-import { formatBRL, formatDate } from "@/lib/format";
-import {
-  tableCell,
-  tableClass,
-  tableHeadCell,
-  tableHeadRow,
-  tableRow,
-  tableWrapClass,
-} from "@/components/styles";
+import { ensureContributions } from "@/lib/contributions";
+import { todayISO } from "@/lib/format";
 import { EmptyState, Page } from "@/components/page";
 import { Eyebrow } from "@/components/eyebrow";
 import { DeleteButton } from "@/components/delete-button";
 import { SalesTable } from "@/app/sales/sales-table";
 import { NewSaleDialog } from "@/app/sales/new-sale-dialog";
 import { KidForm } from "../kid-form";
+import { KidContributions } from "./contributions";
 import { deleteKid, updateKid } from "../actions";
 
-export default async function KidPage({ params }: PageProps<"/kids/[id]">) {
+export default async function KidPage({
+  params,
+  searchParams,
+}: PageProps<"/kids/[id]">) {
   await requireSession();
 
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id <= 0) notFound();
+  const yearParam = Number((await searchParams).year);
+  const year = Number.isInteger(yearParam) ? yearParam : null;
 
+  const today = todayISO();
+  await ensureContributions(today);
   const [kid, kidSales, kidEntries] = await Promise.all([
     getKid(id),
     listSales({ kidId: id }),
@@ -35,51 +36,24 @@ export default async function KidPage({ params }: PageProps<"/kids/[id]">) {
 
   return (
     <Page title={kid.name} aside={<NewSaleDialog defaultKidId={id} />}>
-      <section className="flex flex-col gap-3">
-        <Eyebrow as="h2">Vendas</Eyebrow>
-        {kidSales.length === 0 ? (
-          <EmptyState>Nenhuma venda para este bandeirante.</EmptyState>
-        ) : (
-          <SalesTable rows={kidSales} showKid={false} />
-        )}
-      </section>
+      {/* The kid's details first, with their sales beside them on wide screens */}
+      <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-8">
+        <section className="flex min-w-0 flex-col gap-3">
+          <Eyebrow as="h2">Dados</Eyebrow>
+          <KidForm action={updateKid.bind(null, id)} kid={kid} />
+        </section>
 
-      <section className="flex flex-col gap-3">
-        <Eyebrow as="h2">Contribuições</Eyebrow>
-        {kidEntries.length === 0 ? (
-          <EmptyState>Nenhuma contribuição registrada.</EmptyState>
-        ) : (
-          <div className={tableWrapClass}>
-            <table className={tableClass}>
-              <thead>
-                <tr className={tableHeadRow}>
-                  <th className={tableHeadCell}>Data</th>
-                  <th className={tableHeadCell}>Categoria</th>
-                  <th className={tableHeadCell}>Valor</th>
-                  <th className={tableHeadCell}>Nota</th>
-                </tr>
-              </thead>
-              <tbody>
-                {kidEntries.map((entry) => (
-                  <tr key={entry.id} className={tableRow}>
-                    <td className={tableCell}>{formatDate(entry.entryDate)}</td>
-                    <td className={tableCell}>{entry.categoryName}</td>
-                    <td className={`${tableCell} whitespace-nowrap text-income`}>
-                      {formatBRL(Number(entry.amount))}
-                    </td>
-                    <td className={`${tableCell} text-muted`}>{entry.note ?? ""}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+        <section className="flex min-w-0 flex-col gap-3">
+          <Eyebrow as="h2">Vendas</Eyebrow>
+          {kidSales.length === 0 ? (
+            <EmptyState>Nenhuma venda para este bandeirante.</EmptyState>
+          ) : (
+            <SalesTable rows={kidSales} showKid={false} />
+          )}
+        </section>
+      </div>
 
-      <section className="flex flex-col gap-3">
-        <Eyebrow as="h2">Dados</Eyebrow>
-        <KidForm action={updateKid.bind(null, id)} kid={kid} />
-      </section>
+      <KidContributions kid={kid} year={year} today={today} />
 
       {kidSales.length === 0 && kidEntries.length === 0 && (
         <DeleteButton

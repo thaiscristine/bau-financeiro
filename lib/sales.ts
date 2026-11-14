@@ -1,7 +1,8 @@
 import "server-only";
-import { and, asc, desc, eq, isNull, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNull, lt, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { entries, installments, items, kids, sales } from "@/db/schema";
+import type { DateRange } from "@/lib/dashboard-period";
 
 // Correlated subqueries spell out the outer column; see lib/inventory.ts
 const saleColumns = {
@@ -62,33 +63,19 @@ export async function listInstallments(saleId: number) {
     .orderBy(asc(installments.number));
 }
 
-// What is still to be received from unpaid installments, and how much of it is overdue
-export async function getReceivables(today: string) {
+function dueIn(range: DateRange) {
+  return and(gte(installments.dueDate, range.from), lte(installments.dueDate, range.to));
+}
+
+// What is still to be received from unpaid installments due in the range, and
+// how much of it is already overdue
+export async function getReceivables(today: string, range: DateRange) {
   const [row] = await db
     .select({
       pending: sql<string>`coalesce(sum(${installments.amount}), 0)`,
       overdue: sql<string>`coalesce(sum(${installments.amount}) filter (where ${lt(installments.dueDate, today)}), 0)`,
     })
     .from(installments)
-    .where(isNull(installments.entryId));
+    .where(and(isNull(installments.entryId), dueIn(range)));
   return { pending: Number(row.pending), overdue: Number(row.overdue) };
-}
-
-export async function listOverdueInstallments(today: string) {
-  return db
-    .select({
-      id: installments.id,
-      saleId: installments.saleId,
-      number: installments.number,
-      amount: installments.amount,
-      dueDate: installments.dueDate,
-      kidName: kids.name,
-      itemName: items.name,
-    })
-    .from(installments)
-    .innerJoin(sales, eq(sales.id, installments.saleId))
-    .innerJoin(kids, eq(kids.id, sales.kidId))
-    .innerJoin(items, eq(items.id, sales.itemId))
-    .where(and(isNull(installments.entryId), lt(installments.dueDate, today)))
-    .orderBy(asc(installments.dueDate), asc(kids.name));
 }

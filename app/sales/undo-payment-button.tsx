@@ -3,21 +3,25 @@
 import { SubmitButton } from "@/components/form";
 import { linkClass } from "@/components/styles";
 
-export function UndoPaymentButton({ action }: { action: () => Promise<void> }) {
+export function UndoPaymentButton({
+  action,
+  label = "Desfazer",
+  confirmMessage = "Desfazer este pagamento? A transação de entrada correspondente será excluída.",
+}: {
+  action: () => Promise<void>;
+  label?: string;
+  confirmMessage?: string;
+}) {
   return (
     <form
       action={action}
       onSubmit={(event) => {
-        if (
-          !window.confirm(
-            "Desfazer este pagamento? A transação de entrada correspondente será excluída."
-          )
-        ) {
+        if (!window.confirm(confirmMessage)) {
           event.preventDefault();
         }
       }}
     >
-      <SubmitButton label="Desfazer" pendingLabel="Desfazendo..." className={linkClass} />
+      <SubmitButton label={label} pendingLabel="Desfazendo..." className={linkClass} />
     </form>
   );
 }

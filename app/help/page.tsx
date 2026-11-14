@@ -63,8 +63,9 @@ export default async function HelpPage() {
               O Baú Financeiro é o caixa da organização. Todo dinheiro que entra
               ou sai vira uma <Term>transação</Term>, e o saldo é sempre a soma
               delas. Por isso, mesmo quando o registro começa em outra tela (uma
-              parcela paga na Lojinha, uma compra de mercadoria no Estoque), a
-              transação correspondente é criada sozinha.
+              parcela paga na Lojinha, uma contribuição paga na página do
+              bandeirante, uma compra de mercadoria no Estoque), a transação
+              correspondente é criada sozinha.
             </P>
             <ul className="flex flex-col gap-3 font-serif text-[17px] leading-relaxed">
               <Li>
@@ -87,6 +88,11 @@ export default async function HelpPage() {
                 <Term>Parcela</Term>: cada pagamento mensal de uma venda. A
                 venda pode ser paga de uma vez ou em até 24 parcelas.
               </Li>
+              <Li>
+                <Term>Contribuição mensal</Term>: o valor que cada bandeirante
+                da Ciranda, B1, B2, Guias e GAs paga por mês, de fevereiro a
+                novembro, menos julho.
+              </Li>
             </ul>
             <P>
               O menu no topo leva a todas as telas. No canto direito ficam a
@@ -106,9 +112,10 @@ export default async function HelpPage() {
               </li>
               <li>
                 Cadastre os{" "}
-                <ScreenLink href="/kids">Bandeirantes</ScreenLink>. Dá para
-                cadastrar também na hora da venda, mas com o cadastro feito antes
-                o telefone do responsável já aparece nos relatórios de cobrança.
+                <ScreenLink href="/kids">Bandeirantes</ScreenLink>, com o ramo e
+                o valor da contribuição mensal. Dá para cadastrar também na hora
+                da venda, mas com o cadastro feito antes o telefone do
+                responsável já aparece nos relatórios de cobrança.
               </li>
               <li>
                 Cadastre os itens do{" "}
@@ -131,27 +138,33 @@ export default async function HelpPage() {
 
           <Topic id="painel" screen="/dashboard">
             <P>
-              A primeira tela depois do login. Mostra o resumo de todo o
-              histórico:
+              A primeira tela depois do login. Mostra o resumo de um período,
+              que começa no mês atual. Escolha outro em <Ui>Mês passado</Ui>,{" "}
+              <Ui>Próximo mês</Ui> ou <Ui>Escolher datas</Ui>; as datas do
+              período aparecem ao lado. O endereço da página guarda o período,
+              então dá para salvar ou mandar o link.
             </P>
             <ul className="flex flex-col gap-3 font-serif text-[17px] leading-relaxed">
               <Li>
                 <Term>Entrou</Term>, <Term>Saiu</Term> e <Term>Saldo</Term>: o
-                total de entradas, de saídas e a diferença entre elas.
+                total de entradas e de saídas com data no período, e a diferença
+                entre elas.
               </Li>
               <Li>
-                <Term>A receber em parcelas</Term>: o que ainda falta receber
-                das vendas. <Term>Parcelas atrasadas</Term>: a parte disso que já
-                passou do vencimento.
+                <Term>A receber em parcelas</Term>: o que falta receber das
+                parcelas que vencem no período. <Term>Parcelas atrasadas</Term>:
+                a parte disso que já passou do vencimento.
               </Li>
               <Li>
-                Quando há parcelas atrasadas, aparece a lista delas com quem
-                deve, o item e o valor. Clique em <Ui>Ver</Ui> para abrir a venda
-                e registrar o pagamento.
+                <Term>Por origem</Term> soma o que entrou em cada categoria, com
+                o total ao lado de <Ui>Entrou</Ui>. As saídas não entram aqui.
               </Li>
               <Li>
-                <Term>Por origem</Term> soma o que entrou e saiu em cada
-                categoria, e <Term>Por mês</Term> mostra o saldo de cada mês.
+                <Term>Contribuições em aberto por ramo</Term>: quantos meses de
+                contribuição do período ainda não foram pagos em cada ramo, o
+                valor em aberto e quanto disso já está atrasado (o mês acabou).
+                Não mostra nomes; para saber quem deve, abra a página de cada
+                bandeirante ou gere um relatório.
               </Li>
             </ul>
           </Topic>
@@ -161,7 +174,7 @@ export default async function HelpPage() {
               A lista de tudo que entrou e saiu, da mais recente para a mais
               antiga.
             </P>
-            <Task title="Registrar uma doação, despesa ou contribuição">
+            <Task title="Registrar uma doação ou despesa">
               <Steps>
                 <li>
                   Clique em <Ui>Nova transação</Ui>.
@@ -175,9 +188,7 @@ export default async function HelpPage() {
                 </li>
                 <li>
                   Informe <Ui>Quem pagou</Ui> (entrada) ou{" "}
-                  <Ui>Fornecedor</Ui> (saída), se quiser. Em categorias que
-                  exigem bandeirante, como a contribuição mensal, escolha o{" "}
-                  <Ui>Bandeirante</Ui> no lugar.
+                  <Ui>Fornecedor</Ui> (saída), se quiser.
                 </li>
                 <li>
                   Clique em <Ui>Adicionar</Ui>.
@@ -189,10 +200,16 @@ export default async function HelpPage() {
               <Ui>Excluir</Ui> para apagá-la. A exclusão não tem volta.
             </P>
             <Note>
-              Transações criadas pela Lojinha (parcelas pagas) ou pelo Estoque
-              (compra de mercadoria) mostram <Ui>Ver venda</Ui> ou{" "}
-              <Ui>Ver estoque</Ui> no lugar de Editar. Corrija pela tela de
-              origem, assim a venda ou o estoque ficam certos também.
+              Transações criadas pela Lojinha (parcelas pagas), pelo Estoque
+              (compra de mercadoria) ou pela página do bandeirante
+              (contribuição mensal) mostram <Ui>Ver venda</Ui>,{" "}
+              <Ui>Ver estoque</Ui> ou <Ui>Ver bandeirante</Ui> no lugar de
+              Editar. Corrija pela tela de origem, assim a venda, o estoque ou
+              os meses de contribuição ficam certos também.
+            </Note>
+            <Note>
+              A contribuição mensal não aparece em Nova transação: ela é
+              registrada mês a mês na página de cada bandeirante.
             </Note>
             <Note>
               A categoria {SHOP_CATEGORY_NAME} não aparece em Nova transação:
@@ -319,8 +336,13 @@ export default async function HelpPage() {
             <Task title="Cadastrar um bandeirante">
               <Steps>
                 <li>
-                  Clique em <Ui>Novo bandeirante</Ui> e preencha o <Ui>Nome</Ui>.
+                  Clique em <Ui>Novo bandeirante</Ui> e preencha o <Ui>Nome</Ui>.{" "}
                   <Ui>Contato</Ui> e <Ui>Ramo</Ui> são opcionais.
+                </li>
+                <li>
+                  Na Ciranda, B1, B2, Guias e GAs, informe o valor da{" "}
+                  <Ui>Contribuição mensal (R$)</Ui>. Cada bandeirante tem o seu.
+                  Deixe vazio para quem não paga.
                 </li>
                 <li>
                   Para quem tem menos de 18 anos, marque{" "}
@@ -333,10 +355,42 @@ export default async function HelpPage() {
               </Steps>
             </Task>
             <P>
-              Clique em <Ui>Ver</Ui> para abrir a página do bandeirante, com
-              suas vendas, contribuições e dados de contato. O botão{" "}
-              <Ui>Nova venda</Ui> ali já vem com o bandeirante escolhido.
+              Clique em <Ui>Ver</Ui> para abrir a página do bandeirante. No topo
+              ficam os dados, ao lado das vendas; o botão <Ui>Nova venda</Ui> ali
+              já vem com o bandeirante escolhido. Embaixo fica a contribuição
+              mensal, mês a mês, com um seletor de ano.
             </P>
+            <P>
+              A contribuição é cobrada de fevereiro a novembro, menos julho, a
+              partir do mês em que o valor é informado. Mudar o valor
+              vale para os meses ainda não pagos daqui em diante; os já pagos
+              continuam como estavam.
+            </P>
+            <Task title="Registrar uma contribuição paga">
+              <Steps>
+                <li>
+                  Na página do bandeirante, encontre o mês em{" "}
+                  <Ui>Contribuição mensal</Ui>.
+                </li>
+                <li>
+                  Confira a data do pagamento e clique em{" "}
+                  <Ui>Marcar como paga</Ui>. A entrada é criada sozinha em
+                  Transações.
+                </li>
+              </Steps>
+            </Task>
+            <P>
+              Em casos excepcionais, use <Ui>Não cobrar</Ui> para dispensar um
+              mês ou <Ui>Cobrar</Ui> para cobrar um mês que normalmente não é
+              cobrado. Mudar o ramo para Coordenadores/Diretoria ou apagar o
+              valor deixa de cobrar os meses daqui em diante.
+            </P>
+            <Note>
+              Contribuições registradas antes da cobrança por mês aparecem em{" "}
+              <Ui>Contribuições sem mês</Ui>. Escolha o mês que cada uma pagou e
+              clique em <Ui>Ligar ao mês</Ui>. Se ligou ao mês errado, use{" "}
+              <Ui>Desligar</Ui>: a transação continua lá e volta para a lista.
+            </Note>
             <Note>
               Só dá para excluir um bandeirante que não tem vendas nem
               contribuições registradas.
@@ -400,9 +454,9 @@ export default async function HelpPage() {
             <P>Cada categoria tem duas opções:</P>
             <ul className="flex flex-col gap-3 font-serif text-[17px] leading-relaxed">
               <Li>
-                <Ui>Exige bandeirante</Ui>: a transação precisa dizer de qual
-                bandeirante veio o dinheiro, como na contribuição mensal. Assim
-                ela aparece na página do bandeirante.
+                <Ui>Exige bandeirante</Ui>: é a categoria da contribuição
+                mensal, paga mês a mês na página de cada bandeirante. Só uma
+                categoria pode ter esta opção.
               </Li>
               <Li>
                 <Ui>Só pela tela Lojinha</Ui>: a categoria some de Nova
@@ -458,8 +512,8 @@ export default async function HelpPage() {
             <Faq question="Não encontro o botão Excluir.">
               Ele só aparece quando excluir não estraga o histórico: um item sem
               vendas, um bandeirante sem vendas nem contribuições, uma categoria
-              que não está em uso. Transações da Lojinha e do Estoque são
-              excluídas pela tela de origem.
+              que não está em uso. Transações da Lojinha, do Estoque e das
+              contribuições mensais são desfeitas pela tela de origem.
             </Faq>
             <Faq question="Registrei uma venda errada.">
               Abra a venda e use <Ui>Excluir venda</Ui>, depois registre de novo.
@@ -468,9 +522,12 @@ export default async function HelpPage() {
             </Faq>
             <Faq question="Um bandeirante pagou duas parcelas de uma vez.">
               Marque cada parcela como paga, uma de cada vez, com a mesma data.
+              Vale o mesmo para vários meses de contribuição pagos juntos.
             </Faq>
             <Faq question="O saldo do Painel não bate com o caixa.">
-              Gere o relatório de Transações do período e compare linha por
+              Confira o período escolhido no topo do Painel: ele mostra só as
+              transações com data dentro dele. Gere o relatório de Transações
+              do mesmo período e compare linha por
               linha com o caixa ou o extrato. Lembre que compras de mercadoria
               registradas no Estoque também entram como saída.
             </Faq>

@@ -108,10 +108,12 @@ export function RuleToggle({
   action,
   checked,
   label,
+  disabled = false,
 }: {
   action: () => Promise<void>;
   checked: boolean;
   label: string;
+  disabled?: boolean;
 }) {
   const [optimisticChecked, setOptimisticChecked] = useOptimistic(checked);
   const [pending, startTransition] = useTransition();
@@ -121,6 +123,7 @@ export function RuleToggle({
       type="checkbox"
       aria-label={label}
       aria-busy={pending}
+      disabled={disabled}
       checked={optimisticChecked}
       onChange={() =>
         startTransition(async () => {
@@ -128,7 +131,7 @@ export function RuleToggle({
           await action();
         })
       }
-      className={checkboxClass}
+      className={`${checkboxClass} disabled:cursor-not-allowed disabled:opacity-40`}
     />
   );
 }

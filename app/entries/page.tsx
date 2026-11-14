@@ -142,8 +142,16 @@ function TypeLabel({ type }: { type: EntryRow["type"] }) {
   );
 }
 
-// Installment payments and restock purchases are changed from where they came from
+// Installment payments, restock purchases and monthly contributions are changed
+// from where they came from
 function EntryActions({ entry }: { entry: EntryRow }) {
+  if (entry.contributionKidId) {
+    return (
+      <Link href={`/kids/${entry.contributionKidId}`} className={linkClass}>
+        Ver bandeirante
+      </Link>
+    );
+  }
   if (entry.saleId || entry.itemId) {
     return (
       <Link

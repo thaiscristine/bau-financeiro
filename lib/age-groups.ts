@@ -19,3 +19,12 @@ export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
   gas: "GAs",
   coordenacao: "Coordenadores/Diretoria",
 };
+
+// Everyone but the coordination pays the contribuição mensal
+export const PAYING_AGE_GROUPS: readonly AgeGroup[] = AGE_GROUPS.filter(
+  (group) => group !== "coordenacao"
+);
+
+export function paysMonthlyFee(ageGroup: AgeGroup | null | undefined) {
+  return ageGroup != null && PAYING_AGE_GROUPS.includes(ageGroup);
+}

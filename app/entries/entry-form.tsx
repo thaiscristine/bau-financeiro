@@ -39,14 +39,22 @@ export function EntryForm({
   const inDialog = useFormDialog(state?.saved);
   const [type, setType] = useState(entry?.type ?? "income");
 
-  // Categories closed to manual entries (product sales go through Lojinha) are
+  // Categories closed to manual entries (product sales go through Lojinha) and
+  // the monthly contribution (paid month by month on the bandeirante page) are
   // hidden, unless this entry already uses one
   const options = categories.filter(
-    (category) => category.allowsManualEntry || category.id === entry?.categoryId
+    (category) =>
+      (category.allowsManualEntry && !category.requiresKid) ||
+      category.id === entry?.categoryId
   );
   const [categoryId, setCategoryId] = useState(entry?.categoryId ?? options[0]?.id);
   const category = options.find((option) => option.id === categoryId);
-  const hiddenCategories = categories.filter((option) => !options.includes(option));
+  const hiddenShopCategories = categories.filter(
+    (option) => !options.includes(option) && !option.allowsManualEntry
+  );
+  const hiddenContributionCategories = categories.filter(
+    (option) => !options.includes(option) && option.allowsManualEntry
+  );
 
   return (
     <form {...formProps} className={inDialog ? modalFormClass : formCardClass}>
@@ -104,9 +112,19 @@ export function EntryForm({
             </option>
           ))}
         </select>
-        {hiddenCategories.length > 0 && (
+        {hiddenContributionCategories.length > 0 && (
           <p className={hintClass}>
-            {hiddenCategories.map((option) => option.name).join(", ")}:
+            {hiddenContributionCategories.map((option) => option.name).join(", ")}:
+            registre na página do{" "}
+            <Link href="/kids" className="text-ink underline underline-offset-2">
+              bandeirante
+            </Link>
+            , mês a mês.
+          </p>
+        )}
+        {hiddenShopCategories.length > 0 && (
+          <p className={hintClass}>
+            {hiddenShopCategories.map((option) => option.name).join(", ")}:
             registre pela tela{" "}
             <Link href="/sales" className="text-ink underline underline-offset-2">
               Lojinha

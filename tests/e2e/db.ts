@@ -57,3 +57,8 @@ export async function createCategory(name: string, { allowsManualEntry = true } 
 export async function createKid(name: string) {
   await pool.query("insert into kids (name) values ($1)", [name]);
 }
+
+// For specs that need data no screen creates quickly, like months of history
+export function query(text: string, values: unknown[] = []) {
+  return pool.query(text, values);
+}

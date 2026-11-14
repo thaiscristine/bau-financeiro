@@ -19,6 +19,7 @@ import { formatDate } from "@/lib/format";
 import {
   cardClass,
   checkboxClass,
+  chipClass,
   hintClass,
   inputClass,
   labelClass,
@@ -36,9 +37,6 @@ export type FilterPanelOptions = {
   items: Option[];
   users: Option[];
 };
-
-const chipClass =
-  "inline-flex h-8 cursor-pointer items-center rounded-full border border-line bg-surface px-3 text-sm transition-colors hover:border-muted aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-canvas";
 
 const segmentClass =
   "h-9 cursor-pointer text-sm transition-colors not-last:border-r not-last:border-line hover:bg-canvas aria-pressed:bg-ink aria-pressed:text-canvas";

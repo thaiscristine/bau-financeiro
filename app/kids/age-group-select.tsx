@@ -4,12 +4,20 @@ import { inputClass } from "@/components/styles";
 export function AgeGroupSelect({
   id,
   defaultValue,
+  onChange,
 }: {
   id: string;
   defaultValue?: AgeGroup | null;
+  onChange?: (ageGroup: AgeGroup | null) => void;
 }) {
   return (
-    <select id={id} name={id} defaultValue={defaultValue ?? ""} className={inputClass}>
+    <select
+      id={id}
+      name={id}
+      defaultValue={defaultValue ?? ""}
+      onChange={(event) => onChange?.((event.target.value || null) as AgeGroup | null)}
+      className={inputClass}
+    >
       <option value="">Não informado</option>
       {AGE_GROUPS.map((group) => (
         <option key={group} value={group}>

@@ -111,6 +111,9 @@ export const kids = pgTable(
     isMinor: boolean("is_minor").notNull().default(false),
     guardianName: text("guardian_name"),
     guardianPhone: text("guardian_phone"),
+    // The contribuição mensal this kid pays. Set per kid, and only for the age
+    // groups that pay one (see lib/age-groups.ts).
+    monthlyFee: numeric("monthly_fee", { precision: 12, scale: 2 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
@@ -191,6 +194,34 @@ export const installments = pgTable(
       .unique(),
   },
   (table) => [unique().on(table.saleId, table.number)]
+);
+
+// One row per kid per calendar month (month is its first day). due says
+// whether the kid pays that month; a month is paid when it points to the income
+// entry that recorded the payment. The amount is kept per month, so changing a
+// kid's fee leaves the months already charged as they were.
+export const contributions = pgTable(
+  "contributions",
+  {
+    id: serial("id").primaryKey(),
+    kidId: integer("kid_id")
+      .references(() => kids.id, { onDelete: "cascade" })
+      .notNull(),
+    month: date("month").notNull(),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+    due: boolean("due").notNull(),
+    entryId: integer("entry_id")
+      .references(() => entries.id, { onDelete: "set null" })
+      .unique(),
+    // The payment is an entry recorded before months existed and linked by
+    // hand. Undoing it then only unlinks the entry instead of deleting it.
+    linkedEntry: boolean("linked_entry").notNull().default(false),
+  },
+  (table) => [
+    unique().on(table.kidId, table.month),
+    check("contributions_month_is_first_day", sql`extract(day from ${table.month}) = 1`),
+    check("contributions_paid_month_is_due", sql`${table.entryId} is null or ${table.due}`),
+  ]
 );
 
 export type Category = typeof categories.$inferSelect;
