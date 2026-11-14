@@ -280,3 +280,88 @@ test("a participant fully covered by Fundo Lisah has nothing to pay", async ({ p
   await section(page, /Participantes/).getByRole("link", { name: "Ver" }).click();
   await expect(page.getByText("O Fundo Lisah cobre o valor inteiro.")).toBeVisible();
 });
+
+test("an extra charge like flight tickets is paid apart from the fee, by the participants who take it", async ({
+  page,
+}) => {
+  await createKid("Artur");
+  await createKid("Isabelly");
+  await createEvent(page, "CIGGA 2026", "550");
+  await signUp(page, { kid: "Artur" }, 1, today);
+  await signUp(page, { kid: "Isabelly" }, 1, today);
+
+  const charges = section(page, "Cobranças extras");
+  await expect(charges).toContainText("Nenhuma cobrança extra.");
+  await page.getByRole("button", { name: "Nova cobrança" }).click();
+  let dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Nome", { exact: true }).fill("Passagem aérea");
+  await dialog.getByLabel("Valor por participante (R$)").fill("674.25");
+  await dialog.getByRole("button", { name: "Criar cobrança" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(charges).toContainText(/Passagem aérea \(0\)/);
+  await expect(charges).toContainText("Ninguém nesta cobrança ainda.");
+
+  await charges.getByRole("button", { name: "Adicionar participante" }).click();
+  dialog = page.getByRole("dialog", { name: "Adicionar a Passagem aérea" });
+  await dialog.getByLabel("Participante").selectOption({ label: "Artur" });
+  await expect(dialog.getByLabel("Valor (R$)")).toHaveValue("674.25");
+  await dialog.getByLabel("Vencimento da 1ª parcela").fill(today);
+  await dialog.getByRole("button", { name: "Adicionar", exact: true }).click();
+  await expect(dialog).toBeHidden();
+
+  await charges.getByRole("button", { name: "Adicionar participante" }).click();
+  // Only who has not taken it yet
+  await expect(dialog.getByLabel("Participante").getByRole("option")).toHaveText(["Isabelly"]);
+  await dialog.getByLabel("Parcelas").fill("2");
+  await dialog.getByLabel("Vencimento da 1ª parcela").fill(today);
+  await expect(dialog).toContainText(money("337,13"));
+  await dialog.getByRole("button", { name: "Adicionar", exact: true }).click();
+  await expect(dialog).toBeHidden();
+
+  // Everyone took it, so there is no one left to add
+  await expect(charges.getByRole("button", { name: "Adicionar participante" })).toHaveCount(0);
+  await expect(charges).toContainText(/Passagem aérea \(2\)/);
+  await expect(charges).toContainText(/R\$\s0,00 recebido de R\$\s1\.348,50/);
+  await expect(charges.getByRole("row", { name: /Isabelly/ })).toContainText("0/2");
+  // The fee's list keeps the fee alone; the event's figures add both
+  await expect(section(page, /Participantes/).getByRole("row", { name: /Artur/ })).toContainText(money("550,00"));
+  await expect(stat(page, "A receber")).toContainText(money("2.448,50"));
+
+  await charges.getByRole("row", { name: /Artur/ }).getByRole("link", { name: "Ver" }).click();
+  await expect(page.getByRole("heading", { name: "Artur", level: 1 })).toBeVisible();
+  await expect(page.getByText(/Passagem aérea: \+R\$\s674,25/)).toBeVisible();
+  const flight = section(page, "Passagem aérea");
+  await flight.getByLabel("Forma de pagamento").selectOption("pix");
+  await flight.getByRole("button", { name: "Marcar como paga" }).click();
+  await expect(flight).toContainText("Paga em");
+  // The fee is still all to pay, and Fundo Lisah can still cover all of it
+  await expect(section(page, "Parcelas da inscrição")).toContainText("A vencer");
+  await section(page, "Fundo Lisah").getByLabel("Situação").selectOption({ label: "Concedido" });
+  await expect(section(page, "Fundo Lisah")).toContainText(/No máximo R\$\s550,00/);
+
+  await page.getByRole("link", { name: "CIGGA 2026" }).click();
+  await expect(charges).toContainText(/R\$\s674,25 recebido de R\$\s1\.348,50/);
+  await expect(stat(page, "Recebido")).toContainText(money("674,25"));
+
+  await page.goto("/entries");
+  await expect(
+    page.getByRole("table").getByRole("row").filter({ hasText: "Parcela 1/1 - Passagem aérea - CIGGA 2026" })
+  ).toContainText(money("674,25"));
+
+  await page.goto("/events");
+  await expect(page.getByRole("row", { name: /CIGGA 2026/ })).toContainText(/de R\$\s2\.448,50/);
+
+  // Taking someone out of the charge, then deleting it, takes what was paid out of Transações
+  page.on("dialog", (confirm) => confirm.accept());
+  await page.getByRole("row", { name: /CIGGA 2026/ }).getByRole("link", { name: "Ver" }).click();
+  await charges.getByRole("row", { name: /Isabelly/ }).getByRole("link", { name: "Ver" }).click();
+  await page.getByRole("button", { name: "Tirar desta cobrança" }).click();
+  await expect(section(page, "Passagem aérea")).toHaveCount(0);
+  await page.getByRole("link", { name: "CIGGA 2026" }).click();
+  await expect(charges).toContainText(/Passagem aérea \(1\)/);
+
+  await charges.getByRole("button", { name: "Excluir" }).click();
+  await expect(charges).toContainText("Nenhuma cobrança extra.");
+  await page.goto("/entries");
+  await expect(page.getByText("Nenhuma transação ainda.")).toBeVisible();
+});

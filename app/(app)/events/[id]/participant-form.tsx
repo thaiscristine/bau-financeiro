@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import type { EventFormState } from "../actions";
-import { formatBRL, formatDate, todayISO } from "@/lib/format";
-import { planInstallments, toCents } from "@/lib/installments";
+import { todayISO } from "@/lib/format";
+import { toCents } from "@/lib/installments";
 import { GUEST } from "@/lib/validation";
 import { FUND_NAME, NO_FUND_REQUEST } from "@/lib/fund";
 import { FundFields, type FundChoice } from "./fund-fields";
+import { InstallmentFields } from "./installment-fields";
 import { Field, FormError, SubmitButton, useFormAction } from "@/components/form";
 import { useFormDialog } from "@/components/form-dialog";
 import { hintClass, inputClass, modalFormClass, panelClass } from "@/components/styles";
@@ -38,11 +39,6 @@ export function ParticipantForm({
   // What the participant pays once the fund's grant comes off
   const owedCents = totalCents - grantCents;
   const coveredByFund = grantCents > 0 && owedCents === 0;
-  const count = Number(installmentCount);
-  const plan =
-    owedCents > 0 && Number.isInteger(count) && count >= 1 && count <= 24 && firstDueDate
-      ? planInstallments(owedCents, count, firstDueDate)
-      : [];
 
   return (
     <form {...formProps} className={modalFormClass}>
@@ -112,46 +108,16 @@ export function ParticipantForm({
           <input type="hidden" name="firstDueDate" value={firstDueDate} />
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field id="participant-installment-count" label="Parcelas">
-            <input
-              id="participant-installment-count"
-              name="installmentCount"
-              type="number"
-              step="1"
-              min="1"
-              max="24"
-              required
-              value={installmentCount}
-              onChange={(event) => setInstallmentCount(event.target.value)}
-              className={inputClass}
-            />
-          </Field>
-          <Field id="participant-first-due-date" label="Vencimento da 1ª parcela">
-            <input
-              id="participant-first-due-date"
-              name="firstDueDate"
-              type="date"
-              required
-              value={firstDueDate}
-              onChange={(event) => setFirstDueDate(event.target.value)}
-              className={`${inputClass} tabular-nums`}
-            />
-          </Field>
-        </div>
-      )}
-
-      {(plan.length > 1 || (plan.length === 1 && grantCents > 0)) && (
-        <ul className={`${panelClass} gap-1 text-sm text-muted tabular-nums`}>
-          {plan.map((installment) => (
-            <li key={installment.number} className="flex justify-between">
-              <span>
-                {installment.number}ª parcela - vence {formatDate(installment.dueDate)}
-              </span>
-              <span>{formatBRL(installment.amountCents / 100)}</span>
-            </li>
-          ))}
-        </ul>
+        <InstallmentFields
+          idPrefix="participant"
+          owedCents={owedCents}
+          count={installmentCount}
+          onCountChange={setInstallmentCount}
+          firstDueDate={firstDueDate}
+          onFirstDueDateChange={setFirstDueDate}
+          // With a grant, the single installment shows what is left to pay
+          showSinglePlan={grantCents > 0}
+        />
       )}
 
       <Field id="participant-note" label="Nota (opcional)">

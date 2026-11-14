@@ -13,6 +13,7 @@ import { PaymentForm } from "@/app/(app)/sales/payment-form";
 import { UndoPaymentButton } from "@/app/(app)/sales/undo-payment-button";
 import {
   deleteParticipant,
+  leaveCharge,
   payEventInstallment,
   undoEventPayment,
   updateParticipantFund,
@@ -37,13 +38,26 @@ export default async function ParticipantPage({
   if (!participant || participant.eventId !== eventId) notFound();
 
   const today = todayISO();
+  // Of the fee and every extra charge
   const remaining = installments
     .filter((installment) => !installment.entryId)
     .reduce((sum, installment) => sum + Number(installment.amount), 0);
-  const paid = installments
+  const feeInstallments = installments.filter((installment) => installment.chargeId === null);
+  const feePaid = feeInstallments
     .filter((installment) => installment.entryId)
     .reduce((sum, installment) => sum + Number(installment.amount), 0);
   const fundAmount = participant.fundAmount ? Number(participant.fundAmount) : 0;
+  // The extra charges they took, in the order the query sorts them
+  const charges = new Map<number, { name: string; installments: InstallmentRow[] }>();
+  for (const installment of installments) {
+    if (installment.chargeId === null) continue;
+    const charge = charges.get(installment.chargeId) ?? {
+      name: installment.chargeName!,
+      installments: [],
+    };
+    charge.installments.push(installment);
+    charges.set(installment.chargeId, charge);
+  }
 
   return (
     <Page title={participant.name}>
@@ -69,6 +83,14 @@ export default async function ParticipantPage({
               {FUND_NAME}: -{formatBRL(fundAmount)}
             </span>
           )}
+          {[...charges].map(([chargeId, charge]) => (
+            <span key={chargeId} className="block text-sm text-muted">
+              {charge.name}: +
+              {formatBRL(
+                charge.installments.reduce((sum, installment) => sum + Number(installment.amount), 0)
+              )}
+            </span>
+          ))}
         </Detail>
         <Detail label="Falta receber">
           <span className={remaining > 0 ? "text-pending" : "text-income"}>
@@ -88,60 +110,37 @@ export default async function ParticipantPage({
           action={updateParticipantFund.bind(null, id)}
           status={participant.fundStatus}
           amount={participant.fundAmount}
-          maxAmount={Number(participant.total) - paid}
+          maxAmount={Number(participant.total) - feePaid}
         />
       </section>
 
       <section className="flex flex-col gap-4">
-        <Eyebrow as="h2">Parcelas</Eyebrow>
-        {installments.length === 0 ? (
+        <Eyebrow as="h2">{charges.size > 0 ? "Parcelas da inscrição" : "Parcelas"}</Eyebrow>
+        {feeInstallments.length === 0 ? (
           <EmptyState>
             {participant.fundStatus === "granted"
               ? `O ${FUND_NAME} cobre o valor inteiro.`
               : "Nenhuma parcela."}
           </EmptyState>
         ) : (
-          <ul className={`divide-y divide-line-soft text-[15px] ${cardClass}`}>
-            {installments.map((installment) => {
-              const overdue = !installment.entryId && installment.dueDate < today;
-              return (
-                <li
-                  key={installment.id}
-                  className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 py-4"
-                >
-                  <div className="flex flex-col gap-1 tabular-nums">
-                    <p>
-                      {installment.number}ª parcela
-                      <span className="text-muted">
-                        {" "}
-                        de {installments.length} · {formatBRL(Number(installment.amount))}
-                      </span>
-                    </p>
-                    <p className="text-sm text-muted">
-                      Vence {formatDate(installment.dueDate)} ·{" "}
-                      {installment.paidDate ? (
-                        <span className="text-income">
-                          Paga em {formatDate(installment.paidDate)} ·{" "}
-                          {paymentMethodLabel(installment.paymentMethod)}
-                        </span>
-                      ) : overdue ? (
-                        <span className="text-cost">Atrasada</span>
-                      ) : (
-                        <span>A vencer</span>
-                      )}
-                    </p>
-                  </div>
-                  {installment.entryId ? (
-                    <UndoPaymentButton action={undoEventPayment.bind(null, installment.id)} />
-                  ) : (
-                    <PaymentForm action={payEventInstallment.bind(null, installment.id)} />
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+          <InstallmentList installments={feeInstallments} today={today} />
         )}
       </section>
+
+      {[...charges].map(([chargeId, charge]) => (
+        <section key={chargeId} className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <Eyebrow as="h2">{charge.name}</Eyebrow>
+            <DeleteButton
+              action={leaveCharge.bind(null, chargeId, id)}
+              label="Tirar desta cobrança"
+              confirmMessage={`Tirar ${participant.name} de ${charge.name}? As parcelas pagas também saem das transações.`}
+              variant="link"
+            />
+          </div>
+          <InstallmentList installments={charge.installments} today={today} />
+        </section>
+      ))}
 
       <DeleteButton
         action={deleteParticipant.bind(null, id)}
@@ -149,6 +148,58 @@ export default async function ParticipantPage({
         confirmMessage={`Cancelar a inscrição de ${participant.name}? As parcelas pagas também saem das transações.`}
       />
     </Page>
+  );
+}
+
+type InstallmentRow = Awaited<ReturnType<typeof listParticipantInstallments>>[number];
+
+function InstallmentList({
+  installments,
+  today,
+}: {
+  installments: InstallmentRow[];
+  today: string;
+}) {
+  return (
+    <ul className={`divide-y divide-line-soft text-[15px] ${cardClass}`}>
+      {installments.map((installment) => {
+        const overdue = !installment.entryId && installment.dueDate < today;
+        return (
+          <li
+            key={installment.id}
+            className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 py-4"
+          >
+            <div className="flex flex-col gap-1 tabular-nums">
+              <p>
+                {installment.number}ª parcela
+                <span className="text-muted">
+                  {" "}
+                  de {installments.length} · {formatBRL(Number(installment.amount))}
+                </span>
+              </p>
+              <p className="text-sm text-muted">
+                Vence {formatDate(installment.dueDate)} ·{" "}
+                {installment.paidDate ? (
+                  <span className="text-income">
+                    Paga em {formatDate(installment.paidDate)} ·{" "}
+                    {paymentMethodLabel(installment.paymentMethod)}
+                  </span>
+                ) : overdue ? (
+                  <span className="text-cost">Atrasada</span>
+                ) : (
+                  <span>A vencer</span>
+                )}
+              </p>
+            </div>
+            {installment.entryId ? (
+              <UndoPaymentButton action={undoEventPayment.bind(null, installment.id)} />
+            ) : (
+              <PaymentForm action={payEventInstallment.bind(null, installment.id)} />
+            )}
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 

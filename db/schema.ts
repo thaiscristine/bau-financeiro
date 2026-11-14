@@ -281,8 +281,23 @@ export const eventParticipants = pgTable(
   ]
 );
 
+// Something the event charges beyond its fee, only to the participants who
+// take it, such as the flight tickets of a camp. price is what a participant
+// pays unless their sign-up says otherwise. Fundo Lisah does not cover it.
+export const eventCharges = pgTable("event_charges", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id")
+    .references(() => events.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  price: numeric("price", { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Like a sale's installments: paid when it points to the income entry that
-// recorded the payment
+// recorded the payment. They pay the participant's fee, or an extra charge when
+// chargeId is set; a participant takes a charge by having its installments, and
+// what they owe for it is the installments' sum.
 export const eventInstallments = pgTable(
   "event_installments",
   {
@@ -290,6 +305,7 @@ export const eventInstallments = pgTable(
     participantId: integer("participant_id")
       .references(() => eventParticipants.id, { onDelete: "cascade" })
       .notNull(),
+    chargeId: integer("charge_id").references(() => eventCharges.id, { onDelete: "cascade" }),
     number: integer("number").notNull(),
     amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
     dueDate: date("due_date").notNull(),
@@ -297,7 +313,9 @@ export const eventInstallments = pgTable(
       .references(() => entries.id, { onDelete: "set null" })
       .unique(),
   },
-  (table) => [unique().on(table.participantId, table.number)]
+  (table) => [
+    unique().on(table.participantId, table.chargeId, table.number).nullsNotDistinct(),
+  ]
 );
 
 // Something bought for an event. Paid when it points to the cost entry that
