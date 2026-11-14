@@ -1,6 +1,26 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
+// Only scripts carrying this request's nonce run, plus the ones they load
+// ('strict-dynamic'), so markup that sneaks into a page can't run code. Next
+// reads the nonce from the request header and adds it to its own scripts.
+// Styles allow inline because React writes style attributes.
+function contentSecurityPolicy(nonce: string) {
+  const isDev = process.env.NODE_ENV === "development";
+  return [
+    "default-src 'self'",
+    // React needs eval in development to rebuild server error stacks
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' blob: data:",
+    "font-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+}
+
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const isLoginPage = req.nextUrl.pathname === "/login";
@@ -12,6 +32,15 @@ export default auth((req) => {
   if (isLoggedIn && isLoginPage) {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
   }
+
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const csp = contentSecurityPolicy(nonce);
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("Content-Security-Policy", csp);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set("Content-Security-Policy", csp);
+  return response;
 });
 
 export const config = {
