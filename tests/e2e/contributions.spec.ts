@@ -84,6 +84,7 @@ test("a month can be paid and the payment undone", async ({ page }) => {
 
   const march = monthRow(page, "Março");
   await march.getByLabel("Data do pagamento").fill(`${year}-12-01`);
+  await march.getByLabel("Forma de pagamento").selectOption("Pix");
   await march.getByRole("button", { name: "Marcar como paga" }).click();
   await expect(march).toContainText(`Paga em 01/12/${year}`);
   // Money coming in, like a paid installment
@@ -121,6 +122,7 @@ test("a new fee applies to the unpaid months ahead, not to paid ones", async ({ 
   await createKid(page, "Clara", "B1", "45");
   await page.getByRole("link", { name: String(nextYear) }).click();
   const march = monthRow(page, "Março");
+  await march.getByLabel("Forma de pagamento").selectOption("Pix");
   await march.getByRole("button", { name: "Marcar como paga" }).click();
   await expect(march).toContainText("Paga em");
 

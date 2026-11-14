@@ -225,7 +225,10 @@ export async function payInstallment(
 ): Promise<PaymentFormState> {
   const session = await requireSession();
 
-  const result = parseForm(paymentFormSchema, { paidDate: formData.get("paidDate") });
+  const result = parseForm(paymentFormSchema, {
+    paidDate: formData.get("paidDate"),
+    paymentMethod: formData.get("paymentMethod"),
+  });
   if (!result.ok) return { error: result.error };
 
   const outcome = await db.transaction(async (tx): Promise<Outcome<{ saleId: number }>> => {
@@ -257,6 +260,7 @@ export async function payInstallment(
         type: "income",
         amount: installment.amount,
         categoryId: installment.categoryId,
+        paymentMethod: result.data.paymentMethod,
         entryDate: result.data.paidDate,
         note: `Parcela ${installment.number}/${installment.installmentCount} - ${installment.itemName}`,
         createdById: Number(session.user.id),

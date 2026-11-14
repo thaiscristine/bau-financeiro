@@ -13,10 +13,10 @@ const names: FilterNames = {
 };
 
 const entries = [
-  { date: "2026-10-20", type: "Entrada", category: "Doação", amount: 100.1, kid: null },
-  { date: "2026-10-05", type: "Saída", category: "Aluguel", amount: -60, kid: null },
-  { date: "2026-09-02", type: "Entrada", category: "Contribuição mensal", amount: 50.2, kid: "Bia" },
-  { date: "2026-10-09", type: "Entrada", category: "Doação", amount: 0.2, kid: "Alice" },
+  { date: "2026-10-20", type: "Entrada", category: "Doação", amount: 100.1, kid: null, paymentMethod: "Pix" },
+  { date: "2026-10-05", type: "Saída", category: "Aluguel", amount: -60, kid: null, paymentMethod: "Dinheiro" },
+  { date: "2026-09-02", type: "Entrada", category: "Contribuição mensal", amount: 50.2, kid: "Bia", paymentMethod: "Pix" },
+  { date: "2026-10-09", type: "Entrada", category: "Doação", amount: 0.2, kid: "Alice", paymentMethod: null },
 ];
 
 test("transaction totals split income and cost and give the balance", () => {
@@ -50,6 +50,18 @@ test("groups are sorted by name with the empty group last", () => {
   );
 });
 
+test("entries from before the payment method was tracked are grouped last", () => {
+  const report = buildReport(parse("group=paymentMethod"), entries, names, today);
+  assert.deepEqual(
+    report.groups.map((group) => [group.label, group.subtotal]),
+    [
+      ["Dinheiro", -60],
+      ["Pix", 150.3],
+      ["Sem forma de pagamento", 0.2],
+    ]
+  );
+});
+
 test("month groups are in calendar order", () => {
   const report = buildReport(parse("group=month"), entries, names, today);
   assert.deepEqual(
@@ -62,7 +74,7 @@ test("visible columns follow the hidden list", () => {
   const report = buildReport(parse("hide=note&hide=kid"), entries, names, today);
   assert.deepEqual(
     report.columns.map((column) => column.key),
-    ["date", "type", "category", "amount", "counterparty", "createdBy"]
+    ["date", "type", "category", "amount", "paymentMethod", "counterparty", "createdBy"]
   );
 });
 
@@ -78,16 +90,17 @@ test("installment totals follow the status of each row", () => {
 });
 
 test("active filters describe the report and how to remove each filter", () => {
-  const report = buildReport(parse("kind=income&category=2&category=9&kid=3&q=festa"), entries, names, today);
+  const report = buildReport(parse("kind=income&category=2&category=9&payment=pix&kid=3&q=festa"), entries, names, today);
   assert.deepEqual(
     report.activeFilters.map((filter) => [filter.label, filter.value, filter.removeQuery]),
     [
-      ["Período", "Mês passado (01/10/2026 a 31/10/2026)", "type=entries&period=all&kind=income&category=2&category=9&kid=3&q=festa"],
-      ["Tipo", "Entradas", "type=entries&category=2&category=9&kid=3&q=festa"],
-      ["Categoria", "Doação", "type=entries&kind=income&category=9&kid=3&q=festa"],
-      ["Categoria", "Categoria excluída", "type=entries&kind=income&category=2&kid=3&q=festa"],
-      ["Bandeirante", "Alice", "type=entries&kind=income&category=2&category=9&q=festa"],
-      ["Busca", '"festa"', "type=entries&kind=income&category=2&category=9&kid=3"],
+      ["Período", "Mês passado (01/10/2026 a 31/10/2026)", "type=entries&period=all&kind=income&category=2&category=9&payment=pix&kid=3&q=festa"],
+      ["Tipo", "Entradas", "type=entries&category=2&category=9&payment=pix&kid=3&q=festa"],
+      ["Categoria", "Doação", "type=entries&kind=income&category=9&payment=pix&kid=3&q=festa"],
+      ["Categoria", "Categoria excluída", "type=entries&kind=income&category=2&payment=pix&kid=3&q=festa"],
+      ["Pagamento", "Pix", "type=entries&kind=income&category=2&category=9&kid=3&q=festa"],
+      ["Bandeirante", "Alice", "type=entries&kind=income&category=2&category=9&payment=pix&q=festa"],
+      ["Busca", '"festa"', "type=entries&kind=income&category=2&category=9&payment=pix&kid=3"],
     ]
   );
 });

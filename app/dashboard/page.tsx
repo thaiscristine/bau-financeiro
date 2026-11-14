@@ -1,5 +1,6 @@
 import { requireSession } from "@/lib/dal";
-import { getIncomeByCategory, getTotals } from "@/lib/entries";
+import { getIncomeByCategory, getTotals, getTotalsByPaymentMethod } from "@/lib/entries";
+import { paymentMethodLabel } from "@/lib/payment-methods";
 import { getReceivables } from "@/lib/sales";
 import { ensureContributions, getContributionsByAgeGroup } from "@/lib/contributions";
 import { AGE_GROUP_LABELS } from "@/lib/age-groups";
@@ -29,10 +30,11 @@ export default async function DashboardPage({
     today
   );
   await ensureContributions(today);
-  const [totals, incomeByCategory, receivables, contributionsByAgeGroup] =
+  const [totals, incomeByCategory, byPaymentMethod, receivables, contributionsByAgeGroup] =
     await Promise.all([
       getTotals(range),
       getIncomeByCategory(range),
+      getTotalsByPaymentMethod(range),
       getReceivables(today, range),
       getContributionsByAgeGroup(today, range),
     ]);
@@ -96,6 +98,52 @@ export default async function DashboardPage({
                     </td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Section>
+
+      <Section title="Por forma de pagamento">
+        {byPaymentMethod.length === 0 ? (
+          <EmptyState>Nenhuma transação no período.</EmptyState>
+        ) : (
+          <div className={tableWrapClass}>
+            <table className={tableClass}>
+              <thead>
+                <tr className={tableHeadRow}>
+                  <th className={tableHeadCell}>Forma</th>
+                  <th className={`${tableHeadCell} text-right`}>Entrou</th>
+                  <th className={`${tableHeadCell} text-right`}>Saiu</th>
+                  <th className={`${tableHeadCell} text-right`}>Saldo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {byPaymentMethod.map((row) => {
+                  const balance = row.income - row.cost;
+                  return (
+                    <tr key={row.paymentMethod ?? "none"} className={tableRow}>
+                      <td className={`${tableCell} ${row.paymentMethod ? "" : "text-muted"}`}>
+                        {paymentMethodLabel(row.paymentMethod)}
+                      </td>
+                      <td
+                        className={`${tableCell} text-right whitespace-nowrap ${row.income > 0 ? "text-income" : "text-muted/60"}`}
+                      >
+                        {formatBRL(row.income)}
+                      </td>
+                      <td
+                        className={`${tableCell} text-right whitespace-nowrap ${row.cost > 0 ? "text-cost" : "text-muted/60"}`}
+                      >
+                        {formatBRL(row.cost)}
+                      </td>
+                      <td
+                        className={`${tableCell} text-right whitespace-nowrap ${balance < 0 ? "text-cost" : ""}`}
+                      >
+                        {formatBRL(balance)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

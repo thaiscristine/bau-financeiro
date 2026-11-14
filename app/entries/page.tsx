@@ -20,6 +20,8 @@ import {
 import { createEntry, deleteEntry } from "./actions";
 import { EntryForm } from "./entry-form";
 import { DeleteButton } from "@/components/delete-button";
+import { PaymentMethodCell } from "@/components/payment-method";
+import { paymentMethodLabel } from "@/lib/payment-methods";
 
 type EntryRow = Awaited<ReturnType<typeof listEntries>>[number];
 
@@ -54,6 +56,8 @@ export default async function EntriesPage() {
                     <span className="text-muted tabular-nums">
                       {" · "}
                       {formatDate(entry.entryDate)}
+                      {" · "}
+                      {paymentMethodLabel(entry.paymentMethod)}
                     </span>
                   </p>
                   {entry.counterparty && (
@@ -89,6 +93,7 @@ export default async function EntriesPage() {
                   <th className={tableHeadCell}>Categoria</th>
                   <th className={tableHeadCell}>Pagador / Fornecedor</th>
                   <th className={`${tableHeadCell} text-right`}>Valor</th>
+                  <th className={tableHeadCell}>Pagamento</th>
                   <th className={tableHeadCell}>Nota</th>
                   <th className={tableHeadCell}>
                     <span className="sr-only">Ações</span>
@@ -113,6 +118,7 @@ export default async function EntriesPage() {
                     >
                       {formatBRL(Number(entry.amount))}
                     </td>
+                    <PaymentMethodCell method={entry.paymentMethod} />
                     <td className={`${tableCell} font-serif text-muted`}>
                       {entry.note ?? ""}
                     </td>

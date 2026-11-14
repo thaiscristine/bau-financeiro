@@ -160,6 +160,12 @@ export default async function HelpPage() {
                 o total ao lado de <Ui>Entrou</Ui>. As saídas não entram aqui.
               </Li>
               <Li>
+                <Term>Por forma de pagamento</Term> mostra o que entrou e saiu
+                em dinheiro, Pix, débito e crédito no período. Com o período{" "}
+                <Ui>Tudo</Ui>, o saldo em dinheiro é o que deveria estar no
+                caixa.
+              </Li>
+              <Li>
                 <Term>Contribuições em aberto por ramo</Term>: quantos meses de
                 contribuição do período ainda não foram pagos em cada ramo, o
                 valor em aberto e quanto disso já está atrasado (o mês acabou).
@@ -183,8 +189,15 @@ export default async function HelpPage() {
                   Escolha o <Ui>Tipo</Ui>: <Ui>Entrada</Ui> ou <Ui>Saída</Ui>.
                 </li>
                 <li>
-                  Preencha <Ui>Valor (R$)</Ui>, <Ui>Data</Ui> e{" "}
-                  <Ui>Categoria</Ui>.
+                  Preencha <Ui>Valor (R$)</Ui> e <Ui>Data</Ui>.
+                </li>
+                <li>
+                  Escolha a <Ui>Forma de pagamento</Ui>: <Ui>Dinheiro</Ui>,{" "}
+                  <Ui>Pix</Ui>, <Ui>Débito</Ui> ou <Ui>Crédito</Ui>. Nenhuma vem
+                  marcada, para não registrar uma forma errada sem querer.
+                </li>
+                <li>
+                  Escolha a <Ui>Categoria</Ui>.
                 </li>
                 <li>
                   Informe <Ui>Quem pagou</Ui> (entrada) ou{" "}
@@ -206,6 +219,11 @@ export default async function HelpPage() {
               <Ui>Ver estoque</Ui> ou <Ui>Ver bandeirante</Ui> no lugar de
               Editar. Corrija pela tela de origem, assim a venda, o estoque ou
               os meses de contribuição ficam certos também.
+            </Note>
+            <Note>
+              Transações registradas antes de a forma de pagamento existir
+              aparecem como <Ui>Não informada</Ui>. Ao editar uma delas, a forma
+              de pagamento é pedida.
             </Note>
             <Note>
               A contribuição mensal não aparece em Nova transação: ela é
@@ -257,7 +275,8 @@ export default async function HelpPage() {
                   bandeirante).
                 </li>
                 <li>
-                  Na parcela, confira a data do pagamento e clique em{" "}
+                  Na parcela, confira a data do pagamento, escolha a{" "}
+                  <Ui>Forma de pagamento</Ui> e clique em{" "}
                   <Ui>Marcar como paga</Ui>.
                 </li>
               </Steps>
@@ -292,8 +311,9 @@ export default async function HelpPage() {
                 </li>
                 <li>
                   Se a organização pagou pela mercadoria, informe o{" "}
-                  <Ui>Valor da mercadoria (R$)</Ui>: a saída é registrada nas
-                  transações. Deixe em branco para itens doados.
+                  <Ui>Valor da mercadoria (R$)</Ui> e a{" "}
+                  <Ui>Forma de pagamento da compra</Ui>: a saída é registrada
+                  nas transações. Deixe em branco para itens doados.
                 </li>
                 <li>
                   Clique em <Ui>Adicionar</Ui>.
@@ -307,8 +327,9 @@ export default async function HelpPage() {
               <ul className="flex flex-col gap-3 font-serif text-[17px] leading-relaxed">
                 <Li>
                   <Ui>Reposição</Ui>: chegaram mais unidades. Informe o{" "}
-                  <Ui>Valor pago (R$)</Ui> se houve compra, e a saída vai para as
-                  transações.
+                  <Ui>Valor pago (R$)</Ui> e a{" "}
+                  <Ui>Forma de pagamento da compra</Ui> se houve compra, e a
+                  saída vai para as transações.
                 </Li>
                 <Li>
                   <Ui>Ajuste</Ui>: para corrigir a contagem. Use número negativo
@@ -373,7 +394,8 @@ export default async function HelpPage() {
                   <Ui>Contribuição mensal</Ui>.
                 </li>
                 <li>
-                  Confira a data do pagamento e clique em{" "}
+                  Confira a data do pagamento, escolha a{" "}
+                  <Ui>Forma de pagamento</Ui> e clique em{" "}
                   <Ui>Marcar como paga</Ui>. A entrada é criada sozinha em
                   Transações.
                 </li>
@@ -411,8 +433,8 @@ export default async function HelpPage() {
                 </li>
                 <li>
                   Em <Ui>Filtros</Ui>, escolha o período e o que mais quiser
-                  restringir (categoria, bandeirante, item, situação da
-                  parcela...).
+                  restringir (categoria, forma de pagamento, bandeirante, item,
+                  situação da parcela...).
                 </li>
                 <li>
                   Em <Ui>Organizar planilha</Ui>, escolha como{" "}
@@ -526,9 +548,11 @@ export default async function HelpPage() {
             </Faq>
             <Faq question="O saldo do Painel não bate com o caixa.">
               Confira o período escolhido no topo do Painel: ele mostra só as
-              transações com data dentro dele. Gere o relatório de Transações
-              do mesmo período e compare linha por
-              linha com o caixa ou o extrato. Lembre que compras de mercadoria
+              transações com data dentro dele. Em{" "}
+              <Term>Por forma de pagamento</Term>, o dinheiro deve bater com o
+              caixa, e Pix e cartões com o extrato. Se não bater, gere o
+              relatório de Transações do mesmo período filtrando a forma de
+              pagamento e compare linha por linha. Lembre que compras de mercadoria
               registradas no Estoque também entram como saída.
             </Faq>
           </Topic>

@@ -8,6 +8,7 @@ import {
   listUnlinkedContributionEntries,
 } from "@/lib/contributions";
 import { formatBRL, formatDate, formatMonth } from "@/lib/format";
+import { paymentMethodLabel } from "@/lib/payment-methods";
 import { EmptyState, Section } from "@/components/page";
 import { SubmitButton } from "@/components/form";
 import { cardClass, chipClass, linkClass } from "@/components/styles";
@@ -111,7 +112,10 @@ export async function KidContributions({
                     </p>
                     <p className="text-sm text-muted">
                       {paid ? (
-                        <span className="text-income">Paga em {formatDate(month.paidDate!)}</span>
+                        <span className="text-income">
+                          Paga em {formatDate(month.paidDate!)} ·{" "}
+                          {paymentMethodLabel(month.paymentMethod)}
+                        </span>
                       ) : !month.due ? (
                         "Não cobrada"
                       ) : late ? (

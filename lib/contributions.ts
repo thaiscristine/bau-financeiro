@@ -86,6 +86,7 @@ export async function listKidContributions(kidId: number, year: number) {
       linkedEntry: contributions.linkedEntry,
       paidDate: entries.entryDate,
       paidAmount: entries.amount,
+      paymentMethod: entries.paymentMethod,
     })
     .from(contributions)
     .leftJoin(entries, eq(entries.id, contributions.entryId))

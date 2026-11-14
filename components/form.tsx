@@ -52,18 +52,22 @@ const SQUARE_TONES = {
   ink: "bg-ink",
 };
 
-// Radio buttons drawn as a segmented control
+// Radio buttons drawn as a segmented control. Controlled with value and
+// onChange, or left to the form with defaultValue so a form reset restores it.
+// With neither, nothing starts selected.
 export function ChoiceGroup<Value extends string>({
   name,
   legend,
   value,
+  defaultValue,
   onChange,
   options,
 }: {
   name: string;
   legend: string;
-  value: Value;
-  onChange: (value: Value) => void;
+  value?: Value;
+  defaultValue?: Value;
+  onChange?: (value: Value) => void;
   options: { value: Value; label: string; tone?: keyof typeof SQUARE_TONES }[];
 }) {
   return (
@@ -81,8 +85,9 @@ export function ChoiceGroup<Value extends string>({
             type="radio"
             name={name}
             value={option.value}
-            checked={value === option.value}
-            onChange={() => onChange(option.value)}
+            checked={onChange ? value === option.value : undefined}
+            defaultChecked={onChange ? undefined : defaultValue === option.value}
+            onChange={onChange && (() => onChange(option.value))}
             className="sr-only"
           />
           {option.tone && (

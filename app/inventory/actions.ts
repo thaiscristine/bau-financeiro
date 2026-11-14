@@ -49,6 +49,7 @@ async function recordStockMovement(
     cost,
     supplier,
     costCategoryId,
+    paymentMethod,
   }: z.infer<typeof stockMovementFormSchema> & {
     itemId: number;
     itemName: string;
@@ -75,6 +76,7 @@ async function recordStockMovement(
         amount: cost.toFixed(2),
         categoryId: costCategoryId,
         counterparty: supplier ? supplier : null,
+        paymentMethod,
         entryDate: movementDate,
         note: `Reposição: ${quantity} × ${itemName}`,
         createdById: userId,
@@ -130,6 +132,7 @@ export async function createItem(
         cost: formData.get("cost") ?? undefined,
         supplier: formData.get("supplier") ?? undefined,
         costCategoryId: formData.get("costCategoryId") ?? undefined,
+        paymentMethod: formData.get("paymentMethod"),
       })
     : undefined;
   if (restock && !restock.ok) return { error: restock.error };
@@ -225,6 +228,7 @@ export async function addStockMovement(
     cost: formData.get("cost") ?? undefined,
     supplier: formData.get("supplier") ?? undefined,
     costCategoryId: formData.get("costCategoryId") ?? undefined,
+    paymentMethod: formData.get("paymentMethod"),
   });
   if (!result.ok) return { error: result.error };
 

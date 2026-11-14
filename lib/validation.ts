@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AGE_GROUPS } from "./age-groups";
+import { PAYMENT_METHODS } from "./payment-methods";
 
 const id = (message: string) =>
   z.coerce.number({ error: message }).int({ error: message }).positive({ error: message });
@@ -24,12 +25,17 @@ const optionalAgeGroup = z.preprocess(
   z.enum(AGE_GROUPS, { error: "Selecione um ramo da lista." }).optional()
 );
 
+const paymentMethod = z.enum(PAYMENT_METHODS, {
+  error: "Selecione a forma de pagamento.",
+});
+
 export const entryFormSchema = z.object({
   type: z.enum(["income", "cost"], { error: "Selecione o tipo." }),
   amount: money,
   categoryId: id("Selecione a categoria."),
   counterparty: optionalText,
   kidId: id("Selecione o bandeirante.").optional(),
+  paymentMethod,
   entryDate: requiredDate,
   note: optionalText,
 });
@@ -141,6 +147,11 @@ export const stockMovementFormSchema = z
     cost: optionalMoney,
     supplier: optionalText,
     costCategoryId: id("Selecione a categoria da saída.").optional(),
+    // The select's empty option means "not informed"
+    paymentMethod: z.preprocess(
+      (value) => (value === "" || value === null ? undefined : value),
+      paymentMethod.optional()
+    ),
   })
   .refine((value) => value.reason !== "restock" || value.quantity > 0, {
     error: "Uma reposição precisa de quantidade positiva.",
@@ -153,6 +164,9 @@ export const stockMovementFormSchema = z
   })
   .refine((value) => value.cost === undefined || value.costCategoryId !== undefined, {
     error: "Selecione a categoria da saída.",
+  })
+  .refine((value) => value.cost === undefined || value.paymentMethod !== undefined, {
+    error: "Selecione a forma de pagamento da compra.",
   });
 
 // Value of the buyer select that registers a new bandeirante with the sale
@@ -187,6 +201,7 @@ export const saleFormSchema = z.object({
 
 export const paymentFormSchema = z.object({
   paidDate: requiredDate,
+  paymentMethod,
 });
 
 export const contributionLinkFormSchema = z.object({

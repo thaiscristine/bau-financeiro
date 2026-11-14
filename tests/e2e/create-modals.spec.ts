@@ -18,6 +18,7 @@ test("a transaction is added from a modal on the list", async ({ page }) => {
   await expect(dialog.getByLabel("Valor (R$)")).toBeFocused();
   await dialog.getByLabel("Valor (R$)").fill("50");
   await dialog.getByLabel("Quem pagou (opcional)").fill("Dona Rosa");
+  await dialog.getByText("Pix", { exact: true }).click();
   await dialog.getByRole("button", { name: "Adicionar" }).click();
 
   await expect(dialog).toBeHidden();

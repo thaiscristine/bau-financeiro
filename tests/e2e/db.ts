@@ -62,3 +62,13 @@ export async function createKid(name: string) {
 export function query(text: string, values: unknown[] = []) {
   return pool.query(text, values);
 }
+
+// An income recorded before the payment method was tracked, so it has none
+export async function createUntrackedIncome(categoryName: string, amount: string, counterparty: string) {
+  await pool.query(
+    `insert into entries (type, amount, category_id, counterparty, entry_date, created_by_id)
+     select 'income', $2, categories.id, $3, current_date, (select min(id) from users)
+     from categories where name = $1`,
+    [categoryName, amount, counterparty]
+  );
+}

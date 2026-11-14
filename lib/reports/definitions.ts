@@ -11,6 +11,7 @@ export type FilterKey =
   | "kid"
   | "createdBy"
   | "search"
+  | "paymentMethods"
   | "statuses"
   | "item"
   | "stockState";
@@ -55,12 +56,13 @@ export const REPORTS: Record<ReportType, ReportDefinition> = {
     fileSlug: "transacoes",
     periodLabel: "Período",
     dateKey: "date",
-    filters: ["period", "entryType", "categories", "kid", "createdBy", "search"],
+    filters: ["period", "entryType", "categories", "paymentMethods", "kid", "createdBy", "search"],
     groups: [
       NO_GROUP,
       { key: "category", label: "Categoria" },
       { key: "month", label: "Mês" },
       { key: "type", label: "Tipo" },
+      { key: "paymentMethod", label: "Forma de pagamento" },
       { key: "kid", label: "Bandeirante" },
     ],
     columns: [
@@ -69,6 +71,7 @@ export const REPORTS: Record<ReportType, ReportDefinition> = {
       { key: "category", label: "Categoria", kind: "text" },
       // Negative for saídas, so a sum in the spreadsheet is the balance
       { key: "amount", label: "Valor", kind: "money" },
+      { key: "paymentMethod", label: "Pagamento", kind: "text" },
       { key: "counterparty", label: "Pagador / Fornecedor", kind: "text" },
       { key: "kid", label: "Bandeirante", kind: "text" },
       { key: "note", label: "Nota", kind: "note" },
@@ -102,6 +105,7 @@ export const REPORTS: Record<ReportType, ReportDefinition> = {
       { key: "amount", label: "Valor", kind: "money" },
       { key: "status", label: "Situação", kind: "text" },
       { key: "paidDate", label: "Pago em", kind: "date", hiddenByDefault: true },
+      { key: "paymentMethod", label: "Pagamento", kind: "text", hiddenByDefault: true },
     ],
     totalKey: "amount",
   },

@@ -32,12 +32,13 @@ async function parseEntryForm(formData: FormData, currentCategoryId?: number) {
     categoryId: formData.get("categoryId"),
     counterparty: formData.get("counterparty") ?? undefined,
     kidId: formData.get("kidId") || undefined,
+    paymentMethod: formData.get("paymentMethod"),
     entryDate: formData.get("entryDate"),
     note: formData.get("note"),
   });
   if (!result.ok) return result;
 
-  const { type, amount, categoryId, counterparty, kidId, entryDate, note } =
+  const { type, amount, categoryId, counterparty, kidId, paymentMethod, entryDate, note } =
     result.data;
 
   const [category] = await db
@@ -81,6 +82,7 @@ async function parseEntryForm(formData: FormData, currentCategoryId?: number) {
       // A kid replaces the typed name; other categories don't link a kid
       kidId: category.requiresKid ? kidId! : null,
       counterparty: !category.requiresKid && counterparty ? counterparty : null,
+      paymentMethod,
       entryDate,
       note: note ? note : null,
     },

@@ -3,6 +3,7 @@
 // Both read from here, so what is previewed is what is downloaded.
 
 import { formatBRL, formatDate, formatMonth } from "@/lib/format";
+import { PAYMENT_METHOD_LABELS } from "@/lib/payment-methods";
 import {
   ENTRY_TYPES,
   INSTALLMENT_STATUSES,
@@ -186,6 +187,15 @@ export function activeFilters(
       label: "Categoria",
       value: names.categories.get(id) ?? "Categoria excluída",
       removeQuery: without({ categoryIds: filters.categoryIds.filter((other) => other !== id) }),
+    });
+  }
+  for (const method of filters.paymentMethods) {
+    list.push({
+      label: "Pagamento",
+      value: PAYMENT_METHOD_LABELS[method],
+      removeQuery: without({
+        paymentMethods: filters.paymentMethods.filter((other) => other !== method),
+      }),
     });
   }
   for (const status of filters.statuses) {

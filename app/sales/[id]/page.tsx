@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/dal";
 import { getSale, listInstallments } from "@/lib/sales";
 import { formatBRL, formatDate, todayISO } from "@/lib/format";
+import { paymentMethodLabel } from "@/lib/payment-methods";
 import { Page } from "@/components/page";
 import { Eyebrow } from "@/components/eyebrow";
 import { DeleteButton } from "@/components/delete-button";
@@ -76,7 +77,8 @@ export default async function SalePage({ params }: PageProps<"/sales/[id]">) {
                     Vence {formatDate(installment.dueDate)} ·{" "}
                     {installment.paidDate ? (
                       <span className="text-income">
-                        Paga em {formatDate(installment.paidDate)}
+                        Paga em {formatDate(installment.paidDate)} ·{" "}
+                        {paymentMethodLabel(installment.paymentMethod)}
                       </span>
                     ) : overdue ? (
                       <span className="text-cost">Atrasada</span>
