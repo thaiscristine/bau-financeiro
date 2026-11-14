@@ -12,12 +12,15 @@ test.beforeEach(async ({ page }) => {
 test("a new bandeirante can be put in an age group and moved to another", async ({
   page,
 }) => {
-  await page.goto("/kids/new");
-  await page.getByLabel("Nome").fill("Clara");
-  await page.getByLabel("Ramo (opcional)").selectOption("B2");
-  await page.getByRole("button", { name: "Salvar" }).click();
+  await page.goto("/kids");
+  await page.getByRole("button", { name: "Novo bandeirante" }).click();
+  const dialog = page.getByRole("dialog", { name: "Novo bandeirante" });
+  await expect(dialog.getByLabel("Nome")).toBeFocused();
+  await dialog.getByLabel("Ramo (opcional)").selectOption("B2");
+  await dialog.getByLabel("Nome").fill("Clara");
+  await dialog.getByRole("button", { name: "Adicionar" }).click();
 
-  await expect(page).toHaveURL("/kids");
+  await expect(dialog).toBeHidden();
   const row = page.getByRole("row", { name: /Clara/ });
   await expect(row.getByRole("cell", { name: "B2", exact: true })).toBeVisible();
 
@@ -35,11 +38,13 @@ test("a new bandeirante can be put in an age group and moved to another", async 
 });
 
 test("the age group is optional", async ({ page }) => {
-  await page.goto("/kids/new");
-  await page.getByLabel("Nome").fill("Duda");
-  await page.getByRole("button", { name: "Salvar" }).click();
+  await page.goto("/kids");
+  await page.getByRole("button", { name: "Novo bandeirante" }).click();
+  const dialog = page.getByRole("dialog", { name: "Novo bandeirante" });
+  await dialog.getByLabel("Nome").fill("Duda");
+  await dialog.getByRole("button", { name: "Adicionar" }).click();
 
-  await expect(page).toHaveURL("/kids");
+  await expect(dialog).toBeHidden();
   await page.getByRole("row", { name: /Duda/ }).getByRole("link", { name: "Ver" }).click();
   await expect(page.getByLabel("Ramo (opcional)")).toHaveValue("");
 });
@@ -49,11 +54,13 @@ test("a bandeirante registered with a sale gets the chosen age group", async ({
 }) => {
   await createItem("Camiseta", "35.00");
 
-  await page.goto("/sales/new");
-  await page.getByLabel("Bandeirante", { exact: true }).selectOption("Outro (não cadastrado)");
-  await page.getByLabel("Nome do novo bandeirante").fill("Bel");
-  await page.getByLabel("Ramo (opcional)").selectOption("Ciranda");
-  await page.getByRole("button", { name: "Registrar venda" }).click();
+  await page.goto("/sales");
+  await page.getByRole("button", { name: "Nova venda" }).click();
+  const dialog = page.getByRole("dialog", { name: "Nova venda" });
+  await dialog.getByLabel("Bandeirante", { exact: true }).selectOption("Outro (não cadastrado)");
+  await dialog.getByLabel("Nome do novo bandeirante").fill("Bel");
+  await dialog.getByLabel("Ramo (opcional)").selectOption("Ciranda");
+  await dialog.getByRole("button", { name: "Registrar venda" }).click();
   await expect(page).toHaveURL(/\/sales\/\d+$/);
 
   await page.goto("/kids");

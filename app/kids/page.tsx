@@ -4,6 +4,7 @@ import { listKids } from "@/lib/kids";
 import { formatBRL } from "@/lib/format";
 import { AGE_GROUP_LABELS } from "@/lib/age-groups";
 import { EmptyState, Page } from "@/components/page";
+import { FormDialog } from "@/components/form-dialog";
 import {
   linkClass,
   tableCell,
@@ -13,13 +14,22 @@ import {
   tableRow,
   tableWrapClass,
 } from "@/components/styles";
+import { KidForm } from "./kid-form";
+import { createKid } from "./actions";
 
 export default async function KidsPage() {
   await requireSession();
   const rows = await listKids();
 
   return (
-    <Page title="Bandeirantes" action={{ href: "/kids/new", label: "Novo bandeirante" }}>
+    <Page
+      title="Bandeirantes"
+      aside={
+        <FormDialog label="Novo bandeirante">
+          <KidForm action={createKid} />
+        </FormDialog>
+      }
+    >
       {rows.length === 0 ? (
         <EmptyState>Nenhum bandeirante cadastrado ainda.</EmptyState>
       ) : (

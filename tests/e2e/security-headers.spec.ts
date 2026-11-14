@@ -98,13 +98,9 @@ test("other sites can't show the app inside a frame", async ({
 const PAGES = [
   "/dashboard",
   "/entries",
-  "/entries/new",
   "/sales",
-  "/sales/new",
   "/inventory",
-  "/inventory/new",
   "/kids",
-  "/kids/new",
   "/categories",
   "/users",
   "/reports",

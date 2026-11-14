@@ -8,9 +8,9 @@ import { NEW_KID } from "@/lib/validation";
 import { AgeGroupSelect } from "@/app/kids/age-group-select";
 import { Field, FormError, SubmitButton, useFormAction } from "@/components/form";
 import {
-  formCardClass,
   hintClass,
   inputClass,
+  modalFormClass,
   panelClass,
 } from "@/components/styles";
 
@@ -28,13 +28,11 @@ export function SaleForm({
   kids,
   items,
   defaultKidId,
-  defaultItemId,
 }: {
   action: (state: SaleFormState, formData: FormData) => Promise<SaleFormState>;
   kids: KidOption[];
   items: ItemOption[];
   defaultKidId?: number;
-  defaultItemId?: number;
 }) {
   const [state, formProps, pending] = useFormAction(action);
 
@@ -46,7 +44,7 @@ export function SaleForm({
         : NEW_KID
   );
 
-  const initialItem = items.find((item) => item.id === defaultItemId) ?? items[0];
+  const initialItem = items[0];
   const [itemId, setItemId] = useState<number | undefined>(initialItem?.id);
   const [unitPrice, setUnitPrice] = useState(initialItem?.price ?? "");
   const [quantity, setQuantity] = useState("1");
@@ -62,12 +60,13 @@ export function SaleForm({
       : [];
 
   return (
-    <form {...formProps} className={formCardClass}>
+    <form {...formProps} className={modalFormClass}>
       <Field id="kidId" label="Bandeirante">
         <select
           id="kidId"
           name="kidId"
           required
+          data-autofocus
           value={kidChoice}
           onChange={(event) => setKidChoice(event.target.value)}
           className={inputClass}

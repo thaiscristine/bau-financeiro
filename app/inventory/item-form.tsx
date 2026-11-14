@@ -4,11 +4,13 @@ import { useState } from "react";
 import type { ItemFormState } from "./actions";
 import type { Category } from "@/db/schema";
 import { Field, FormError, SubmitButton, useFormAction } from "@/components/form";
+import { useFormDialog } from "@/components/form-dialog";
 import {
   checkboxClass,
   formCardClass,
   hintClass,
   inputClass,
+  modalFormClass,
 } from "@/components/styles";
 import { RestockCostFields } from "./restock-cost-fields";
 
@@ -29,21 +31,22 @@ export function ItemForm({
   item?: ItemValues;
 }) {
   const [state, formProps, pending] = useFormAction(action);
+  const inDialog = useFormDialog(state?.saved);
   const [tracksStock, setTracksStock] = useState(item?.tracksStock ?? true);
 
   return (
-    <form {...formProps} className={formCardClass}>
+    <form {...formProps} className={inDialog ? modalFormClass : formCardClass}>
       <Field id="name" label="Nome">
         <input
           id="name"
           name="name"
           required
+          data-autofocus
           placeholder="Ex.: Boné, Camiseta P, Aluguel da van"
           defaultValue={item?.name}
           className={inputClass}
         />
       </Field>
-
 
       <Field id="price" label="Preço de venda (R$)">
         <input
@@ -96,7 +99,11 @@ export function ItemForm({
       )}
 
       <FormError error={state?.error} />
-      <SubmitButton pending={pending} />
+      {item ? (
+        <SubmitButton pending={pending} />
+      ) : (
+        <SubmitButton pending={pending} label="Adicionar" pendingLabel="Adicionando..." />
+      )}
     </form>
   );
 }

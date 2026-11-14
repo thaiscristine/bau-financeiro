@@ -15,6 +15,9 @@ export const cardClass = "border border-line bg-surface";
 // A form laid out as a white card
 export const formCardClass = `flex max-w-xl flex-col gap-6 p-6 sm:p-8 ${cardClass}`;
 
+// A form inside a modal, which already draws the card
+export const modalFormClass = "flex flex-col gap-6";
+
 // A group of fields nested inside a form card
 export const panelClass = "flex flex-col gap-4 border border-line bg-canvas p-4";
 

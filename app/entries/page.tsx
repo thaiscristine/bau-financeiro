@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/dal";
 import { listEntries } from "@/lib/entries";
+import { listCategories } from "@/lib/categories";
+import { listKids } from "@/lib/kids";
 import { formatBRL, formatDate } from "@/lib/format";
 import { EmptyState, Page } from "@/components/page";
+import { FormDialog } from "@/components/form-dialog";
 import { Eyebrow } from "@/components/eyebrow";
 import {
   cardClass,
@@ -14,19 +17,28 @@ import {
   tableRow,
   tableWrapClass,
 } from "@/components/styles";
-import { deleteEntry } from "./actions";
+import { createEntry, deleteEntry } from "./actions";
+import { EntryForm } from "./entry-form";
 import { DeleteButton } from "@/components/delete-button";
 
 type EntryRow = Awaited<ReturnType<typeof listEntries>>[number];
 
 export default async function EntriesPage() {
   await requireSession();
-  const rows = await listEntries();
+  const [rows, categories, kids] = await Promise.all([
+    listEntries(),
+    listCategories(),
+    listKids(),
+  ]);
 
   return (
     <Page
       title="Transações"
-      action={{ href: "/entries/new", label: "Nova transação" }}
+      aside={
+        <FormDialog label="Nova transação">
+          <EntryForm action={createEntry} categories={categories} kids={kids} />
+        </FormDialog>
+      }
     >
       {rows.length === 0 ? (
         <EmptyState>Nenhuma transação ainda.</EmptyState>

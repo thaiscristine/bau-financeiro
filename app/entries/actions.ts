@@ -14,7 +14,7 @@ import {
 import { entryFormSchema, parseForm } from "@/lib/validation";
 import { requireSession } from "@/lib/dal";
 
-export type EntryFormState = { error: string } | undefined;
+export type EntryFormState = { error?: string; saved?: number } | undefined;
 
 const MANAGED_ELSEWHERE =
   "Esta transação foi criada por uma venda ou reposição de estoque. Altere-a por lá.";
@@ -114,7 +114,7 @@ export async function createEntry(
   });
 
   revalidateEntries();
-  redirect("/entries");
+  return { saved: Date.now() };
 }
 
 export async function updateEntry(

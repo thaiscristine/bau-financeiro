@@ -15,7 +15,7 @@ import { requireSession } from "@/lib/dal";
 import { todayISO } from "@/lib/format";
 import { getShopCategoryId } from "@/lib/categories";
 
-export type ItemFormState = { error: string } | undefined;
+export type ItemFormState = { error?: string; saved?: number } | undefined;
 export type StockMovementFormState = { error?: string; saved?: number } | undefined;
 
 function parseItemForm(formData: FormData) {
@@ -166,7 +166,7 @@ export async function createItem(
     revalidatePath("/dashboard");
   }
   revalidateInventory();
-  redirect("/inventory");
+  return { saved: Date.now() };
 }
 
 export async function updateItem(
