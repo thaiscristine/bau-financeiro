@@ -12,7 +12,7 @@ export function Nav() {
           href="/dashboard"
           className="flex h-14 items-center gap-3 text-xl tracking-[-0.04em] whitespace-nowrap xl:h-auto"
         >
-          <Logo className="h-10 p-0.5" />
+          <Logo className="h-10" />
           <span className="max-sm:sr-only">Baú Financeiro</span>
         </Link>
         <div className="ml-auto flex items-center gap-4 xl:order-last">
