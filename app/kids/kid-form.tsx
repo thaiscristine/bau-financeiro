@@ -3,7 +3,13 @@
 import { useState } from "react";
 import type { KidFormState } from "./actions";
 import type { Kid } from "@/db/schema";
-import { Field, FormError, SubmitButton, useFormAction } from "@/components/form";
+import {
+  Field,
+  FormError,
+  FormSuccess,
+  SubmitButton,
+  useFormAction,
+} from "@/components/form";
 import {
   checkboxClass,
   formCardClass,
@@ -21,9 +27,17 @@ export function KidForm({
 }) {
   const [state, formProps, pending] = useFormAction(action);
   const [isMinor, setIsMinor] = useState(kid?.isMinor ?? false);
+  // The save the person has edited past, so the confirmation hides once
+  // there are unsaved changes again
+  const [editedAfter, setEditedAfter] = useState<number>();
+  const justSaved = state?.saved !== undefined && state.saved !== editedAfter;
 
   return (
-    <form {...formProps} className={formCardClass}>
+    <form
+      {...formProps}
+      onChange={() => setEditedAfter(state?.saved)}
+      className={formCardClass}
+    >
       <Field id="name" label="Nome">
         <input
           id="name"
@@ -85,6 +99,7 @@ export function KidForm({
       )}
 
       <FormError error={state?.error} />
+      <FormSuccess message={justSaved ? "Dados salvos." : undefined} />
       <SubmitButton pending={pending} />
     </form>
   );
