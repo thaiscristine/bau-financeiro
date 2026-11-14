@@ -15,6 +15,7 @@
     "test:e2e": "tsx tests/prepare-db.ts && playwright test"
   },
   "dependencies": {
+    "@vercel/functions": "^3.11.3",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.4",
     "exceljs": "^4.4.0",

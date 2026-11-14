@@ -12,8 +12,8 @@ import { paymentMethodLabel } from "@/lib/payment-methods";
 import { EmptyState, Section } from "@/components/page";
 import { SubmitButton } from "@/components/form";
 import { cardClass, chipClass, linkClass } from "@/components/styles";
-import { PaymentForm } from "@/app/sales/payment-form";
-import { UndoPaymentButton } from "@/app/sales/undo-payment-button";
+import { PaymentForm } from "@/app/(app)/sales/payment-form";
+import { UndoPaymentButton } from "@/app/(app)/sales/undo-payment-button";
 import {
   linkContributionEntry,
   payContribution,

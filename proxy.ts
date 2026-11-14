@@ -1,5 +1,11 @@
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { authConfig } from "@/auth.config";
+
+// Only reads the cookie, without the database check in auth.ts. That check
+// still runs in every page and action, so a cookie whose session was ended
+// gets past here but not past requireSession.
+const { auth } = NextAuth(authConfig);
 
 // Only scripts carrying this request's nonce run, plus the ones they load
 // ('strict-dynamic'), so markup that sneaks into a page can't run code. Next
@@ -25,12 +31,10 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const isLoginPage = req.nextUrl.pathname === "/login";
 
+  // Leaving /login is up to the page itself: a cookie whose session was ended
+  // would otherwise bounce between here and requireSession's redirect
   if (!isLoggedIn && !isLoginPage) {
     return NextResponse.redirect(new URL("/login", req.nextUrl));
-  }
-
-  if (isLoggedIn && isLoginPage) {
-    return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
   }
 
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");

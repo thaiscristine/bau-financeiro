@@ -93,8 +93,11 @@ function section(page: Page, title: string) {
   });
 }
 
-// Cells joined by tabs, with the non-breaking space of "R$ 10,00" made plain
+// Cells joined by tabs, with the non-breaking space of "R$ 10,00" made plain.
+// Waits for the section to show, since a full page load streams it in hidden
+// behind the loading placeholder first.
 async function rowsOf(page: Page, title: string) {
+  await expect(section(page, title)).toBeVisible();
   const rows = await section(page, title).locator("tbody tr").allInnerTexts();
   return rows.map((row) => row.replaceAll("\u00a0", " "));
 }
