@@ -14,10 +14,24 @@ function parseKidForm(formData: FormData) {
   const result = parseForm(kidFormSchema, {
     name: formData.get("name"),
     contact: formData.get("contact"),
+    isMinor: formData.get("isMinor") === "on",
+    // The form only renders these when the box is ticked, so they can be missing
+    guardianName: formData.get("guardianName") ?? undefined,
+    guardianPhone: formData.get("guardianPhone") ?? undefined,
   });
   if (!result.ok) return result;
-  const { name, contact } = result.data;
-  return { ok: true, values: { name, contact: contact ? contact : null } } as const;
+  const { name, contact, isMinor, guardianName, guardianPhone } = result.data;
+  return {
+    ok: true,
+    values: {
+      name,
+      contact: contact ? contact : null,
+      isMinor,
+      // An adult has no responsible person on file
+      guardianName: isMinor ? guardianName! : null,
+      guardianPhone: isMinor ? guardianPhone! : null,
+    },
+  } as const;
 }
 
 export async function createKid(

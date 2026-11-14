@@ -9,7 +9,9 @@ import {
   integer,
   boolean,
   unique,
+  check,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const entryTypeEnum = pgEnum("entry_type", ["income", "cost"]);
 
@@ -63,12 +65,25 @@ export const entries = pgTable("entries", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const kids = pgTable("kids", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  contact: text("contact"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const kids = pgTable(
+  "kids",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    contact: text("contact"),
+    // Under 18: a responsible person (name and phone) must be on file
+    isMinor: boolean("is_minor").notNull().default(false),
+    guardianName: text("guardian_name"),
+    guardianPhone: text("guardian_phone"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    check(
+      "kids_minor_has_guardian",
+      sql`not ${table.isMinor} or (${table.guardianName} is not null and ${table.guardianPhone} is not null)`
+    ),
+  ]
+);
 
 export const items = pgTable("items", {
   id: serial("id").primaryKey(),
