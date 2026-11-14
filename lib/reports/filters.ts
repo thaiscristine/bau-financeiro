@@ -15,6 +15,7 @@ import {
   type ReportType,
   type StockState,
 } from "./definitions";
+import { firstDay, lastDay, monthRange } from "@/lib/months";
 
 export type ReportFilters = {
   type: ReportType;
@@ -180,21 +181,6 @@ export function normalizeReportQuery(query: string) {
   return serializeReportFilters(parseReportFilters(new URLSearchParams(query)));
 }
 
-function addMonths(year: number, month: number, delta: number) {
-  const date = new Date(Date.UTC(year, month - 1 + delta, 1));
-  return { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1 };
-}
-
-function firstDay(year: number, month: number) {
-  return `${year}-${String(month).padStart(2, "0")}-01`;
-}
-
-function lastDay(year: number, month: number) {
-  const next = addMonths(year, month, 1);
-  const date = new Date(Date.UTC(next.year, next.month - 1, 0));
-  return date.toISOString().slice(0, 10);
-}
-
 // The dates a period covers, relative to today. Whole calendar months, so
 // "este mês" also shows installments due later this month. null is open-ended.
 export function periodRange(
@@ -205,11 +191,9 @@ export function periodRange(
   const month = Number(today.slice(5, 7));
   switch (filters.period) {
     case "this-month":
-      return { from: firstDay(year, month), to: lastDay(year, month) };
-    case "last-month": {
-      const last = addMonths(year, month, -1);
-      return { from: firstDay(last.year, last.month), to: lastDay(last.year, last.month) };
-    }
+      return monthRange(today, 0);
+    case "last-month":
+      return monthRange(today, -1);
     case "quarter": {
       const start = month - ((month - 1) % 3);
       return { from: firstDay(year, start), to: lastDay(year, start + 2) };

@@ -25,11 +25,15 @@ export function SalesTable({
       <table className={tableClass}>
         <thead>
           <tr className={tableHeadRow}>
-            <th className={tableHeadCell}>Data</th>
-            {showKid && <th className={tableHeadCell}>Bandeirante</th>}
+            {/* On phones the kid, the date and the paid count move into the item
+                and total cells, so the row fits without scrolling */}
+            <th className={`${tableHeadCell} max-sm:hidden`}>Data</th>
+            {showKid && (
+              <th className={`${tableHeadCell} max-sm:hidden`}>Bandeirante</th>
+            )}
             <th className={tableHeadCell}>Item</th>
             <th className={tableHeadCell}>Total</th>
-            <th className={tableHeadCell}>Parcelas pagas</th>
+            <th className={`${tableHeadCell} max-sm:hidden`}>Pagas</th>
             <th className={tableHeadCell}>
               <span className="sr-only">Ações</span>
             </th>
@@ -40,19 +44,34 @@ export function SalesTable({
             const settled = sale.paidCount === sale.installmentCount;
             return (
               <tr key={sale.id} className={tableRow}>
-                <td className={tableCell}>{formatDate(sale.saleDate)}</td>
-                {showKid && <td className={tableCell}>{sale.kidName}</td>}
+                <td className={`${tableCell} max-sm:hidden`}>
+                  {formatDate(sale.saleDate)}
+                </td>
+                {showKid && (
+                  <td className={`${tableCell} max-sm:hidden`}>{sale.kidName}</td>
+                )}
                 <td className={tableCell}>
+                  {showKid && <span className="block sm:hidden">{sale.kidName}</span>}
                   {sale.itemName}
                   {sale.quantity > 1 && (
                     <span className="text-muted"> × {sale.quantity}</span>
                   )}
+                  <span className="block text-sm text-muted sm:hidden">
+                    {formatDate(sale.saleDate)}
+                  </span>
                 </td>
                 <td className={`${tableCell} whitespace-nowrap`}>
                   {formatBRL(Number(sale.total))}
+                  <span
+                    className={`block text-sm sm:hidden ${
+                      settled ? "text-income" : "text-pending"
+                    }`}
+                  >
+                    {sale.paidCount}/{sale.installmentCount} pagas
+                  </span>
                 </td>
                 <td
-                  className={`${tableCell} whitespace-nowrap ${
+                  className={`${tableCell} whitespace-nowrap max-sm:hidden ${
                     settled ? "text-income" : "text-pending"
                   }`}
                 >

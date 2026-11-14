@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { KidFormState } from "./actions";
 import type { Kid } from "@/db/schema";
 import { AgeGroupSelect } from "./age-group-select";
+import { paysMonthlyFee } from "@/lib/age-groups";
 import {
   Field,
   FormError,
@@ -31,6 +32,7 @@ export function KidForm({
   const [state, formProps, pending] = useFormAction(action);
   const inDialog = useFormDialog(state?.saved);
   const [isMinor, setIsMinor] = useState(kid?.isMinor ?? false);
+  const [ageGroup, setAgeGroup] = useState(kid?.ageGroup ?? null);
   // The save the person has edited past, so the confirmation hides once
   // there are unsaved changes again
   const [editedAfter, setEditedAfter] = useState<number>();
@@ -63,8 +65,28 @@ export function KidForm({
       </Field>
 
       <Field id="ageGroup" label="Ramo (opcional)">
-        <AgeGroupSelect id="ageGroup" defaultValue={kid?.ageGroup} />
+        <AgeGroupSelect id="ageGroup" defaultValue={kid?.ageGroup} onChange={setAgeGroup} />
       </Field>
+
+      {/* Not rendered for the coordination, who pays no contribution */}
+      {paysMonthlyFee(ageGroup) && (
+        <Field
+          id="monthlyFee"
+          label="Contribuição mensal (R$)"
+          hint="Cobrada de fevereiro a novembro, menos julho. Deixe vazio se não paga."
+        >
+          <input
+            id="monthlyFee"
+            name="monthlyFee"
+            type="number"
+            inputMode="decimal"
+            step="0.01"
+            min="0.01"
+            defaultValue={kid?.monthlyFee ?? ""}
+            className={inputClass}
+          />
+        </Field>
+      )}
 
       <label className="flex cursor-pointer items-start gap-3 border border-line bg-canvas p-4">
         <input

@@ -97,6 +97,7 @@ export const kidFormSchema = z
     name: z.string().trim().min(1, { error: "Informe o nome." }),
     contact: optionalText,
     ageGroup: optionalAgeGroup,
+    monthlyFee: optionalMoney,
     isMinor: z.boolean(),
     guardianName: optionalText,
     guardianPhone: optionalText,
@@ -186,6 +187,10 @@ export const saleFormSchema = z.object({
 
 export const paymentFormSchema = z.object({
   paidDate: requiredDate,
+});
+
+export const contributionLinkFormSchema = z.object({
+  contributionId: id("Selecione o mês."),
 });
 
 // Returns the first validation message, or the parsed data

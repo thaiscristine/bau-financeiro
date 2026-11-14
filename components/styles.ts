@@ -29,6 +29,10 @@ export const hintClass = "text-[13px] leading-snug text-muted";
 export const eyebrowClass =
   "flex items-center gap-2 font-mono text-xs tracking-[0.05em] text-ink uppercase";
 
+// A pill in a row of choices: a button with aria-pressed or a link with aria-current
+export const chipClass =
+  "inline-flex h-8 cursor-pointer items-center rounded-full border border-line bg-surface px-3 text-sm whitespace-nowrap transition-colors hover:border-muted aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-canvas aria-[current=page]:border-ink aria-[current=page]:bg-ink aria-[current=page]:text-canvas";
+
 export const checkboxClass = "size-4 accent-ink";
 
 // relative: the sr-only "Ações" headers are absolutely positioned and would

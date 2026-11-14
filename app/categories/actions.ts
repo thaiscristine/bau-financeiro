@@ -90,6 +90,16 @@ export async function setCategoryRule(
 ) {
   await requireSession();
 
+  // Monthly contributions are recorded in the one category that requires a kid
+  if (rule === "requiresKid" && value) {
+    const [other] = await db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(and(eq(categories.requiresKid, true), ne(categories.id, id)))
+      .limit(1);
+    if (other) return;
+  }
+
   await db
     .update(categories)
     .set({ [rule]: value })

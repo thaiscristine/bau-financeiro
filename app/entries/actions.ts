@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
   categories,
+  contributions,
   entries,
   installments,
   kids,
@@ -20,7 +21,7 @@ export type EntryFormState =
   | undefined;
 
 const MANAGED_ELSEWHERE =
-  "Esta transação foi criada por uma venda ou reposição de estoque. Altere-a por lá.";
+  "Esta transação foi criada por uma venda, reposição de estoque ou contribuição mensal. Altere-a por lá.";
 
 // Validates the form and the rules of the chosen category. An entry that already
 // had a category closed to manual entries may keep it when edited.
@@ -56,6 +57,13 @@ async function parseEntryForm(formData: FormData, currentCategoryId?: number) {
     } as const;
   }
 
+  if (category.requiresKid && categoryId !== currentCategoryId) {
+    return {
+      ok: false,
+      error: `${category.name} é registrada na página do bandeirante, mês a mês.`,
+    } as const;
+  }
+
   if (category.requiresKid) {
     if (!kidId) {
       return { ok: false, error: `Selecione o bandeirante da ${category.name.toLowerCase()}.` } as const;
@@ -79,9 +87,10 @@ async function parseEntryForm(formData: FormData, currentCategoryId?: number) {
   } as const;
 }
 
-// Installment payments and restock purchases are changed from where they were created
+// Installment payments, restock purchases and monthly contributions are changed
+// from where they were created
 async function isManagedElsewhere(id: number) {
-  const [[installment], [movement]] = await Promise.all([
+  const [[installment], [movement], [contribution]] = await Promise.all([
     db
       .select({ id: installments.id })
       .from(installments)
@@ -92,8 +101,13 @@ async function isManagedElsewhere(id: number) {
       .from(stockMovements)
       .where(eq(stockMovements.entryId, id))
       .limit(1),
+    db
+      .select({ id: contributions.id })
+      .from(contributions)
+      .where(eq(contributions.entryId, id))
+      .limit(1),
   ]);
-  return Boolean(installment || movement);
+  return Boolean(installment || movement || contribution);
 }
 
 function revalidateEntries() {

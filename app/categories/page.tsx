@@ -33,8 +33,8 @@ export default async function CategoriesPage() {
         <ul className="flex flex-col gap-2">
           <li>
             <span className="text-ink">Exige bandeirante</span>:
-            a transação precisa dizer de qual bandeirante veio o dinheiro, como na
-            contribuição mensal.
+            é a contribuição mensal, paga mês a mês na página de cada
+            bandeirante. Só uma categoria pode ter esta marca.
           </li>
           <li>
             <span className="text-ink">Só pela tela Lojinha</span>
@@ -85,6 +85,10 @@ export default async function CategoriesPage() {
                         )}
                         checked={category.requiresKid}
                         label={`${category.name}: exige bandeirante`}
+                        disabled={
+                          !category.requiresKid &&
+                          rows.some((other) => other.requiresKid)
+                        }
                       />
                     </div>
                   </td>

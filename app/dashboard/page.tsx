@@ -1,17 +1,15 @@
 import { requireSession } from "@/lib/dal";
-import Link from "next/link";
-import {
-  getTotals,
-  getMonthlyBreakdown,
-  getTotalsByCategory,
-} from "@/lib/entries";
-import { getReceivables, listOverdueInstallments } from "@/lib/sales";
-import { formatBRL, formatDate, formatMonth, todayISO } from "@/lib/format";
+import { getIncomeByCategory, getTotals } from "@/lib/entries";
+import { getReceivables } from "@/lib/sales";
+import { ensureContributions, getContributionsByAgeGroup } from "@/lib/contributions";
+import { AGE_GROUP_LABELS } from "@/lib/age-groups";
+import { parseDashboardPeriod } from "@/lib/dashboard-period";
+import { toSearchParams } from "@/lib/reports/filters";
+import { formatBRL, todayISO } from "@/lib/format";
 import { EmptyState, Page, Section } from "@/components/page";
 import { Eyebrow } from "@/components/eyebrow";
 import {
   cardClass,
-  linkClass,
   tableCell,
   tableClass,
   tableHeadCell,
@@ -19,21 +17,34 @@ import {
   tableRow,
   tableWrapClass,
 } from "@/components/styles";
+import { PeriodFilter } from "./period-filter";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: PageProps<"/dashboard">) {
   await requireSession();
   const today = todayISO();
-  const [totals, monthly, byCategory, receivables, overdue] = await Promise.all([
-    getTotals(),
-    getMonthlyBreakdown(),
-    getTotalsByCategory(),
-    getReceivables(today),
-    listOverdueInstallments(today),
-  ]);
+  const { period, range } = parseDashboardPeriod(
+    toSearchParams(await searchParams),
+    today
+  );
+  await ensureContributions(today);
+  const [totals, incomeByCategory, receivables, contributionsByAgeGroup] =
+    await Promise.all([
+      getTotals(range),
+      getIncomeByCategory(range),
+      getReceivables(today, range),
+      getContributionsByAgeGroup(today, range),
+    ]);
+  const openContributions = contributionsByAgeGroup.reduce(
+    (sum, row) => sum + row.pending,
+    0
+  );
 
   return (
     <Page title="Painel">
       <div className="flex flex-col gap-4">
+        <PeriodFilter period={period} range={range} />
         <div className={`grid grid-cols-1 sm:grid-cols-3 ${cardClass}`}>
           <StatCard label="Entrou" value={totals.income} tone="positive" />
           <StatCard label="Saiu" value={totals.cost} tone="negative" />
@@ -57,80 +68,31 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {overdue.length > 0 && (
-        <Section title="Parcelas atrasadas">
-          <div className={tableWrapClass}>
-            <table className={tableClass}>
-              <thead>
-                <tr className={tableHeadRow}>
-                  <th className={tableHeadCell}>Vencimento</th>
-                  <th className={tableHeadCell}>Bandeirante</th>
-                  <th className={tableHeadCell}>Item</th>
-                  <th className={`${tableHeadCell} text-right`}>Valor</th>
-                  <th className={tableHeadCell}>
-                    <span className="sr-only">Ações</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {overdue.map((installment) => (
-                  <tr key={installment.id} className={tableRow}>
-                    <td className={`${tableCell} whitespace-nowrap text-cost`}>
-                      {formatDate(installment.dueDate)}
-                    </td>
-                    <td className={tableCell}>{installment.kidName}</td>
-                    <td className={tableCell}>
-                      {installment.itemName}
-                      <span className="text-muted">
-                        {" "}
-                        (parcela {installment.number})
-                      </span>
-                    </td>
-                    <td className={`${tableCell} text-right whitespace-nowrap`}>
-                      {formatBRL(Number(installment.amount))}
-                    </td>
-                    <td className={`${tableCell} text-right`}>
-                      <Link
-                        href={`/sales/${installment.saleId}`}
-                        className={linkClass}
-                      >
-                        Ver
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
-      )}
-
       <Section title="Por origem">
-        {byCategory.length === 0 ? (
-          <EmptyState>Nenhuma transação ainda.</EmptyState>
+        {incomeByCategory.length === 0 ? (
+          <EmptyState>Nenhuma entrada no período.</EmptyState>
         ) : (
           <div className={tableWrapClass}>
             <table className={tableClass}>
               <thead>
                 <tr className={tableHeadRow}>
                   <th className={tableHeadCell}>Categoria</th>
-                  <th className={`${tableHeadCell} text-right`}>Entrou</th>
-                  <th className={`${tableHeadCell} text-right`}>Saiu</th>
+                  <th className={`${tableHeadCell} text-right`}>
+                    Entrou
+                    <span className="ml-2 text-income">
+                      {formatBRL(totals.income)}
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {byCategory.map((row) => (
+                {incomeByCategory.map((row) => (
                   <tr key={row.category} className={tableRow}>
                     <td className={tableCell}>{row.category}</td>
                     <td
-                      className={`${tableCell} text-right whitespace-nowrap ${row.income > 0 ? "text-income" : "text-muted/60"}`}
+                      className={`${tableCell} text-right whitespace-nowrap text-income`}
                     >
                       {formatBRL(row.income)}
-                    </td>
-                    <td
-                      className={`${tableCell} text-right whitespace-nowrap ${row.cost > 0 ? "text-cost" : "text-muted/60"}`}
-                    >
-                      {formatBRL(row.cost)}
                     </td>
                   </tr>
                 ))}
@@ -140,84 +102,58 @@ export default async function DashboardPage() {
         )}
       </Section>
 
-      <Section title="Por mês">
-        {monthly.length === 0 ? (
-          <EmptyState>Nenhuma transação ainda.</EmptyState>
+      <Section title="Contribuições em aberto por ramo">
+        {contributionsByAgeGroup.length === 0 ? (
+          <EmptyState>Nenhuma contribuição em aberto no período.</EmptyState>
         ) : (
-          <>
-            <ul className={`divide-y divide-line-soft sm:hidden ${cardClass}`}>
-              {monthly.map((row) => (
-                <li key={row.month} className="flex flex-col gap-3 p-4">
-                  <p className="text-[15px]">{formatMonth(row.month)}</p>
-                  <dl className="grid grid-cols-3 gap-2 tabular-nums">
-                    <MonthValue label="Entrou" value={row.income} tone="text-income" />
-                    <MonthValue label="Saiu" value={row.cost} tone="text-cost" />
-                    <MonthValue
-                      label="Saldo"
-                      value={row.balance}
-                      tone={row.balance < 0 ? "text-cost" : ""}
-                    />
-                  </dl>
-                </li>
-              ))}
-            </ul>
-            <div className={`hidden sm:block ${tableWrapClass}`}>
-              <table className={tableClass}>
-                <thead>
-                  <tr className={tableHeadRow}>
-                    <th className={tableHeadCell}>Mês</th>
-                    <th className={`${tableHeadCell} text-right`}>Entrou</th>
-                    <th className={`${tableHeadCell} text-right`}>Saiu</th>
-                    <th className={`${tableHeadCell} text-right`}>Saldo</th>
+          <div className={tableWrapClass}>
+            <table className={tableClass}>
+              <thead>
+                <tr className={tableHeadRow}>
+                  <th className={tableHeadCell}>Ramo</th>
+                  <th className={`${tableHeadCell} text-right max-sm:hidden`}>
+                    Meses
+                  </th>
+                  <th className={`${tableHeadCell} text-right`}>
+                    Em aberto
+                    <span className="ml-2 text-pending">
+                      {formatBRL(openContributions)}
+                    </span>
+                  </th>
+                  <th className={`${tableHeadCell} text-right`}>Atrasado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {contributionsByAgeGroup.map((row) => (
+                  <tr key={row.ageGroup ?? "none"} className={tableRow}>
+                    <td className={`${tableCell} whitespace-nowrap`}>
+                      {row.ageGroup ? (
+                        AGE_GROUP_LABELS[row.ageGroup]
+                      ) : (
+                        <span className="text-muted">Sem ramo</span>
+                      )}
+                    </td>
+                    <td className={`${tableCell} text-right max-sm:hidden`}>
+                      {row.count}
+                    </td>
+                    <td
+                      className={`${tableCell} text-right whitespace-nowrap text-pending`}
+                    >
+                      {formatBRL(row.pending)}
+                    </td>
+                    <td
+                      className={`${tableCell} text-right whitespace-nowrap ${row.overdue > 0 ? "text-cost" : "text-muted/60"}`}
+                    >
+                      {formatBRL(row.overdue)}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {monthly.map((row) => (
-                    <tr key={row.month} className={tableRow}>
-                      <td className={`${tableCell} whitespace-nowrap`}>
-                        {formatMonth(row.month)}
-                      </td>
-                      <td className={`${tableCell} text-right text-income`}>
-                        {formatBRL(row.income)}
-                      </td>
-                      <td className={`${tableCell} text-right text-cost`}>
-                        {formatBRL(row.cost)}
-                      </td>
-                      <td
-                        className={`${tableCell} text-right ${
-                          row.balance < 0 ? "text-cost" : ""
-                        }`}
-                      >
-                        {formatBRL(row.balance)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Section>
     </Page>
-  );
-}
-
-function MonthValue({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone: string;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <dt className="font-mono text-[11px] tracking-[0.05em] text-muted uppercase">
-        {label}
-      </dt>
-      <dd className={`text-sm ${tone}`}>{formatBRL(value)}</dd>
-    </div>
   );
 }
 
