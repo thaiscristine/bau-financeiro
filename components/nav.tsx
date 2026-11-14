@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Logo } from "./logo";
 import { LogoutButton } from "./logout-button";
 import { NavLinks } from "./nav-links";
-import { primaryButtonClass } from "./styles";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Nav() {
   return (
@@ -12,17 +12,12 @@ export function Nav() {
           href="/dashboard"
           className="flex h-14 items-center gap-3 text-xl tracking-[-0.04em] whitespace-nowrap xl:h-auto"
         >
-          <Logo className="h-10 p-0.5" />
+          <Logo className="h-10" />
           <span className="max-sm:sr-only">Baú Financeiro</span>
         </Link>
         <div className="ml-auto flex items-center gap-4 xl:order-last">
+          <ThemeToggle />
           <LogoutButton />
-          <Link
-            href="/entries/new"
-            className={`${primaryButtonClass} h-9 px-3 text-sm`}
-          >
-            Nova transação
-          </Link>
         </div>
         <NavLinks />
       </div>
