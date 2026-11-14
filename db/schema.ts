@@ -13,6 +13,7 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import { AGE_GROUPS } from "../lib/age-groups";
 
 export const entryTypeEnum = pgEnum("entry_type", ["income", "cost"]);
 
@@ -21,6 +22,8 @@ export const stockMovementReasonEnum = pgEnum("stock_movement_reason", [
   "sale",
   "adjustment",
 ]);
+
+export const ageGroupEnum = pgEnum("age_group", AGE_GROUPS);
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -102,6 +105,8 @@ export const kids = pgTable(
     id: serial("id").primaryKey(),
     name: text("name").notNull(),
     contact: text("contact"),
+    // Empty when not informed, like the kids registered before age groups existed
+    ageGroup: ageGroupEnum("age_group"),
     // Under 18: a responsible person (name and phone) must be on file
     isMinor: boolean("is_minor").notNull().default(false),
     guardianName: text("guardian_name"),

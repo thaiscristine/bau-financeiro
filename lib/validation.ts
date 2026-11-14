@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AGE_GROUPS } from "./age-groups";
 
 const id = (message: string) =>
   z.coerce.number({ error: message }).int({ error: message }).positive({ error: message });
@@ -16,6 +17,12 @@ const optionalMoney = z.preprocess(
 const requiredDate = z.string().min(1, { error: "Informe a data." });
 
 const optionalText = z.string().trim().optional();
+
+// The select's empty option means "not informed"
+const optionalAgeGroup = z.preprocess(
+  (value) => (value === "" || value === null ? undefined : value),
+  z.enum(AGE_GROUPS, { error: "Selecione um ramo da lista." }).optional()
+);
 
 export const entryFormSchema = z.object({
   type: z.enum(["income", "cost"], { error: "Selecione o tipo." }),
@@ -55,6 +62,7 @@ export const kidFormSchema = z
   .object({
     name: z.string().trim().min(1, { error: "Informe o nome." }),
     contact: optionalText,
+    ageGroup: optionalAgeGroup,
     isMinor: z.boolean(),
     guardianName: optionalText,
     guardianPhone: optionalText,
@@ -121,6 +129,7 @@ export const saleBuyerSchema = z.discriminatedUnion("kind", [
     kind: z.literal("new"),
     name: z.string().trim().min(1, { error: "Informe o nome do novo bandeirante." }),
     contact: optionalText,
+    ageGroup: optionalAgeGroup,
   }),
 ]);
 
