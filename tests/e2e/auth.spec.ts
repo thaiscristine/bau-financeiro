@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createUser, pool, reset } from "./db";
+import { createUser, reset } from "./db";
+import { login } from "./session";
 
 const WRONG_LOGIN = "E-mail ou senha inválidos.";
 const LOCKED_OUT = /Muitas tentativas de login\. Tente novamente em \d+:\d{2}\./;
@@ -9,15 +10,6 @@ test.beforeEach(async () => {
   await createUser("Ana", "ana@example.com", "senha-da-ana");
   await createUser("Bia", "bia@example.com", "senha-da-bia");
 });
-
-test.afterAll(() => pool.end());
-
-async function login(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Senha").fill(password);
-  await page.getByRole("button", { name: "Entrar" }).click();
-}
 
 test("logging in with the right password opens the dashboard", async ({
   page,

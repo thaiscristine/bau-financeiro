@@ -14,4 +14,4 @@ Follow the Vercel React best practices skill in `.agents/skills/vercel-react-bes
 
 ## Tests
 
-`npm test` runs pure unit tests. `npm run test:db` (database tests in `tests/db/`) and `npm run test:e2e` (Playwright against a production build, `tests/e2e/`) need `TEST_DATABASE_URL` in `.env.local`, pointing at a database whose name ends in `_test`. Both suites create and migrate it, then wipe it between tests.
+`npm test` runs pure unit tests. `npm run test:db` (database tests in `tests/db/`) and `npm run test:e2e` (Playwright against a production build, `tests/e2e/`) need `TEST_DATABASE_URL` in `.env.local`, pointing at a database whose name ends in `_test`. Both suites create and migrate it, then wipe it between tests, so give each checkout or worktree its own test database (and `E2E_PORT` if 3200 is taken), or parallel runs erase each other's data.
