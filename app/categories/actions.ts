@@ -1,11 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { categories } from "@/db/schema";
 import { categoryFormSchema, parseForm } from "@/lib/validation";
 import { requireSession } from "@/lib/dal";
+import { SHOP_CATEGORY_NAME } from "@/lib/categories";
 
 export type CategoryFormState = { error?: string; saved?: number } | undefined;
 
@@ -32,10 +33,14 @@ async function saveCategory(id: number | null, formData: FormData) {
     if (id === null) {
       await db.insert(categories).values(result.data);
     } else {
-      await db
+      const updated = await db
         .update(categories)
         .set(result.data)
-        .where(eq(categories.id, id));
+        .where(and(eq(categories.id, id), ne(categories.name, SHOP_CATEGORY_NAME)))
+        .returning({ id: categories.id });
+      if (updated.length === 0) {
+        return { error: `A categoria ${SHOP_CATEGORY_NAME} não pode ser renomeada.` };
+      }
     }
   } catch (error) {
     if (pgErrorCode(error) === PG_UNIQUE_VIOLATION) {
@@ -70,7 +75,9 @@ export async function deleteCategory(id: number) {
   await requireSession();
 
   try {
-    await db.delete(categories).where(eq(categories.id, id));
+    await db
+      .delete(categories)
+      .where(and(eq(categories.id, id), ne(categories.name, SHOP_CATEGORY_NAME)));
   } catch (error) {
     if (pgErrorCode(error) === PG_FOREIGN_KEY_VIOLATION) {
       throw new Error("Esta categoria está em uso e não pode ser excluída.");

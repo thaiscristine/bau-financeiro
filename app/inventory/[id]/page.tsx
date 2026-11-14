@@ -126,7 +126,7 @@ export default async function ItemPage({ params }: PageProps<"/inventory/[id]">)
       <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-8">
         <section className="flex flex-col gap-3">
           <Eyebrow as="h2">Dados do item</Eyebrow>
-          <ItemForm action={updateItem.bind(null, id)} categories={categories} item={item} />
+          <ItemForm action={updateItem.bind(null, id)} item={item} />
         </section>
 
         {item.tracksStock && (

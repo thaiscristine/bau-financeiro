@@ -13,6 +13,7 @@ import {
 } from "@/lib/validation";
 import { requireSession } from "@/lib/dal";
 import { todayISO } from "@/lib/format";
+import { getShopCategoryId } from "@/lib/categories";
 
 export type ItemFormState = { error: string } | undefined;
 export type StockMovementFormState = { error?: string; saved?: number } | undefined;
@@ -20,15 +21,14 @@ export type StockMovementFormState = { error?: string; saved?: number } | undefi
 function parseItemForm(formData: FormData) {
   const result = parseForm(itemFormSchema, {
     name: formData.get("name"),
-    categoryId: formData.get("categoryId"),
     price: formData.get("price"),
     tracksStock: formData.get("tracksStock") === "on",
   });
   if (!result.ok) return result;
-  const { name, categoryId, price, tracksStock } = result.data;
+  const { name, price, tracksStock } = result.data;
   return {
     ok: true,
-    values: { name, categoryId, price: price.toFixed(2), tracksStock },
+    values: { name, price: price.toFixed(2), tracksStock },
   } as const;
 }
 
@@ -134,12 +134,15 @@ export async function createItem(
     : undefined;
   if (restock && !restock.ok) return { error: restock.error };
 
+  const categoryId = await getShopCategoryId();
+  if (!categoryId) return { error: "A categoria Lojinha não existe mais." };
+
   let error: string | undefined;
   await db
     .transaction(async (tx) => {
       const [item] = await tx
         .insert(items)
-        .values(result.values)
+        .values({ ...result.values, categoryId })
         .returning({ id: items.id });
 
       if (restock) {
