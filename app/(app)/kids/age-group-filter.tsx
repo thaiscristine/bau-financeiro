@@ -6,6 +6,7 @@ import {
   type AgeGroupFilter,
 } from "@/lib/age-groups";
 import { chipClass } from "@/components/styles";
+import { AgeGroupSwatch } from "@/components/age-group";
 
 // Plain links, so a filtered list is just a URL that can be bookmarked or
 // shared. Every group stays listed, even when empty, so the chips don't jump
@@ -46,8 +47,11 @@ export function AgeGroupFilterChips({
             <Link
               href={option.value ? `/kids?ramo=${option.value}` : "/kids"}
               aria-current={option.value === current ? "page" : undefined}
-              className={`${chipClass} gap-1.5`}
+              className={`group ${chipClass} gap-1.5`}
             >
+              {option.value && option.value !== NO_AGE_GROUP && (
+                <AgeGroupSwatch ageGroup={option.value} className="mr-0.5" />
+              )}
               {option.label}
               <span className="text-xs tabular-nums opacity-60">
                 {option.count}

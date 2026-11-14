@@ -9,7 +9,7 @@ import {
   listExpenseKinds,
   listKidsToSignUp,
 } from "@/lib/events";
-import { AGE_GROUP_LABELS, type AgeGroup } from "@/lib/age-groups";
+import type { AgeGroup } from "@/lib/age-groups";
 import { formatBRL, formatDate, todayISO } from "@/lib/format";
 import { paymentMethodLabel } from "@/lib/payment-methods";
 import { FUND_NAME } from "@/lib/fund";
@@ -17,11 +17,14 @@ import { EmptyState, Page, Section } from "@/components/page";
 import { FormDialog } from "@/components/form-dialog";
 import { DeleteButton } from "@/components/delete-button";
 import { Stat, statGridClass } from "@/components/stat";
+import { AgeGroupLabel } from "@/components/age-group";
 import {
   cardClass,
   linkClass,
   tableCell,
   tableClass,
+  tableGroupHeadCell,
+  tableGroupHeadRow,
   tableHeadCell,
   tableHeadRow,
   tableRow,
@@ -192,7 +195,7 @@ function groupOf(participant: ParticipantRow): GroupKey {
 function groupLabel(key: GroupKey) {
   if (key === "guest") return "Convidados";
   if (key === "none") return "Sem ramo";
-  return AGE_GROUP_LABELS[key];
+  return <AgeGroupLabel ageGroup={key} />;
 }
 
 function ParticipantsTable({
@@ -229,12 +232,8 @@ function ParticipantsTable({
         </thead>
         {ordered.map(([key, rows]) => (
           <tbody key={key}>
-            <tr className="border-b border-line-soft bg-canvas">
-              <th
-                scope="rowgroup"
-                colSpan={5}
-                className="px-5 py-2 text-left font-mono text-xs font-normal tracking-[0.05em] text-muted uppercase"
-              >
+            <tr className={tableGroupHeadRow}>
+              <th scope="rowgroup" colSpan={5} className={tableGroupHeadCell}>
                 {groupLabel(key)} · {rows.length}
               </th>
             </tr>

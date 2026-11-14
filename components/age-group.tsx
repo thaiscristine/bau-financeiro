@@ -1,7 +1,8 @@
 import { AGE_GROUP_COLORS, AGE_GROUP_LABELS, type AgeGroup } from "@/lib/age-groups";
 
 // The age group's color as a dot. Decorative: the label next to it says the name.
-// The ring keeps light colors (yellow, the white stripes) visible on the canvas.
+// The ring keeps light colors (yellow, the white stripes) visible on the canvas,
+// and dark ones (navy) on a selected chip.
 export function AgeGroupSwatch({
   ageGroup,
   className = "",
@@ -12,7 +13,7 @@ export function AgeGroupSwatch({
   return (
     <span
       aria-hidden="true"
-      className={`inline-block size-3 shrink-0 rounded-full ring-1 ring-ink/20 ${className}`}
+      className={`inline-block size-3 shrink-0 rounded-full ring-1 ring-ink/20 group-aria-[current=page]:ring-canvas/70 ${className}`}
       style={{ background: AGE_GROUP_COLORS[ageGroup] }}
     />
   );
