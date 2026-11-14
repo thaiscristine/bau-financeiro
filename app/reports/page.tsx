@@ -23,7 +23,6 @@ import {
   tableCell,
   tableClass,
   tableHeadCell,
-  tableHeadRow,
 } from "@/components/styles";
 import { ReportWorkspace } from "./report-workspace";
 import { Templates } from "./templates";
@@ -180,37 +179,44 @@ function Preview({ report }: { report: BuiltReport }) {
       ) : (
         <div className="relative max-h-[600px] overflow-auto">
           <table className={tableClass}>
+            {/* Solid cells and a shadow line instead of the shared translucent
+                row and its border, which let rows show through once it sticks */}
             <thead className="sticky top-0 z-[1]">
-              <tr className={`${tableHeadRow} bg-sunken`}>
+              <tr>
                 {columns.map((column) => (
-                  <th key={column.key} className={`${tableHeadCell} ${alignRight(column) ? "text-right" : ""}`}>
+                  <th
+                    key={column.key}
+                    className={`${tableHeadCell} bg-sunken shadow-[inset_0_-1px_0_var(--line)] ${
+                      alignRight(column) ? "text-right" : ""
+                    }`}
+                  >
                     {column.label}
                   </th>
                 ))}
               </tr>
             </thead>
             {previewGroups(groups).map(({ group, shown }) => (
-                <tbody key={group.label ?? "all"}>
-                  {grouped && (
-                    <tr className="border-b border-line-soft bg-canvas">
-                      <td colSpan={columns.length} className="px-5 pt-4 pb-2.5">
-                        <Eyebrow as="span" tone="ink">
-                          {group.label} · {group.rows.length} {group.rows.length === 1 ? "linha" : "linhas"}
-                        </Eyebrow>
+              <tbody key={group.label ?? "all"}>
+                {grouped && (
+                  <tr className="border-b border-line-soft bg-canvas">
+                    <td colSpan={columns.length} className="px-5 pt-4 pb-2.5">
+                      <Eyebrow as="span" tone="ink">
+                        {group.label} · {group.rows.length} {group.rows.length === 1 ? "linha" : "linhas"}
+                      </Eyebrow>
+                    </td>
+                  </tr>
+                )}
+                {shown.map((row, index) => (
+                  <tr key={index} className="border-b border-line-soft transition-colors hover:bg-canvas">
+                    {columns.map((column) => (
+                      <td
+                        key={column.key}
+                        className={`${tableCell} whitespace-nowrap ${alignRight(column) ? "text-right" : ""} ${
+                          column.kind === "note" ? "max-w-60 truncate font-serif text-muted" : ""
+                        }`}
+                      >
+                        <Cell column={column} row={row} />
                       </td>
-                    </tr>
-                  )}
-                  {shown.map((row, index) => (
-                    <tr key={index} className="border-b border-line-soft transition-colors hover:bg-canvas">
-                      {columns.map((column) => (
-                        <td
-                          key={column.key}
-                          className={`${tableCell} whitespace-nowrap ${alignRight(column) ? "text-right" : ""} ${
-                            column.kind === "note" ? "max-w-60 truncate font-serif text-muted" : ""
-                          }`}
-                        >
-                          <Cell column={column} row={row} />
-                        </td>
                       ))}
                     </tr>
                   ))}
