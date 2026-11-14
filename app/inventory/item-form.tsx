@@ -106,7 +106,10 @@ export function ItemForm({
               className={inputClass}
             />
           </Field>
-          <RestockCostFields categories={costCategories} />
+          <RestockCostFields
+            categories={costCategories}
+            costLabel="Valor da mercadoria (R$)"
+          />
         </>
       )}
 
