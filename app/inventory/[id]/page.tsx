@@ -6,7 +6,8 @@ import { listCategories } from "@/lib/categories";
 import { formatBRL, formatDate } from "@/lib/format";
 import { pageCount, parsePage } from "@/lib/pagination";
 import { STOCK_MOVEMENT_REASON_LABELS } from "@/lib/validation";
-import { EmptyState, Eyebrow, Page } from "@/components/page";
+import { EmptyState, Page } from "@/components/page";
+import { Eyebrow } from "@/components/eyebrow";
 import { DeleteButton } from "@/components/delete-button";
 import { Pagination } from "@/components/pagination";
 import {

@@ -7,7 +7,8 @@ import {
 } from "@/lib/entries";
 import { getReceivables, listOverdueInstallments } from "@/lib/sales";
 import { formatBRL, formatDate, formatMonth, todayISO } from "@/lib/format";
-import { EmptyState, Eyebrow, Page, Section } from "@/components/page";
+import { EmptyState, Page, Section } from "@/components/page";
+import { Eyebrow } from "@/components/eyebrow";
 import {
   cardClass,
   linkClass,

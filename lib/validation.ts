@@ -31,6 +31,14 @@ export const categoryFormSchema = z.object({
   name: z.string().trim().min(1, { error: "Informe o nome da categoria." }),
 });
 
+export const reportTemplateFormSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, { error: "Informe o nome do modelo." })
+    .max(80, { error: "Use no máximo 80 caracteres no nome." }),
+});
+
 export const userFormSchema = z.object({
   name: z.string().trim().min(1, { error: "Informe o nome." }),
   email: z

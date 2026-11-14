@@ -33,7 +33,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       data-theme={theme === "system" ? undefined : theme}
       className={`${geistSans.variable} ${geistMono.variable} ${sourceSerif.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col font-sans">{children}</body>
+      {/* Extensions like Grammarly add attributes to <body> before React loads */}
+      <body suppressHydrationWarning className="flex min-h-full flex-col font-sans">
+        {children}
+      </body>
     </html>
   );
 }

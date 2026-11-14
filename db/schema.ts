@@ -161,3 +161,17 @@ export type Category = typeof categories.$inferSelect;
 export type Entry = typeof entries.$inferSelect;
 export type Kid = typeof kids.$inferSelect;
 export type Item = typeof items.$inferSelect;
+
+// A saved report: its filters as the /reports query string, so a template opens
+// exactly like a shared link and old templates keep working as filters evolve.
+// Shared by every manager; the ready-made ones are ordinary rows anyone can
+// rename, change or delete.
+export const reportTemplates = pgTable("report_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  query: text("query").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type ReportTemplate = typeof reportTemplates.$inferSelect;

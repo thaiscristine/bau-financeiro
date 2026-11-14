@@ -2,7 +2,8 @@ import Link from "next/link";
 import { requireSession } from "@/lib/dal";
 import { listEntries } from "@/lib/entries";
 import { formatBRL, formatDate } from "@/lib/format";
-import { EmptyState, Eyebrow, Page } from "@/components/page";
+import { EmptyState, Page } from "@/components/page";
+import { Eyebrow } from "@/components/eyebrow";
 import {
   cardClass,
   linkClass,
