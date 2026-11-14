@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { StockMovementFormState } from "./actions";
 import type { Category } from "@/db/schema";
 import { todayISO } from "@/lib/format";
@@ -25,11 +26,18 @@ export function StockMovementForm({
   categories: Category[];
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [reason, setReason] = useState<"restock" | "adjustment">("restock");
   const [state, formProps, pending] = useFormAction(
     async (prevState: StockMovementFormState, formData: FormData) => {
       const result = await action(prevState, formData);
-      if (result?.saved) setReason("restock");
+      if (result?.saved) {
+        setReason("restock");
+        // The newest movement shows up on the first page of the history
+        if (searchParams.has("page")) router.replace(pathname, { scroll: false });
+      }
       return result;
     }
   );
