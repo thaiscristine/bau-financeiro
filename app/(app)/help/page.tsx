@@ -98,7 +98,9 @@ export default async function HelpPage() {
             <P>
               O menu no topo leva a todas as telas. Ao abrir a{" "}
               <Ui>Lojinha</Ui>, um segundo menu logo abaixo separa{" "}
-              <Ui>Vendas</Ui>, <Ui>Estoque</Ui> e <Ui>Relatório</Ui>. No canto
+              <Ui>Vendas</Ui>, <Ui>Estoque</Ui> e <Ui>Relatório</Ui>.{" "}
+              <Ui>Configurações</Ui> abre uma lista com <Ui>Usuários</Ui> e{" "}
+              <Ui>Categorias</Ui>. No canto
               direito ficam a
               escolha de tema (do sistema, claro ou escuro), esta{" "}
               <Ui>Ajuda</Ui> e o botão <Ui>Sair</Ui>.
@@ -502,7 +504,8 @@ export default async function HelpPage() {
 
           <Topic id="categorias" screen="/categories">
             <P>
-              Para criar uma categoria, digite o nome em{" "}
+              Fica em <Ui>Configurações</Ui>. Para criar uma categoria, digite
+              o nome em{" "}
               <Ui>Nova categoria</Ui> e clique em <Ui>Adicionar</Ui>. Use{" "}
               <Ui>Renomear</Ui> para mudar o nome; as transações antigas passam
               a mostrar o nome novo.
@@ -529,8 +532,8 @@ export default async function HelpPage() {
 
           <Topic id="usuarios" screen="/users">
             <P>
-              Quem pode entrar no sistema. Todos os usuários têm o mesmo
-              acesso.
+              Fica em <Ui>Configurações</Ui>. Quem pode entrar no sistema.
+              Todos os usuários têm o mesmo acesso.
             </P>
             <ul className="flex flex-col gap-3 font-serif text-[17px] leading-relaxed">
               <Li>
