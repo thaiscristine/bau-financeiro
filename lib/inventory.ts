@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { asc, count, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { entries, items, stockMovements } from "@/db/schema";
 
@@ -11,7 +11,7 @@ const stockExpr = sql<number>`coalesce((
   where movement.item_id = "items"."id"
 ), 0)`;
 
-export async function listItems() {
+function itemsQuery() {
   return db
     .select({
       id: items.id,
@@ -21,7 +21,22 @@ export async function listItems() {
       stock: stockExpr,
     })
     .from(items)
-    .orderBy(asc(items.name));
+    // id breaks ties between equal names so pages never overlap or skip rows
+    .orderBy(asc(items.name), asc(items.id));
+}
+
+export async function listItems() {
+  return itemsQuery();
+}
+
+export async function listItemsPage(page: number, pageSize: number) {
+  const [rows, [{ total }]] = await Promise.all([
+    itemsQuery()
+      .limit(pageSize)
+      .offset((page - 1) * pageSize),
+    db.select({ total: count() }).from(items),
+  ]);
+  return { rows, total };
 }
 
 export async function getItem(id: number) {
@@ -42,20 +57,33 @@ export async function getItem(id: number) {
   return item;
 }
 
-export async function listStockMovements(itemId: number) {
-  return db
-    .select({
-      id: stockMovements.id,
-      quantity: stockMovements.quantity,
-      reason: stockMovements.reason,
-      saleId: stockMovements.saleId,
-      note: stockMovements.note,
-      movementDate: stockMovements.movementDate,
-      cost: entries.amount,
-      supplier: entries.counterparty,
-    })
-    .from(stockMovements)
-    .leftJoin(entries, eq(entries.id, stockMovements.entryId))
-    .where(eq(stockMovements.itemId, itemId))
-    .orderBy(desc(stockMovements.movementDate), desc(stockMovements.id));
+export async function listStockMovementsPage(
+  itemId: number,
+  page: number,
+  pageSize: number
+) {
+  const [rows, [{ total }]] = await Promise.all([
+    db
+      .select({
+        id: stockMovements.id,
+        quantity: stockMovements.quantity,
+        reason: stockMovements.reason,
+        saleId: stockMovements.saleId,
+        note: stockMovements.note,
+        movementDate: stockMovements.movementDate,
+        cost: entries.amount,
+        supplier: entries.counterparty,
+      })
+      .from(stockMovements)
+      .leftJoin(entries, eq(entries.id, stockMovements.entryId))
+      .where(eq(stockMovements.itemId, itemId))
+      .orderBy(desc(stockMovements.movementDate), desc(stockMovements.id))
+      .limit(pageSize)
+      .offset((page - 1) * pageSize),
+    db
+      .select({ total: count() })
+      .from(stockMovements)
+      .where(eq(stockMovements.itemId, itemId)),
+  ]);
+  return { rows, total };
 }
