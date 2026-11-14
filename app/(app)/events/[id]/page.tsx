@@ -4,6 +4,8 @@ import { requireSession } from "@/lib/dal";
 import {
   getEvent,
   getEventSummary,
+  listChargeParticipants,
+  listEventCharges,
   listEventExpenses,
   listEventParticipants,
   listExpenseKinds,
@@ -21,6 +23,7 @@ import { AgeGroupLabel } from "@/components/age-group";
 import {
   cardClass,
   linkClass,
+  secondaryButtonClass,
   tableCell,
   tableClass,
   tableGroupHeadCell,
@@ -36,17 +39,30 @@ import { EventForm } from "../event-form";
 import { EventDates } from "../event-dates";
 import { ParticipantForm } from "./participant-form";
 import { ExpenseForm } from "./expense-form";
+import { ChargeForm } from "./charge-form";
+import { ChargeSignUpForm } from "./charge-sign-up-form";
 import {
+  createCharge,
   createExpense,
+  deleteCharge,
   deleteEvent,
   deleteExpense,
   payExpense,
+  signUpForCharge,
   signUpParticipant,
   undoExpensePayment,
+  updateCharge,
   updateEvent,
 } from "../actions";
 
 type ParticipantRow = Awaited<ReturnType<typeof listEventParticipants>>[number];
+type ChargeRow = Awaited<ReturnType<typeof listEventCharges>>[number];
+type ChargeParticipantRow = Awaited<ReturnType<typeof listChargeParticipants>>[number];
+// What both the fee's list and an extra charge's list show
+type TableRow = Pick<
+  ParticipantRow,
+  "id" | "kidId" | "name" | "ageGroup" | "total" | "installmentCount" | "paidCount" | "pending" | "overdue"
+>;
 type ExpenseRow = Awaited<ReturnType<typeof listEventExpenses>>[number];
 
 export default async function EventPage({ params }: PageProps<"/events/[id]">) {
@@ -56,14 +72,17 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
   if (!Number.isInteger(id) || id <= 0) notFound();
 
   const today = todayISO();
-  const [event, summary, participants, expenses, kidsToSignUp, kinds] = await Promise.all([
-    getEvent(id),
-    getEventSummary(id, today),
-    listEventParticipants(id, today),
-    listEventExpenses(id),
-    listKidsToSignUp(id),
-    listExpenseKinds(),
-  ]);
+  const [event, summary, participants, charges, chargeParticipants, expenses, kidsToSignUp, kinds] =
+    await Promise.all([
+      getEvent(id),
+      getEventSummary(id, today),
+      listEventParticipants(id, today),
+      listEventCharges(id),
+      listChargeParticipants(id, today),
+      listEventExpenses(id),
+      listKidsToSignUp(id),
+      listExpenseKinds(),
+    ]);
   if (!event) notFound();
 
   const expected = summary.received + summary.pending;
@@ -148,7 +167,37 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
         {participants.length === 0 ? (
           <EmptyState>Ninguém inscrito ainda.</EmptyState>
         ) : (
-          <ParticipantsTable eventId={id} participants={participants} />
+          <ParticipantsTable
+            eventId={id}
+            participants={participants}
+            note={(participant) => <FundNote participant={participant} />}
+          />
+        )}
+      </Section>
+
+      <Section
+        title="Cobranças extras"
+        aside={
+          <FormDialog label="Nova cobrança">
+            <ChargeForm action={createCharge.bind(null, id)} />
+          </FormDialog>
+        }
+      >
+        {charges.length === 0 ? (
+          <EmptyState>
+            Nenhuma cobrança extra. Use para o que só alguns pagam além da inscrição, como
+            passagem aérea.
+          </EmptyState>
+        ) : (
+          charges.map((charge) => (
+            <ChargeBlock
+              key={charge.id}
+              eventId={id}
+              charge={charge}
+              rows={chargeParticipants.filter((row) => row.chargeId === charge.id)}
+              participants={participants}
+            />
+          ))
         )}
       </Section>
 
@@ -184,10 +233,87 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
   );
 }
 
+// An extra charge: what it costs, how much of it came in, and who took it
+function ChargeBlock({
+  eventId,
+  charge,
+  rows,
+  participants,
+}: {
+  eventId: number;
+  charge: ChargeRow;
+  rows: ChargeParticipantRow[];
+  participants: ParticipantRow[];
+}) {
+  const total = rows.reduce((sum, row) => sum + row.total, 0);
+  const pending = rows.reduce((sum, row) => sum + row.pending, 0);
+  const taken = new Set(rows.map((row) => row.id));
+  const available = participants
+    .filter((participant) => !taken.has(participant.id))
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <div className="flex flex-col gap-1 tabular-nums">
+          <h3 className="text-[17px]">
+            {charge.name} <span className="text-muted">({rows.length})</span>
+          </h3>
+          <p className="text-sm text-muted">
+            {formatBRL(Number(charge.price))} por participante
+            {rows.length > 0 && (
+              <>
+                {" · "}
+                <span className="text-income">{formatBRL(total - pending)}</span> recebido de{" "}
+                {formatBRL(total)}
+              </>
+            )}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+          <FormDialog label="Editar" title={`Editar ${charge.name}`} buttonClassName={linkClass}>
+            <ChargeForm action={updateCharge.bind(null, charge.id)} charge={charge} />
+          </FormDialog>
+          <DeleteButton
+            action={deleteCharge.bind(null, charge.id)}
+            label="Excluir"
+            confirmMessage={`Excluir ${charge.name}? As parcelas de todos também são excluídas, e o que já foi pago sai das transações.`}
+            variant="link"
+          />
+          {available.length > 0 && (
+            <FormDialog
+              label="Adicionar participante"
+              title={`Adicionar a ${charge.name}`}
+              // Lighter than the section's Nova cobrança right above it
+              buttonClassName={secondaryButtonClass}
+            >
+              <ChargeSignUpForm
+                action={signUpForCharge.bind(null, charge.id)}
+                chargeId={charge.id}
+                participants={available}
+                price={charge.price}
+              />
+            </FormDialog>
+          )}
+        </div>
+      </div>
+      {rows.length === 0 ? (
+        <EmptyState>
+          {participants.length === 0
+            ? "Inscreva participantes no evento para adicioná-los aqui."
+            : "Ninguém nesta cobrança ainda."}
+        </EmptyState>
+      ) : (
+        <ParticipantsTable eventId={eventId} participants={rows} />
+      )}
+    </div>
+  );
+}
+
 // Ramo order, then kids with no ramo, then the guests
 type GroupKey = AgeGroup | "none" | "guest";
 
-function groupOf(participant: ParticipantRow): GroupKey {
+function groupOf(participant: TableRow): GroupKey {
   if (participant.kidId === null) return "guest";
   return participant.ageGroup ?? "none";
 }
@@ -198,16 +324,19 @@ function groupLabel(key: GroupKey) {
   return <AgeGroupLabel ageGroup={key} />;
 }
 
-function ParticipantsTable({
+function ParticipantsTable<Row extends TableRow>({
   eventId,
   participants,
+  note,
 }: {
   eventId: number;
-  participants: ParticipantRow[];
+  participants: Row[];
+  // Shown under the name
+  note?: (participant: Row) => React.ReactNode;
 }) {
   // The query already sorts by ramo; guests and kids with no ramo come mixed
   // at the end, so they are split here
-  const groups = new Map<GroupKey, ParticipantRow[]>();
+  const groups = new Map<GroupKey, Row[]>();
   for (const participant of participants) {
     const key = groupOf(participant);
     groups.set(key, [...(groups.get(key) ?? []), participant]);
@@ -249,7 +378,7 @@ function ParticipantsTable({
                 <tr key={participant.id} className={tableRow}>
                   <td className={tableCell}>
                     {participant.name}
-                    <FundNote participant={participant} />
+                    {note?.(participant)}
                     <span
                       className={`block text-[13px] sm:hidden ${settled ? "text-income" : "text-muted"}`}
                     >

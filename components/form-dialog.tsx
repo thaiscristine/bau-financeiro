@@ -11,10 +11,13 @@ const CloseContext = createContext<(() => void) | null>(null);
 export function FormDialog({
   label,
   title = label,
+  buttonClassName = primaryButtonClass,
   children,
 }: {
   label: string;
   title?: string;
+  // A secondary action next to the main one can look lighter
+  buttonClassName?: string;
   children: React.ReactNode;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -28,7 +31,7 @@ export function FormDialog({
       <button
         type="button"
         onClick={() => openModal(dialogRef.current)}
-        className={primaryButtonClass}
+        className={buttonClassName}
       >
         {label}
       </button>

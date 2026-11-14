@@ -474,6 +474,32 @@ export default async function HelpPage() {
                 quanto o fundo cobriu e quantos pedidos estão aguardando.
               </P>
             </Task>
+            <Task title="Cobrar algo além da inscrição">
+              <P>
+                Para o que só alguns participantes pagam à parte, como a
+                passagem aérea de um acampamento, crie uma cobrança extra. Cada
+                um paga em parcelas próprias, separadas das da inscrição, e o
+                Fundo Lisah não entra nela.
+              </P>
+              <Steps>
+                <li>
+                  No evento, em <Ui>Cobranças extras</Ui>, clique em{" "}
+                  <Ui>Nova cobrança</Ui>, dê um <Ui>Nome</Ui> e o{" "}
+                  <Ui>Valor por participante (R$)</Ui>.
+                </li>
+                <li>
+                  Na cobrança, clique em <Ui>Adicionar participante</Ui>, escolha
+                  um inscrito, confira o <Ui>Valor (R$)</Ui> e as{" "}
+                  <Ui>Parcelas</Ui>.
+                </li>
+              </Steps>
+              <P>
+                As parcelas aparecem em <Ui>Ver</Ui> no participante, abaixo das
+                da inscrição, e são recebidas com <Ui>Marcar como paga</Ui>. O
+                que entra conta no Recebido do evento. Para tirar alguém da
+                cobrança, use <Ui>Tirar desta cobrança</Ui> no participante.
+              </P>
+            </Task>
             <Task title="Registrar uma despesa">
               <Steps>
                 <li>

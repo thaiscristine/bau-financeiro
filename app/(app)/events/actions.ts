@@ -3,10 +3,11 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { z } from "zod";
-import { and, asc, eq, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   entries,
+  eventCharges,
   eventExpenses,
   eventInstallments,
   eventParticipants,
@@ -14,6 +15,8 @@ import {
   kids,
 } from "@/db/schema";
 import {
+  chargeSignUpFormSchema,
+  eventChargeFormSchema,
   eventExpenseFormSchema,
   eventFormSchema,
   GUEST,
@@ -261,7 +264,10 @@ export async function updateParticipantFund(
         entryId: eventInstallments.entryId,
       })
       .from(eventInstallments)
-      .where(eq(eventInstallments.participantId, participantId))
+      // The fee's; the fund does not cover the extra charges
+      .where(
+        and(eq(eventInstallments.participantId, participantId), isNull(eventInstallments.chargeId))
+      )
       .orderBy(asc(eventInstallments.number))
       .for("update");
 
@@ -358,14 +364,18 @@ export async function payEventInstallment(
         amount: eventInstallments.amount,
         entryId: eventInstallments.entryId,
         eventName: events.name,
+        chargeName: eventCharges.name,
+        // Of the same fee or extra charge
         installmentCount: sql<number>`(
           select count(*)::int from event_installments sibling
           where sibling.participant_id = "event_installments"."participant_id"
+          and sibling.charge_id is not distinct from "event_installments"."charge_id"
         )`,
       })
       .from(eventInstallments)
       .innerJoin(eventParticipants, eq(eventParticipants.id, eventInstallments.participantId))
       .innerJoin(events, eq(events.id, eventParticipants.eventId))
+      .leftJoin(eventCharges, eq(eventCharges.id, eventInstallments.chargeId))
       .where(eq(eventInstallments.id, installmentId))
       .for("update", { of: eventInstallments });
     if (!installment) return { error: "Esta parcela não existe mais." };
@@ -379,7 +389,13 @@ export async function payEventInstallment(
         categoryId: await eventsCategoryId(tx),
         paymentMethod: result.data.paymentMethod,
         entryDate: result.data.paidDate,
-        note: `Parcela ${installment.number}/${installment.installmentCount} - ${installment.eventName}`,
+        note: [
+          `Parcela ${installment.number}/${installment.installmentCount}`,
+          installment.chargeName,
+          installment.eventName,
+        ]
+          .filter(Boolean)
+          .join(" - "),
         createdById: Number(session.user.id),
       })
       .returning({ id: entries.id });
@@ -409,6 +425,162 @@ export async function undoEventPayment(installmentId: number) {
 
   // The foreign key sets event_installments.entry_id back to null
   await db.delete(entries).where(eq(entries.id, installment.entryId));
+
+  revalidateEvents();
+}
+
+function parseChargeForm(formData: FormData) {
+  return parseForm(eventChargeFormSchema, {
+    name: formData.get("name"),
+    price: formData.get("price"),
+  });
+}
+
+export async function createCharge(
+  eventId: number,
+  _prevState: EventFormState,
+  formData: FormData
+): Promise<EventFormState> {
+  await requireSession();
+
+  const result = parseChargeForm(formData);
+  if (!result.ok) return { error: result.error };
+
+  const outcome = await db.transaction(async (tx): Promise<Outcome<null>> => {
+    const [event] = await tx.select({ id: events.id }).from(events).where(eq(events.id, eventId));
+    if (!event) return { error: "Este evento não existe mais." };
+
+    await tx.insert(eventCharges).values({
+      eventId,
+      name: result.data.name,
+      price: result.data.price.toFixed(2),
+    });
+    return null;
+  });
+
+  if (outcome) return outcome;
+
+  revalidateEvents();
+  return { saved: Date.now() };
+}
+
+// Like the event's price, a new price only affects people added from now on
+export async function updateCharge(
+  chargeId: number,
+  _prevState: EventFormState,
+  formData: FormData
+): Promise<EventFormState> {
+  await requireSession();
+
+  const result = parseChargeForm(formData);
+  if (!result.ok) return { error: result.error };
+
+  const updated = await db
+    .update(eventCharges)
+    .set({ name: result.data.name, price: result.data.price.toFixed(2) })
+    .where(eq(eventCharges.id, chargeId))
+    .returning({ id: eventCharges.id });
+  if (updated.length === 0) return { error: "Esta cobrança não existe mais." };
+
+  revalidateEvents();
+  return { saved: Date.now() };
+}
+
+// The income entries of its paid installments go with it; the rest cascades
+export async function deleteCharge(chargeId: number) {
+  await requireSession();
+
+  await db.transaction(async (tx) => {
+    const paid = await tx
+      .select({ entryId: eventInstallments.entryId })
+      .from(eventInstallments)
+      .where(and(eq(eventInstallments.chargeId, chargeId), isNotNull(eventInstallments.entryId)));
+    await deleteEntries(tx, paid);
+    await tx.delete(eventCharges).where(eq(eventCharges.id, chargeId));
+  });
+
+  revalidateEvents();
+}
+
+// Adds a participant of the event to the charge, with what they owe for it
+// split in monthly installments
+export async function signUpForCharge(
+  chargeId: number,
+  _prevState: EventFormState,
+  formData: FormData
+): Promise<EventFormState> {
+  await requireSession();
+
+  const result = parseForm(chargeSignUpFormSchema, {
+    participantId: formData.get("participantId"),
+    total: formData.get("total"),
+    installmentCount: formData.get("installmentCount"),
+    firstDueDate: formData.get("firstDueDate"),
+  });
+  if (!result.ok) return { error: result.error };
+
+  const { participantId, total, installmentCount, firstDueDate } = result.data;
+  const totalCents = toCents(total);
+  if (totalCents < installmentCount) {
+    return { error: "Cada parcela precisa ter pelo menos R$ 0,01." };
+  }
+
+  try {
+    const outcome = await db.transaction(async (tx): Promise<Outcome<null>> => {
+      const [charge] = await tx
+        .select({ eventId: eventCharges.eventId })
+        .from(eventCharges)
+        .where(eq(eventCharges.id, chargeId));
+      if (!charge) return { error: "Esta cobrança não existe mais." };
+
+      const [participant] = await tx
+        .select({ eventId: eventParticipants.eventId })
+        .from(eventParticipants)
+        .where(eq(eventParticipants.id, participantId));
+      if (!participant || participant.eventId !== charge.eventId) {
+        return { error: "Esta inscrição não existe mais." };
+      }
+
+      await tx.insert(eventInstallments).values(
+        planInstallments(totalCents, installmentCount, firstDueDate).map((installment) => ({
+          participantId,
+          chargeId,
+          number: installment.number,
+          amount: fromCents(installment.amountCents),
+          dueDate: installment.dueDate,
+        }))
+      );
+      return null;
+    });
+    if (outcome) return outcome;
+  } catch (error) {
+    // Their 1st installment of the charge already exists
+    if (pgErrorCode(error) === PG_UNIQUE_VIOLATION) {
+      return { error: "Este participante já está nesta cobrança." };
+    }
+    throw error;
+  }
+
+  revalidateEvents();
+  return { saved: Date.now() };
+}
+
+// Takes the participant out of the charge, with the income entries of what they paid for it
+export async function leaveCharge(chargeId: number, participantId: number) {
+  await requireSession();
+
+  await db.transaction(async (tx) => {
+    const forCharge = and(
+      eq(eventInstallments.chargeId, chargeId),
+      eq(eventInstallments.participantId, participantId)
+    );
+    const paid = await tx
+      .select({ entryId: eventInstallments.entryId })
+      .from(eventInstallments)
+      .where(and(forCharge, isNotNull(eventInstallments.entryId)));
+    await tx.delete(eventInstallments).where(forCharge);
+    await deleteEntries(tx, paid);
+  });
 
   revalidateEvents();
 }

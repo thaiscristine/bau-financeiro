@@ -258,6 +258,18 @@ export const participantFundFormSchema = z
   .object(fundFields)
   .refine(fundAmountWhenGranted.check, fundAmountWhenGranted.message);
 
+export const eventChargeFormSchema = z.object({
+  name: z.string().trim().min(1, { error: "Informe o nome da cobrança." }),
+  price: money,
+});
+
+export const chargeSignUpFormSchema = z.object({
+  participantId: id("Selecione o participante."),
+  total: money,
+  installmentCount,
+  firstDueDate: requiredDate,
+});
+
 export const EXPENSE_STATUSES = ["paid", "pending"] as const;
 
 export const eventExpenseFormSchema = z
