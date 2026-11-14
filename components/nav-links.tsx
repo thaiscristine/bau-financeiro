@@ -19,7 +19,14 @@ type NavSection =
 
 const LINKS: NavSection[] = [
   { href: "/dashboard", label: "Painel" },
-  { href: "/entries", label: "Transações" },
+  {
+    href: "/entries",
+    label: "Transações",
+    children: [
+      { href: "/entries", label: "Transações" },
+      { href: "/fixed-costs", label: "Custos fixos" },
+    ],
+  },
   {
     href: "/sales",
     label: "Lojinha",
