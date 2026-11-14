@@ -4,6 +4,7 @@ const SQUARE_TONES = {
   blue: "bg-blue",
   orange: "bg-orange",
   ink: "bg-ink",
+  green: "bg-profit",
 };
 
 export function Eyebrow({

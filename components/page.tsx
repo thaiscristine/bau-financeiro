@@ -45,17 +45,21 @@ export function PageSkeleton() {
 
 export function Section({
   title,
+  tone,
   aside,
   children,
 }: {
   title: string;
+  tone?: React.ComponentProps<typeof Eyebrow>["tone"];
   aside?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <Eyebrow as="h2">{title}</Eyebrow>
+        <Eyebrow as="h2" tone={tone}>
+          {title}
+        </Eyebrow>
         {aside}
       </div>
       {children}

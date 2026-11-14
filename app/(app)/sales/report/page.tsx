@@ -5,6 +5,7 @@ import { formatBRL, formatDate, formatMonth, todayISO } from "@/lib/format";
 import { LOW_STOCK, PERIODS } from "@/lib/reports/definitions";
 import { periodRange } from "@/lib/reports/filters";
 import { parseSalesReportPeriod, periodQuery, type SalesReportPeriod } from "@/lib/sales-report/period";
+import { storeProfit } from "@/lib/sales-report/profit";
 import { getSalesByMonth, getSalesTotals, listDebtors, listTopItems } from "@/lib/sales-report/queries";
 import { EmptyState, Page, Section } from "@/components/page";
 import { Stat, statGridClass } from "@/components/stat";
@@ -45,6 +46,7 @@ export default async function SalesReportPage({ searchParams }: PageProps<"/sale
     .filter((item) => item.stock <= LOW_STOCK)
     .sort((a, b) => a.stock - b.stock || a.name.localeCompare(b.name));
   const topTotal = topItems.reduce((total, item) => total + item.total, 0);
+  const { profit, margin } = storeProfit(totals.received, totals.restockCost);
 
   return (
     <Page
@@ -83,6 +85,37 @@ export default async function SalesReportPage({ searchParams }: PageProps<"/sale
           </div>
         </div>
       </div>
+
+      <Section title="Lucro" tone={profit > 0 ? "green" : "ink"}>
+        <div className={cardClass}>
+          <dl className="divide-y divide-line-soft tabular-nums">
+            <ProfitLine label="Recebido das vendas" value={formatBRL(totals.received)} tone="text-income" />
+            <ProfitLine label="Pago em reposição" value={formatBRL(totals.restockCost > 0 ? -totals.restockCost : 0)} tone="text-cost" />
+            <div
+              role="group"
+              aria-label="Lucro"
+              className={`flex items-baseline justify-between gap-4 p-5 sm:p-6 ${profit > 0 ? "bg-profit-soft text-profit" : ""}`}
+            >
+              <dt className="text-[15px]">Lucro</dt>
+              <dd className="text-right">
+                <span
+                  className={`text-[28px] leading-none tracking-[-0.02em] sm:text-[32px] ${profit < 0 ? "text-cost" : ""}`}
+                >
+                  {profit > 0 && "+"}
+                  {formatBRL(profit)}
+                </span>
+                {margin !== null && (
+                  <span className="mt-2 block text-[13px]">{Math.round(margin * 100)}% do recebido</span>
+                )}
+              </dd>
+            </div>
+          </dl>
+        </div>
+        <p className={hintClass}>
+          O dinheiro que entrou com as parcelas pagas no período menos o que foi pago por mercadoria.
+          {pending > 0 && ` Os ${formatBRL(pending)} a receber entram quando forem pagos.`}
+        </p>
+      </Section>
 
       <Section title="Mais vendidos">
         {topItems.length === 0 ? (
@@ -142,10 +175,11 @@ export default async function SalesReportPage({ searchParams }: PageProps<"/sale
               {months.map((row) => (
                 <li key={row.month} className="flex flex-col gap-3 p-4">
                   <p className="text-[15px]">{formatMonth(row.month)}</p>
-                  <dl className="grid grid-cols-3 gap-2 tabular-nums">
+                  <dl className="grid grid-cols-2 gap-x-2 gap-y-3 tabular-nums">
                     <MonthValue label="Vendido" value={row.sold} tone="" />
                     <MonthValue label="Recebido" value={row.received} tone="text-income" />
                     <MonthValue label="Reposição" value={row.restockCost} tone="text-cost" />
+                    <MonthProfit received={row.received} restockCost={row.restockCost} />
                   </dl>
                 </li>
               ))}
@@ -158,6 +192,7 @@ export default async function SalesReportPage({ searchParams }: PageProps<"/sale
                     <th className={`${tableHeadCell} text-right`}>Vendido</th>
                     <th className={`${tableHeadCell} text-right`}>Recebido</th>
                     <th className={`${tableHeadCell} text-right`}>Reposição</th>
+                    <th className={`${tableHeadCell} text-right`}>Lucro</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -175,6 +210,7 @@ export default async function SalesReportPage({ searchParams }: PageProps<"/sale
                       >
                         {formatBRL(row.restockCost)}
                       </td>
+                      <MonthProfitCell received={row.received} restockCost={row.restockCost} />
                     </tr>
                   ))}
                 </tbody>
@@ -360,4 +396,32 @@ function MonthValue({ label, value, tone }: { label: string; value: number; tone
       <dd className={`text-sm ${value > 0 ? tone : "text-muted/60"}`}>{formatBRL(value)}</dd>
     </div>
   );
+}
+
+function ProfitLine({ label, value, tone }: { label: string; value: string; tone: string }) {
+  return (
+    <div role="group" aria-label={label} className="flex items-baseline justify-between gap-4 px-5 py-4 sm:px-6">
+      <dt className="text-[15px] text-muted">{label}</dt>
+      <dd className={`text-[15px] ${tone}`}>{value}</dd>
+    </div>
+  );
+}
+
+function profitTone(profit: number) {
+  return profit < 0 ? "text-cost" : profit > 0 ? "text-profit" : "text-muted/60";
+}
+
+function MonthProfit({ received, restockCost }: { received: number; restockCost: number }) {
+  const { profit } = storeProfit(received, restockCost);
+  return (
+    <div className="flex flex-col gap-1">
+      <dt className="font-mono text-[11px] tracking-[0.05em] text-muted uppercase">Lucro</dt>
+      <dd className={`text-sm ${profitTone(profit)}`}>{formatBRL(profit)}</dd>
+    </div>
+  );
+}
+
+function MonthProfitCell({ received, restockCost }: { received: number; restockCost: number }) {
+  const { profit } = storeProfit(received, restockCost);
+  return <td className={`${tableCell} text-right whitespace-nowrap ${profitTone(profit)}`}>{formatBRL(profit)}</td>;
 }

@@ -69,6 +69,12 @@ test("the report sums the period's sales and lists who owes and what is running 
   await expect(stat(page, "A receber em parcelas")).toContainText(money("50,00"));
   await expect(stat(page, "Parcelas atrasadas")).toContainText(money("20,00"));
 
+  // Nothing was paid for stock, so all that came in is profit
+  const profit = section(page, "Lucro");
+  await expect(profit.getByRole("group", { name: "Pago em reposição" })).toContainText(money("0,00"));
+  await expect(profit.getByRole("group", { name: "Lucro" })).toContainText(money("30,00"));
+  await expect(profit.getByRole("group", { name: "Lucro" })).toContainText("100% do recebido");
+
   const topItems = section(page, "Mais vendidos");
   await expect(topItems.getByRole("row")).toHaveCount(2);
   await expect(topItems.getByRole("row").nth(1)).toContainText("Camiseta");
