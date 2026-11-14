@@ -43,10 +43,20 @@ export const userFormSchema = z.object({
     .min(8, { error: "A senha precisa ter pelo menos 8 caracteres." }),
 });
 
-export const kidFormSchema = z.object({
-  name: z.string().trim().min(1, { error: "Informe o nome." }),
-  contact: optionalText,
-});
+export const kidFormSchema = z
+  .object({
+    name: z.string().trim().min(1, { error: "Informe o nome." }),
+    contact: optionalText,
+    isMinor: z.boolean(),
+    guardianName: optionalText,
+    guardianPhone: optionalText,
+  })
+  .refine((value) => !value.isMinor || Boolean(value.guardianName), {
+    error: "Informe o nome do responsável.",
+  })
+  .refine((value) => !value.isMinor || Boolean(value.guardianPhone), {
+    error: "Informe o telefone do responsável.",
+  });
 
 export const itemFormSchema = z.object({
   name: z.string().trim().min(1, { error: "Informe o nome do item." }),

@@ -100,6 +100,17 @@ export function FormError({ error }: { error?: string }) {
   return <p className="font-serif text-[15px] text-cost">{error}</p>;
 }
 
+// Confirms a save on forms that stay on the same page afterwards
+export function FormSuccess({ message }: { message?: string }) {
+  if (!message) return null;
+  return (
+    <p role="status" className="flex items-center gap-2 font-serif text-[15px] text-income">
+      <span aria-hidden>✓</span>
+      {message}
+    </p>
+  );
+}
+
 export function SubmitButton({
   pending,
   label = "Salvar",

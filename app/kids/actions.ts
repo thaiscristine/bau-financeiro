@@ -8,16 +8,30 @@ import { entries, kids, sales } from "@/db/schema";
 import { kidFormSchema, parseForm } from "@/lib/validation";
 import { requireSession } from "@/lib/dal";
 
-export type KidFormState = { error: string } | undefined;
+export type KidFormState = { error?: string; saved?: number } | undefined;
 
 function parseKidForm(formData: FormData) {
   const result = parseForm(kidFormSchema, {
     name: formData.get("name"),
     contact: formData.get("contact"),
+    isMinor: formData.get("isMinor") === "on",
+    // The form only renders these when the box is ticked, so they can be missing
+    guardianName: formData.get("guardianName") ?? undefined,
+    guardianPhone: formData.get("guardianPhone") ?? undefined,
   });
   if (!result.ok) return result;
-  const { name, contact } = result.data;
-  return { ok: true, values: { name, contact: contact ? contact : null } } as const;
+  const { name, contact, isMinor, guardianName, guardianPhone } = result.data;
+  return {
+    ok: true,
+    values: {
+      name,
+      contact: contact ? contact : null,
+      isMinor,
+      // An adult has no responsible person on file
+      guardianName: isMinor ? guardianName! : null,
+      guardianPhone: isMinor ? guardianPhone! : null,
+    },
+  } as const;
 }
 
 export async function createKid(
@@ -53,8 +67,11 @@ export async function updateKid(
   if (updated.length === 0) return { error: "Este bandeirante não existe mais." };
 
   revalidatePath("/kids");
+  revalidatePath(`/kids/${id}`);
   revalidatePath("/sales");
-  redirect(`/kids/${id}`);
+  // The form stays on this page and confirms the save. A new value each save
+  // shows the confirmation again after further edits.
+  return { saved: Date.now() };
 }
 
 export async function deleteKid(id: number) {

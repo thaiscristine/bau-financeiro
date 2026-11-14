@@ -21,6 +21,9 @@ export async function listKids() {
       id: kids.id,
       name: kids.name,
       contact: kids.contact,
+      isMinor: kids.isMinor,
+      guardianName: kids.guardianName,
+      guardianPhone: kids.guardianPhone,
       owed: sql<string>`coalesce(${owed.amount}, 0)`,
     })
     .from(kids)
