@@ -16,7 +16,7 @@ import {
   type ReportType,
   type StockState,
 } from "./definitions";
-import { firstDay, lastDay, monthRange } from "@/lib/months";
+import { firstDay, isoDate, lastDay, monthRange } from "@/lib/months";
 
 export type ReportFilters = {
   type: ReportType;
@@ -78,8 +78,6 @@ export function defaultFilters(type: ReportType): ReportFilters {
   };
 }
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-
 function oneOf<T extends string>(values: readonly { value: T }[], value: string | null) {
   return values.find((option) => option.value === value)?.value;
 }
@@ -101,10 +99,8 @@ export function parseReportFilters(params: URLSearchParams): ReportFilters {
   if (uses("period")) {
     filters.period = oneOf(PERIODS, params.get("period")) ?? filters.period;
     if (filters.period === "custom") {
-      const from = params.get("from");
-      const to = params.get("to");
-      filters.from = from && ISO_DATE.test(from) ? from : null;
-      filters.to = to && ISO_DATE.test(to) ? to : null;
+      filters.from = isoDate(params.get("from"));
+      filters.to = isoDate(params.get("to"));
     }
   }
   if (uses("entryType")) {

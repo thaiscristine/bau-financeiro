@@ -18,6 +18,7 @@ const TOPICS = [
   { id: "transacoes", title: "Transações" },
   { id: "lojinha", title: "Lojinha: vendas e parcelas" },
   { id: "estoque", title: "Estoque" },
+  { id: "relatorio-lojinha", title: "Relatório da Lojinha" },
   { id: "bandeirantes", title: "Bandeirantes" },
   { id: "relatorios", title: "Relatórios" },
   { id: "categorias", title: "Categorias" },
@@ -95,7 +96,10 @@ export default async function HelpPage() {
               </Li>
             </ul>
             <P>
-              O menu no topo leva a todas as telas. No canto direito ficam a
+              O menu no topo leva a todas as telas. Ao abrir a{" "}
+              <Ui>Lojinha</Ui>, um segundo menu logo abaixo separa{" "}
+              <Ui>Vendas</Ui>, <Ui>Estoque</Ui> e <Ui>Relatório</Ui>. No canto
+              direito ficam a
               escolha de tema (do sistema, claro ou escuro), esta{" "}
               <Ui>Ajuda</Ui> e o botão <Ui>Sair</Ui>.
             </P>
@@ -294,7 +298,8 @@ export default async function HelpPage() {
 
           <Topic id="estoque" screen="/inventory">
             <P>
-              Os itens que a Lojinha vende e quantas unidades há de cada um.
+              Fica no menu da Lojinha. Os itens que a Lojinha vende e quantas
+              unidades há de cada um.
               Também serve para serviços, como o aluguel da van, que não têm
               quantidade guardada.
             </P>
@@ -346,6 +351,35 @@ export default async function HelpPage() {
               Um item só pode ser excluído enquanto não tiver vendas. A
               quantidade fica em vermelho quando o item está esgotado.
             </Note>
+          </Topic>
+
+          <Topic id="relatorio-lojinha" screen="/sales/report">
+            <P>
+              Fica no menu da Lojinha e mostra como ela está indo, sem precisar
+              montar um relatório. Escolha o período no topo (<Ui>Este mês</Ui>{" "}
+              já vem marcado):
+            </P>
+            <ul className="flex flex-col gap-3 font-serif text-[17px] leading-relaxed">
+              <Li>
+                <Term>Vendido</Term>, <Term>Recebido</Term> e{" "}
+                <Term>Reposição</Term>: o total das vendas feitas no período, das
+                parcelas pagas nele e do que foi pago por mercadoria.
+              </Li>
+              <Li>
+                <Term>Mais vendidos</Term> e <Term>Por mês</Term>: os mesmos
+                valores por item e por mês.
+              </Li>
+              <Li>
+                <Term>Quem deve</Term>, <Term>Estoque acabando</Term> e os
+                valores marcados como <Ui>Hoje</Ui> não dependem do período: mostram
+                a situação atual, com quem tem parcela atrasada primeiro.
+              </Li>
+            </ul>
+            <P>
+              <Ui>Baixar planilha</Ui> baixa as vendas do período escolhido, e{" "}
+              <Ui>Planilha de cobrança</Ui> abre em Relatórios as parcelas em
+              aberto de cada bandeirante.
+            </P>
           </Topic>
 
           <Topic id="bandeirantes" screen="/kids">

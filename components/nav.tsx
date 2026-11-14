@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Logo } from "./logo";
 import { LogoutButton } from "./logout-button";
-import { HelpLink, NavLinks } from "./nav-links";
+import { HelpLink, NavLinks, SubNavLinks } from "./nav-links";
 import { ThemeToggle } from "./theme-toggle";
 
 export function Nav() {
@@ -22,6 +22,7 @@ export function Nav() {
         </div>
         <NavLinks />
       </div>
+      <SubNavLinks />
     </header>
   );
 }
