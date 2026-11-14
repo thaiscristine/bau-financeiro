@@ -175,6 +175,7 @@ test("logging in upgrades an older password hash", async ({ page }) => {
   expect(await passwordHashOf("cris@example.com")).toMatch(/^\$2[aby]\$12\$/);
 
   await page.getByRole("button", { name: "Sair" }).click();
+  await expect(page).toHaveURL("/login");
   await login(page, "cris@example.com", "senha-da-cris");
   await expect(page).toHaveURL("/dashboard");
 });
@@ -215,6 +216,7 @@ test("changing the password logs out the other browsers only", async ({
   await laptop.close();
 
   await page.getByRole("button", { name: "Sair" }).click();
+  await expect(page).toHaveURL("/login");
   await login(page, "ana@example.com", "senha-da-ana");
   await expect(page.getByText(WRONG_LOGIN)).toBeVisible();
   await login(page, "ana@example.com", "nova-senha-da-ana");
@@ -228,6 +230,7 @@ test("changing the password needs the current one", async ({ page }) => {
   await expect(page.getByText("A senha atual está incorreta.")).toBeVisible();
 
   await page.getByRole("button", { name: "Sair" }).click();
+  await expect(page).toHaveURL("/login");
   await login(page, "ana@example.com", "senha-da-ana");
   await expect(page).toHaveURL("/dashboard");
 });
@@ -307,6 +310,7 @@ test("resetting a teammate's password needs your own", async ({ page }) => {
   await expect(page.getByText("A sua senha está incorreta.")).toBeVisible();
 
   await page.getByRole("button", { name: "Sair" }).click();
+  await expect(page).toHaveURL("/login");
   await login(page, "bia@example.com", "senha-da-bia");
   await expect(page).toHaveURL("/dashboard");
 });
