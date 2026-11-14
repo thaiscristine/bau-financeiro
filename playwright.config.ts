@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import { testDatabaseUrl } from "./tests/test-db";
 
-const PORT = 3200;
+// Override when another checkout is already running its tests on 3200
+const PORT = Number(process.env.E2E_PORT ?? 3200);
 
 export default defineConfig({
   testDir: "tests/e2e",

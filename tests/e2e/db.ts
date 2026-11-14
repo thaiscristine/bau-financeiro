@@ -2,8 +2,12 @@ import bcrypt from "bcryptjs";
 import { Pool } from "pg";
 import { resetDatabase, testDatabaseUrl } from "../test-db";
 
-// The tests talk to the same database as the app server they drive
-export const pool = new Pool({ connectionString: testDatabaseUrl() });
+// The tests talk to the same database as the app server they drive. Every
+// spec file in a worker shares this pool, which closes itself once idle.
+const pool = new Pool({
+  connectionString: testDatabaseUrl(),
+  allowExitOnIdle: true,
+});
 
 export function reset() {
   return resetDatabase(pool);
