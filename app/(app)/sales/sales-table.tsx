@@ -48,10 +48,16 @@ export function SalesTable({
                   {formatDate(sale.saleDate)}
                 </td>
                 {showKid && (
-                  <td className={`${tableCell} max-sm:hidden`}>{sale.kidName}</td>
+                  <td className={`${tableCell} max-sm:hidden`}>
+                    <KidLink sale={sale} />
+                  </td>
                 )}
                 <td className={tableCell}>
-                  {showKid && <span className="block sm:hidden">{sale.kidName}</span>}
+                  {showKid && (
+                    <span className="block sm:hidden">
+                      <KidLink sale={sale} />
+                    </span>
+                  )}
                   {sale.itemName}
                   {sale.quantity > 1 && (
                     <span className="text-muted"> × {sale.quantity}</span>
@@ -88,5 +94,13 @@ export function SalesTable({
         </tbody>
       </table>
     </div>
+  );
+}
+
+function KidLink({ sale }: { sale: SaleRow }) {
+  return (
+    <Link href={`/kids/${sale.kidId}`} className="underline-offset-4 hover:underline">
+      {sale.kidName}
+    </Link>
   );
 }

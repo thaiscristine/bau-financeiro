@@ -1,35 +1,13 @@
 import "server-only";
-import { and, asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { eventInstallments, eventParticipants, installments, kids, sales } from "@/db/schema";
+import { kids } from "@/db/schema";
+import { kidDebts } from "@/lib/debts";
 
-// Kids with the amount they still owe in unpaid installments, of Lojinha
-// sales and of events
-export async function listKids() {
-  const saleDebts = db
-    .select({ kidId: sales.kidId, amount: installments.amount })
-    .from(installments)
-    .innerJoin(sales, eq(sales.id, installments.saleId))
-    .where(isNull(installments.entryId));
-  // Guests have no kid, so they are left out
-  const eventDebts = db
-    .select({
-      kidId: sql<number>`${eventParticipants.kidId}`.as("kid_id"),
-      amount: eventInstallments.amount,
-    })
-    .from(eventInstallments)
-    .innerJoin(eventParticipants, eq(eventParticipants.id, eventInstallments.participantId))
-    .where(and(isNull(eventInstallments.entryId), isNotNull(eventParticipants.kidId)));
-  const debts = saleDebts.unionAll(eventDebts).as("debts");
-  const owed = db
-    .select({
-      kidId: debts.kidId,
-      amount: sql<string>`sum(${debts.amount})`.as("owed_amount"),
-    })
-    .from(debts)
-    .groupBy(debts.kidId)
-    .as("owed");
-
+// Kids with what they still owe (see openCharges in lib/debts.ts) and how
+// much of it is late
+export async function listKids(today: string) {
+  const debts = kidDebts(today);
   return db
     .select({
       id: kids.id,
@@ -39,11 +17,17 @@ export async function listKids() {
       isMinor: kids.isMinor,
       guardianName: kids.guardianName,
       guardianPhone: kids.guardianPhone,
-      owed: sql<string>`coalesce(${owed.amount}, 0)`,
+      owed: sql<string>`coalesce(${debts.owed}, 0)`,
+      overdue: sql<string>`coalesce(${debts.overdue}, 0)`,
     })
     .from(kids)
-    .leftJoin(owed, eq(owed.kidId, kids.id))
+    .leftJoin(debts, eq(debts.kidId, kids.id))
     .orderBy(asc(kids.name));
+}
+
+// For the pickers that choose a kid
+export async function listKidOptions() {
+  return db.select({ id: kids.id, name: kids.name }).from(kids).orderBy(asc(kids.name));
 }
 
 export async function getKid(id: number) {

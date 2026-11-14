@@ -21,7 +21,8 @@ export function KidEventsTable({ rows }: { rows: KidEventRow[] }) {
         <thead>
           <tr className={tableHeadRow}>
             <th className={tableHeadCell}>Evento</th>
-            <th className={tableHeadCell}>Valor</th>
+            {/* On phones the value goes under the event, so the row fits */}
+            <th className={`${tableHeadCell} max-sm:hidden`}>Valor</th>
             <th className={tableHeadCell}>Pagas</th>
             <th className={tableHeadCell}>
               <span className="sr-only">Ações</span>
@@ -33,8 +34,13 @@ export function KidEventsTable({ rows }: { rows: KidEventRow[] }) {
             const settled = row.paidCount === row.installmentCount;
             return (
               <tr key={row.participantId} className={tableRow}>
-                <td className={tableCell}>{row.eventName}</td>
-                <td className={`${tableCell} whitespace-nowrap`}>
+                <td className={tableCell}>
+                  {row.eventName}
+                  <span className="block text-[13px] text-muted sm:hidden">
+                    {formatBRL(Number(row.total))}
+                  </span>
+                </td>
+                <td className={`${tableCell} whitespace-nowrap max-sm:hidden`}>
                   {formatBRL(Number(row.total))}
                 </td>
                 <td

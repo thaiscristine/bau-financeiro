@@ -66,6 +66,7 @@ export async function KidContributions({
   return (
     <>
       <Section
+        id="contribuicao-mensal"
         title="Contribuição mensal"
         aside={
           years.length > 1 && (

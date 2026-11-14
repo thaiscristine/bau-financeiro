@@ -249,9 +249,14 @@ export default async function SalesReportPage({ searchParams }: PageProps<"/sale
               </thead>
               <tbody>
                 {debtors.map((kid) => (
-                  <tr key={kid.id} className={tableRow}>
+                  // relative + the link's after: overlay make the whole row
+                  // open the bandeirante, while it stays a real link
+                  <tr key={kid.id} className={`${tableRow} relative`}>
                     <td className={tableCell}>
-                      <Link href={`/kids/${kid.id}`} className="underline-offset-4 hover:underline">
+                      <Link
+                        href={`/kids/${kid.id}`}
+                        className="underline-offset-4 after:absolute after:inset-0 hover:underline"
+                      >
                         {kid.name}
                       </Link>
                       <span className="block text-[13px] text-muted sm:hidden">

@@ -606,7 +606,8 @@ export default async function HelpPage() {
             <P>
               O cadastro de quem compra na Lojinha, paga contribuições e vai
               aos eventos. A coluna <Term>A pagar</Term> mostra quanto cada um
-              ainda deve em parcelas de vendas e de eventos. Os botões acima da
+              ainda deve em parcelas de vendas, de eventos e em contribuições
+              mensais até o mês atual, com a parte atrasada em vermelho. Os botões acima da
               lista mostram só um ramo, com quantos bandeirantes cada um tem.
             </P>
             <Task title="Cadastrar um bandeirante">
@@ -631,10 +632,16 @@ export default async function HelpPage() {
               </Steps>
             </Task>
             <P>
-              Clique na linha para abrir a página do bandeirante. No topo
-              ficam os dados, ao lado das vendas; o botão <Ui>Nova venda</Ui> ali
-              já vem com o bandeirante escolhido. Embaixo fica a contribuição
-              mensal, mês a mês, com um seletor de ano.
+              Clique na linha para abrir a página do bandeirante. Em qualquer
+              tela, clicar no nome de um bandeirante também abre essa página. No
+              topo fica a <Term>Situação financeira</Term>: quanto ele deve,
+              quanto está atrasado e quanto ainda vai vencer, separado por
+              origem (contribuição mensal, cada evento, cada cobrança extra e
+              cada venda). Clique numa
+              origem para ir aonde ela é paga. Depois vêm os dados, ao lado das
+              vendas; o botão <Ui>Nova venda</Ui> ali já vem com o bandeirante
+              escolhido. Embaixo fica a contribuição mensal, mês a mês, com um
+              seletor de ano.
             </P>
             <P>
               A contribuição é cobrada de fevereiro a novembro, menos julho, a

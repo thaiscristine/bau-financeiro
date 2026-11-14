@@ -51,18 +51,21 @@ export function PageSkeleton() {
 }
 
 export function Section({
+  id,
   title,
   tone,
   aside,
   children,
 }: {
+  // To link straight to the section
+  id?: string;
   title: string;
   tone?: React.ComponentProps<typeof Eyebrow>["tone"];
   aside?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-4">
+    <section id={id} className="flex scroll-mt-32 flex-col gap-4 sm:scroll-mt-24">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <Eyebrow as="h2" tone={tone}>
           {title}

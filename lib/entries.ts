@@ -36,6 +36,8 @@ export async function listEntries() {
       categoryName: categories.name,
       // Who paid an installment, contribution or event, otherwise the typed name
       counterparty: sql<string | null>`coalesce(${saleKids.name}, ${kids.name}, ${eventKids.name}, ${eventParticipants.guestName}, ${entries.counterparty})`,
+      // The kid behind it, to open their page from the name
+      counterpartyKidId: sql<number | null>`coalesce(${saleKids.id}, ${kids.id}, ${eventKids.id})`,
       saleId: installments.saleId,
       itemId: stockMovements.itemId,
       contributionKidId: contributions.kidId,

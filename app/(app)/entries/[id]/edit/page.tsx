@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireSession } from "@/lib/dal";
 import { getEntry } from "@/lib/entries";
 import { listCategories } from "@/lib/categories";
-import { listKids } from "@/lib/kids";
+import { listKidOptions } from "@/lib/kids";
 import { Page } from "@/components/page";
 import { EntryForm } from "../../entry-form";
 import { updateEntry, deleteEntry } from "../../actions";
@@ -19,7 +19,7 @@ export default async function EditEntryPage({
   const [row, categories, kids] = await Promise.all([
     getEntry(id),
     listCategories(),
-    listKids(),
+    listKidOptions(),
   ]);
   if (!row) notFound();
   // Installment payments, restock purchases, monthly contributions, event money
