@@ -16,6 +16,7 @@ async function addIncome(page: Page) {
   const dialog = page.getByRole("dialog", { name: "Nova transação" });
   await dialog.getByLabel("Valor (R$)").fill("50");
   await dialog.getByLabel("Quem pagou (opcional)").fill("Dona Rosa");
+  await dialog.getByText("Pix", { exact: true }).click();
   await dialog.getByRole("button", { name: "Adicionar" }).click();
   await expect(page.getByRole("row", { name: /Dona Rosa/ })).toBeVisible();
 }
@@ -35,6 +36,7 @@ test("a new expense gets no confetti", async ({ page }) => {
   await dialog.getByText("Saída").click();
   await dialog.getByLabel("Valor (R$)").fill("30");
   await dialog.getByLabel("Fornecedor (opcional)").fill("Papelaria");
+  await dialog.getByText("Dinheiro", { exact: true }).click();
   await dialog.getByRole("button", { name: "Adicionar" }).click();
 
   await expect(dialog).toBeHidden();
@@ -65,6 +67,7 @@ test("paying an installment gets confetti, and a failed payment doesn't", async 
   await expect(page.getByTestId("confetti")).toHaveCount(0);
 
   const first = page.getByRole("listitem").filter({ hasText: "1ª parcela" });
+  await first.getByLabel("Forma de pagamento").selectOption("Pix");
   await first.getByRole("button", { name: "Marcar como paga" }).click();
   await expect(first.getByRole("button", { name: "Desfazer" })).toBeVisible();
   await expect(page.getByTestId("confetti")).toBeVisible();
@@ -76,6 +79,7 @@ test("paying an installment gets confetti, and a failed payment doesn't", async 
     input.removeAttribute("required");
     (input as HTMLInputElement).value = "";
   });
+  await second.getByLabel("Forma de pagamento").selectOption("Pix");
   await second.getByRole("button", { name: "Marcar como paga" }).click();
   await expect(second.locator("p.text-cost")).toBeVisible();
   await expect(page.getByTestId("confetti")).toHaveCount(0);

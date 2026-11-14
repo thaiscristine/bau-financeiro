@@ -14,6 +14,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { AGE_GROUPS } from "../lib/age-groups";
+import { PAYMENT_METHODS } from "../lib/payment-methods";
 
 export const entryTypeEnum = pgEnum("entry_type", ["income", "cost"]);
 
@@ -24,6 +25,8 @@ export const stockMovementReasonEnum = pgEnum("stock_movement_reason", [
 ]);
 
 export const ageGroupEnum = pgEnum("age_group", AGE_GROUPS);
+
+export const paymentMethodEnum = pgEnum("payment_method", PAYMENT_METHODS);
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -92,6 +95,8 @@ export const entries = pgTable("entries", {
   // The kid an entry came from, for categories that require one
   kidId: integer("kid_id").references(() => kids.id),
   note: text("note"),
+  // Every new entry has one; empty only on entries recorded before it was tracked
+  paymentMethod: paymentMethodEnum("payment_method"),
   entryDate: date("entry_date").notNull(),
   createdById: integer("created_by_id")
     .references(() => users.id)

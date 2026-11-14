@@ -12,6 +12,7 @@ import {
   sales,
   users,
 } from "@/db/schema";
+import { PAYMENT_METHOD_LABELS } from "@/lib/payment-methods";
 import { LOW_STOCK } from "./definitions";
 import { periodRange, type ReportFilters } from "./filters";
 import { statusLabel, type FilterNames, type ReportRow } from "./build";
@@ -36,6 +37,7 @@ async function entryRows(filters: ReportFilters, today: string): Promise<ReportR
       type: entries.type,
       category: categories.name,
       amount: entries.amount,
+      paymentMethod: entries.paymentMethod,
       counterparty: entries.counterparty,
       kid: kidName,
       note: entries.note,
@@ -54,6 +56,7 @@ async function entryRows(filters: ReportFilters, today: string): Promise<ReportR
         ...dateBetween(entries.entryDate, filters, today),
         filters.entryType !== "all" ? eq(entries.type, filters.entryType) : undefined,
         filters.categoryIds.length > 0 ? inArray(entries.categoryId, filters.categoryIds) : undefined,
+        filters.paymentMethods.length > 0 ? inArray(entries.paymentMethod, filters.paymentMethods) : undefined,
         filters.kidId ? or(eq(entries.kidId, filters.kidId), eq(sales.kidId, filters.kidId)) : undefined,
         filters.createdById ? eq(entries.createdById, filters.createdById) : undefined,
         filters.search
@@ -69,6 +72,8 @@ async function entryRows(filters: ReportFilters, today: string): Promise<ReportR
   return rows.map((row) => ({
     ...row,
     type: row.type === "income" ? "Entrada" : "Saída",
+    // Empty for entries from before the method was tracked
+    paymentMethod: row.paymentMethod ? PAYMENT_METHOD_LABELS[row.paymentMethod] : null,
     amount: row.type === "income" ? Number(row.amount) : -Number(row.amount),
   }));
 }
@@ -94,6 +99,7 @@ async function installmentRows(filters: ReportFilters, today: string): Promise<R
       amount: installments.amount,
       entryId: installments.entryId,
       paidDate: entries.entryDate,
+      paymentMethod: entries.paymentMethod,
     })
     .from(installments)
     .innerJoin(sales, eq(sales.id, installments.saleId))
@@ -117,6 +123,7 @@ async function installmentRows(filters: ReportFilters, today: string): Promise<R
     installment: `${number}/${count}`,
     amount: Number(row.amount),
     status: statusLabel(entryId ? "paid" : row.dueDate < today ? "overdue" : "open"),
+    paymentMethod: row.paymentMethod ? PAYMENT_METHOD_LABELS[row.paymentMethod] : null,
   }));
 }
 

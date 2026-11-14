@@ -25,6 +25,7 @@ export async function listEntries() {
       type: entries.type,
       amount: entries.amount,
       note: entries.note,
+      paymentMethod: entries.paymentMethod,
       entryDate: entries.entryDate,
       categoryName: categories.name,
       // The kid of an installment payment or contribution, otherwise the typed name
@@ -69,6 +70,7 @@ export async function listKidEntries(kidId: number) {
       amount: entries.amount,
       entryDate: entries.entryDate,
       note: entries.note,
+      paymentMethod: entries.paymentMethod,
       categoryName: categories.name,
     })
     .from(entries)
@@ -97,6 +99,28 @@ export async function getIncomeByCategory(range: DateRange) {
   return rows.map((row) => ({
     category: row.category,
     income: Number(row.income),
+  }));
+}
+
+// What came in and went out through each payment method, so the cash box and
+// the bank account can be checked against it. Entries from before the method
+// was tracked are a group of their own (null), listed last.
+export async function getTotalsByPaymentMethod(range: DateRange) {
+  const rows = await db
+    .select({
+      paymentMethod: entries.paymentMethod,
+      income: sql<string>`coalesce(sum(${entries.amount}) filter (where ${entries.type} = 'income'), 0)`,
+      cost: sql<string>`coalesce(sum(${entries.amount}) filter (where ${entries.type} = 'cost'), 0)`,
+    })
+    .from(entries)
+    .where(entryDateIn(range))
+    .groupBy(entries.paymentMethod)
+    .orderBy(sql`${entries.paymentMethod} asc nulls last`);
+
+  return rows.map((row) => ({
+    paymentMethod: row.paymentMethod,
+    income: Number(row.income),
+    cost: Number(row.cost),
   }));
 }
 

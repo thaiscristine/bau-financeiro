@@ -1,5 +1,6 @@
 import type { Category } from "@/db/schema";
 import { Field } from "@/components/form";
+import { PaymentMethodChoice } from "@/components/payment-method";
 import { hintClass, inputClass, panelClass } from "@/components/styles";
 
 // What the organization paid for a restock. `categories` are the ones a cost
@@ -36,6 +37,7 @@ export function RestockCostFields({
           <input id="supplier" name="supplier" className={inputClass} />
         </Field>
       </div>
+      <PaymentMethodChoice label="Forma de pagamento da compra" />
       <Field id="costCategoryId" label="Categoria da saída">
         <select
           id="costCategoryId"

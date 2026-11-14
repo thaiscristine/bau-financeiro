@@ -32,7 +32,10 @@ export async function payContribution(
 ): Promise<ContributionFormState> {
   const session = await requireSession();
 
-  const result = parseForm(paymentFormSchema, { paidDate: formData.get("paidDate") });
+  const result = parseForm(paymentFormSchema, {
+    paidDate: formData.get("paidDate"),
+    paymentMethod: formData.get("paymentMethod"),
+  });
   if (!result.ok) return { error: result.error };
 
   const outcome = await db.transaction(async (tx): Promise<Outcome> => {
@@ -59,6 +62,7 @@ export async function payContribution(
         amount: contribution.amount,
         categoryId,
         kidId: contribution.kidId,
+        paymentMethod: result.data.paymentMethod,
         entryDate: result.data.paidDate,
         note: `Contribuição de ${formatMonth(contribution.month.slice(0, 7)).toLowerCase()}`,
         createdById: Number(session.user.id),

@@ -4,6 +4,7 @@ import type { PaymentFormState } from "./actions";
 import { todayISO } from "@/lib/format";
 import { FormError, SubmitButton, useFormAction } from "@/components/form";
 import { useCelebrate } from "@/components/confetti";
+import { PaymentMethodSelect } from "@/components/payment-method";
 import { inputClass, secondaryButtonClass } from "@/components/styles";
 
 export function PaymentForm({
@@ -25,7 +26,7 @@ export function PaymentForm({
 
   return (
     <form {...formProps} className="flex flex-col gap-1">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 max-sm:flex-col max-sm:items-stretch">
         <input
           name="paidDate"
           type="date"
@@ -34,6 +35,7 @@ export function PaymentForm({
           aria-label="Data do pagamento"
           className={`${inputClass} py-1`}
         />
+        <PaymentMethodSelect className="w-auto py-1" />
         <SubmitButton
           pending={pending}
           label="Marcar como paga"

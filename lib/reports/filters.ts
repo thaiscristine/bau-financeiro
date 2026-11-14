@@ -2,6 +2,7 @@
 // source of truth: the /reports URL, the export link and saved templates all
 // carry it, so a report always opens the same way wherever it came from.
 
+import { PAYMENT_METHODS, type PaymentMethod } from "@/lib/payment-methods";
 import {
   ENTRY_TYPES,
   INSTALLMENT_STATUSES,
@@ -29,6 +30,7 @@ export type ReportFilters = {
   itemId: number | null;
   createdById: number | null;
   search: string;
+  paymentMethods: PaymentMethod[];
   statuses: InstallmentStatus[];
   stockState: StockState;
   groupBy: string;
@@ -64,6 +66,7 @@ export function defaultFilters(type: ReportType): ReportFilters {
     itemId: null,
     createdById: null,
     search: "",
+    paymentMethods: [],
     statuses: [],
     stockState: "all",
     groupBy: "none",
@@ -115,6 +118,10 @@ export function parseReportFilters(params: URLSearchParams): ReportFilters {
   if (uses("item")) filters.itemId = positiveInt(params.get("item"));
   if (uses("createdBy")) filters.createdById = positiveInt(params.get("user"));
   if (uses("search")) filters.search = (params.get("q") ?? "").trim().slice(0, 100);
+  if (uses("paymentMethods")) {
+    const chosen = new Set(params.getAll("payment"));
+    filters.paymentMethods = PAYMENT_METHODS.filter((method) => chosen.has(method));
+  }
   if (uses("statuses")) {
     const chosen = new Set(params.getAll("status"));
     filters.statuses = INSTALLMENT_STATUSES.map((status) => status.value).filter((value) =>
@@ -160,6 +167,7 @@ export function serializeReportFilters(filters: ReportFilters) {
   }
   if (filters.entryType !== "all") params.set("kind", filters.entryType);
   for (const id of filters.categoryIds) params.append("category", String(id));
+  for (const method of filters.paymentMethods) params.append("payment", method);
   if (filters.kidId) params.set("kid", String(filters.kidId));
   if (filters.itemId) params.set("item", String(filters.itemId));
   if (filters.createdById) params.set("user", String(filters.createdById));

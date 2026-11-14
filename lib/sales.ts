@@ -56,6 +56,7 @@ export async function listInstallments(saleId: number) {
       dueDate: installments.dueDate,
       entryId: installments.entryId,
       paidDate: entries.entryDate,
+      paymentMethod: entries.paymentMethod,
     })
     .from(installments)
     .leftJoin(entries, eq(entries.id, installments.entryId))

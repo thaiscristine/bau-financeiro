@@ -14,6 +14,7 @@ import {
 } from "@/components/form";
 import { useFormDialog } from "@/components/form-dialog";
 import { useCelebrate } from "@/components/confetti";
+import { PaymentMethodChoice } from "@/components/payment-method";
 import { formCardClass, hintClass, inputClass, modalFormClass } from "@/components/styles";
 
 export function EntryForm({
@@ -96,6 +97,8 @@ export function EntryForm({
           />
         </Field>
       </div>
+
+      <PaymentMethodChoice defaultValue={entry?.paymentMethod} />
 
       <Field id="categoryId" label="Categoria">
         <select

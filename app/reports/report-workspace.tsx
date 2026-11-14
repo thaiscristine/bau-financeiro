@@ -16,6 +16,7 @@ import {
   type ReportFilters,
 } from "@/lib/reports/filters";
 import { formatDate } from "@/lib/format";
+import { PAYMENT_METHOD_OPTIONS } from "@/lib/payment-methods";
 import {
   cardClass,
   checkboxClass,
@@ -206,6 +207,34 @@ function FilterPanel({
                     className={chipClass}
                   >
                     {category.name}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          )}
+
+          {uses("paymentMethods") && (
+            <fieldset className="flex flex-col gap-2">
+              <div className="flex items-baseline justify-between">
+                <legend className={labelClass}>Forma de pagamento</legend>
+                {filters.paymentMethods.length > 0 ? (
+                  <button type="button" onClick={() => apply({ paymentMethods: [] })} className={`${linkClass} text-[13px]`}>
+                    Todas
+                  </button>
+                ) : (
+                  <span className={hintClass}>Todas</span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {PAYMENT_METHOD_OPTIONS.map((method) => (
+                  <button
+                    key={method.value}
+                    type="button"
+                    aria-pressed={filters.paymentMethods.includes(method.value)}
+                    onClick={() => apply({ paymentMethods: toggle(filters.paymentMethods, method.value) })}
+                    className={chipClass}
+                  >
+                    {method.label}
                   </button>
                 ))}
               </div>

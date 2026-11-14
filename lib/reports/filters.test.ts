@@ -23,7 +23,7 @@ test("installments look at every due date by default", () => {
 
 test("serialize and parse round-trip every filter", () => {
   const query =
-    "type=entries&period=custom&from=2026-01-01&to=2026-03-31&kind=income&category=2&category=5&kid=3&user=1&q=festa&group=category&hide=&summary=0&sheets=1";
+    "type=entries&period=custom&from=2026-01-01&to=2026-03-31&kind=income&category=2&category=5&payment=cash&payment=pix&kid=3&user=1&q=festa&group=category&hide=&summary=0&sheets=1";
   assert.equal(serializeReportFilters(parse(query)), query);
 });
 
@@ -59,7 +59,7 @@ test("hidden columns keep the default unless hide is given", () => {
 });
 
 test("hiding every column falls back to the default columns", () => {
-  const all = "hide=date&hide=type&hide=category&hide=amount&hide=counterparty&hide=kid&hide=note&hide=createdBy";
+  const all = "hide=date&hide=type&hide=category&hide=amount&hide=paymentMethod&hide=counterparty&hide=kid&hide=note&hide=createdBy";
   assert.deepEqual(parse(all).hiddenColumns, ["createdBy"]);
 });
 
