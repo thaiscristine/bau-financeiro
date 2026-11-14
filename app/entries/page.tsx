@@ -24,11 +24,11 @@ export default async function EntriesPage() {
 
   return (
     <Page
-      title="Lançamentos"
-      action={{ href: "/entries/new", label: "Novo lançamento" }}
+      title="Transações"
+      action={{ href: "/entries/new", label: "Nova transação" }}
     >
       {rows.length === 0 ? (
-        <EmptyState>Nenhum lançamento ainda.</EmptyState>
+        <EmptyState>Nenhuma transação ainda.</EmptyState>
       ) : (
         <>
           <ul className={`divide-y divide-line-soft sm:hidden ${cardClass}`}>
@@ -149,7 +149,7 @@ function EntryActions({ entry }: { entry: EntryRow }) {
       <DeleteButton
         action={deleteEntry.bind(null, entry.id)}
         label="Excluir"
-        confirmMessage="Excluir este lançamento? Não dá para desfazer."
+        confirmMessage="Excluir esta transação? Não dá para desfazer."
         variant="link"
       />
     </>

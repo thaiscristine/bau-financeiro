@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const LINKS = [
   { href: "/dashboard", label: "Painel" },
-  { href: "/entries", label: "Lançamentos" },
+  { href: "/entries", label: "Transações" },
   { href: "/sales", label: "Vendas" },
   { href: "/inventory", label: "Estoque" },
   { href: "/kids", label: "Bandeirantes" },
@@ -13,7 +13,7 @@ const LINKS = [
   { href: "/users", label: "Usuários" },
 ];
 
-// "Novo lançamento" has its own button in the header, so it does not
+// "Nova transação" has its own button in the header, so it does not
 // highlight any tab.
 function isActive(pathname: string, href: string) {
   if (pathname === "/entries/new") return false;

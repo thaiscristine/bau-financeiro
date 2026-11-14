@@ -22,7 +22,7 @@ export default async function UsersPage() {
     <Page title="Usuários">
       <p className="max-w-2xl font-serif text-[17px] leading-relaxed text-muted">
         Quem pode entrar no sistema. Ao excluir um usuário, ele perde o acesso na
-        hora, mas os lançamentos e vendas que registrou continuam no histórico.
+        hora, mas as transações e vendas que registrou continuam no histórico.
       </p>
 
       <div className={tableWrapClass}>

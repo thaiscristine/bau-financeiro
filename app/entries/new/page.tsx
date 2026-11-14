@@ -10,7 +10,7 @@ export default async function NewEntryPage() {
   const [categories, kids] = await Promise.all([listCategories(), listKids()]);
 
   return (
-    <Page title="Novo lançamento">
+    <Page title="Nova transação">
       <EntryForm action={createEntry} categories={categories} kids={kids} />
     </Page>
   );

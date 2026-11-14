@@ -21,7 +21,7 @@ export function Nav() {
             href="/entries/new"
             className={`${primaryButtonClass} h-9 px-3 text-sm`}
           >
-            Novo lançamento
+            Nova transação
           </Link>
         </div>
         <NavLinks />

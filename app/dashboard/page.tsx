@@ -106,7 +106,7 @@ export default async function DashboardPage() {
 
       <Section title="Por origem">
         {byCategory.length === 0 ? (
-          <EmptyState>Nenhum lançamento ainda.</EmptyState>
+          <EmptyState>Nenhuma transação ainda.</EmptyState>
         ) : (
           <div className={tableWrapClass}>
             <table className={tableClass}>
@@ -141,7 +141,7 @@ export default async function DashboardPage() {
 
       <Section title="Por mês">
         {monthly.length === 0 ? (
-          <EmptyState>Nenhum lançamento ainda.</EmptyState>
+          <EmptyState>Nenhuma transação ainda.</EmptyState>
         ) : (
           <>
             <ul className={`divide-y divide-line-soft sm:hidden ${cardClass}`}>

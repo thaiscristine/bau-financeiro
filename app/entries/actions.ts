@@ -17,7 +17,7 @@ import { requireSession } from "@/lib/dal";
 export type EntryFormState = { error: string } | undefined;
 
 const MANAGED_ELSEWHERE =
-  "Este lançamento foi criado por uma venda ou reposição de estoque. Altere-o por lá.";
+  "Esta transação foi criada por uma venda ou reposição de estoque. Altere-a por lá.";
 
 // Validates the form and the rules of the chosen category. An entry that already
 // had a category closed to manual entries may keep it when edited.
@@ -128,7 +128,7 @@ export async function updateEntry(
     .select({ categoryId: entries.categoryId })
     .from(entries)
     .where(eq(entries.id, id));
-  if (!current) return { error: "Este lançamento não existe mais." };
+  if (!current) return { error: "Esta transação não existe mais." };
 
   if (await isManagedElsewhere(id)) return { error: MANAGED_ELSEWHERE };
 

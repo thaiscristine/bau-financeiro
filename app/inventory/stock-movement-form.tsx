@@ -90,7 +90,7 @@ export function StockMovementForm({
         <div className={panelClass}>
           <p className={hintClass}>
             Se a organização pagou por estes itens, informe o valor: a saída é
-            registrada nos lançamentos. Deixe em branco para itens doados.
+            registrada nas transações. Deixe em branco para itens doados.
           </p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field id="cost" label="Valor pago (R$)">

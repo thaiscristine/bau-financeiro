@@ -28,7 +28,7 @@ export default async function EditEntryPage({
   const { entry } = row;
 
   return (
-    <Page title="Editar lançamento">
+    <Page title="Editar transação">
       <div className="flex max-w-xl flex-col gap-6">
         <EntryForm
           action={updateEntry.bind(null, id)}
@@ -38,8 +38,8 @@ export default async function EditEntryPage({
         />
         <DeleteButton
           action={deleteEntry.bind(null, id)}
-          label="Excluir lançamento"
-          confirmMessage="Excluir este lançamento? Não dá para desfazer."
+          label="Excluir transação"
+          confirmMessage="Excluir esta transação? Não dá para desfazer."
         />
       </div>
     </Page>
