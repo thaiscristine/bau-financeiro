@@ -500,7 +500,8 @@ export default async function HelpPage() {
             <P>
               O cadastro de quem compra na Lojinha, paga contribuições e vai
               aos eventos. A coluna <Term>A pagar</Term> mostra quanto cada um
-              ainda deve em parcelas de vendas e de eventos.
+              ainda deve em parcelas de vendas e de eventos. Os botões acima da
+              lista mostram só um ramo, com quantos bandeirantes cada um tem.
             </P>
             <Task title="Cadastrar um bandeirante">
               <Steps>
@@ -524,7 +525,7 @@ export default async function HelpPage() {
               </Steps>
             </Task>
             <P>
-              Clique em <Ui>Ver</Ui> para abrir a página do bandeirante. No topo
+              Clique na linha para abrir a página do bandeirante. No topo
               ficam os dados, ao lado das vendas; o botão <Ui>Nova venda</Ui> ali
               já vem com o bandeirante escolhido. Embaixo fica a contribuição
               mensal, mês a mês, com um seletor de ano.

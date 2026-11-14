@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createItem, createUser, reset } from "./db";
+import { createItem, createKid, createUser, query, reset } from "./db";
 import { login } from "./session";
 
 test.beforeEach(async ({ page }) => {
@@ -67,4 +67,59 @@ test("a bandeirante registered with a sale gets the chosen age group", async ({
   await expect(
     page.getByRole("row", { name: /Bel/ }).getByRole("cell", { name: "Ciranda", exact: true })
   ).toBeVisible();
+});
+
+test("the list can be filtered by age group", async ({ page }) => {
+  await createKid("Bia");
+  await createKid("Caio");
+  await createKid("Duda");
+  await query(`update kids set age_group = 'b1' where name in ('Bia', 'Caio')`);
+  await query(`update kids set age_group = 'guias' where name = 'Duda'`);
+  await createKid("Enzo");
+
+  await page.goto("/kids");
+  const filter = page.getByRole("navigation", { name: "Ramo" });
+  await expect(filter.getByRole("link", { name: "Todos 4" })).toHaveAttribute(
+    "aria-current",
+    "page"
+  );
+  await expect(filter.getByRole("link", { name: "Ciranda 0" })).toBeVisible();
+
+  await filter.getByRole("link", { name: "B1 2" }).click();
+  await expect(page).toHaveURL("/kids?ramo=b1");
+  await expect(filter.getByRole("link", { name: "B1 2" })).toHaveAttribute(
+    "aria-current",
+    "page"
+  );
+  await expect(page.getByRole("row", { name: /Bia/ })).toBeVisible();
+  await expect(page.getByRole("row", { name: /Caio/ })).toBeVisible();
+  await expect(page.getByRole("row", { name: /Duda|Enzo/ })).toHaveCount(0);
+  // Every row would say B1, so the column goes away
+  await expect(page.getByRole("columnheader", { name: "Ramo" })).toHaveCount(0);
+
+  await filter.getByRole("link", { name: "Sem ramo 1" }).click();
+  await expect(page.getByRole("row", { name: /Enzo/ })).toBeVisible();
+  await expect(page.getByRole("row", { name: /Bia|Caio|Duda/ })).toHaveCount(0);
+
+  await filter.getByRole("link", { name: "Ciranda 0" }).click();
+  await expect(page.getByText("Nenhum bandeirante em Ciranda.")).toBeVisible();
+
+  await filter.getByRole("link", { name: "Todos 4" }).click();
+  await expect(page).toHaveURL("/kids");
+  await expect(page.getByRole("row", { name: /Bia|Caio|Duda|Enzo/ })).toHaveCount(4);
+  await expect(page.getByRole("columnheader", { name: "Ramo" })).toBeVisible();
+});
+
+test("clicking anywhere on a row opens the bandeirante", async ({ page }) => {
+  await createKid("Bia");
+
+  await page.goto("/kids");
+  // force: the row's link overlay covers the cell, which is the point; the
+  // mouse still clicks where the name is and lands on that overlay
+  await page
+    .getByRole("row", { name: /Bia/ })
+    .getByRole("cell", { name: "Bia" })
+    .click({ force: true });
+  await expect(page).toHaveURL(/\/kids\/\d+$/);
+  await expect(page.getByRole("heading", { name: "Bia" })).toBeVisible();
 });
