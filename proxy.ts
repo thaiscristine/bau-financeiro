@@ -15,5 +15,7 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Skip API routes, Next internals and static files (anything with an
+  // extension, like the app icon and the logo in /public).
+  matcher: ["/((?!api|_next/static|_next/image|.*\\.\\w+$).*)"],
 };

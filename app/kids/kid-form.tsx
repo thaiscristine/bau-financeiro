@@ -3,7 +3,7 @@
 import type { KidFormState } from "./actions";
 import type { Kid } from "@/db/schema";
 import { Field, FormError, SubmitButton, useFormAction } from "@/components/form";
-import { inputClass } from "@/components/styles";
+import { formCardClass, inputClass } from "@/components/styles";
 
 export function KidForm({
   action,
@@ -15,7 +15,7 @@ export function KidForm({
   const [state, formProps, pending] = useFormAction(action);
 
   return (
-    <form {...formProps} className="flex max-w-xl flex-col gap-4">
+    <form {...formProps} className={formCardClass}>
       <Field id="name" label="Nome">
         <input
           id="name"

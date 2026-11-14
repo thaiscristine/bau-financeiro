@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/dal";
 import { getSale, listInstallments } from "@/lib/sales";
 import { formatBRL, formatDate, todayISO } from "@/lib/format";
-import { Page } from "@/components/page";
+import { Eyebrow, Page } from "@/components/page";
 import { DeleteButton } from "@/components/delete-button";
-import { linkClass } from "@/components/styles";
+import { cardClass, labelClass } from "@/components/styles";
 import { PaymentForm } from "../payment-form";
 import { UndoPaymentButton } from "../undo-payment-button";
 import { deleteSale, payInstallment, undoPayment } from "../actions";
@@ -26,55 +26,59 @@ export default async function SalePage({ params }: PageProps<"/sales/[id]">) {
 
   return (
     <Page title={`Venda #${sale.id}`}>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+      <dl className="grid grid-cols-2 gap-px border border-line bg-line sm:grid-cols-5">
         <Detail label="Bandeirante">
-          <Link href={`/kids/${sale.kidId}`} className={`${linkClass} underline`}>
+          <Link href={`/kids/${sale.kidId}`} className="underline-offset-4 hover:underline">
             {sale.kidName}
           </Link>
         </Detail>
         <Detail label="Item">
-          <Link href={`/inventory/${sale.itemId}`} className={`${linkClass} underline`}>
+          <Link href={`/inventory/${sale.itemId}`} className="underline-offset-4 hover:underline">
             {sale.itemName}
           </Link>
           {sale.quantity > 1 && ` × ${sale.quantity}`}
         </Detail>
         <Detail label="Data">{formatDate(sale.saleDate)}</Detail>
         <Detail label="Total">{formatBRL(Number(sale.total))}</Detail>
-        <Detail label="Falta receber">
-          <span className={remaining > 0 ? "text-amber-600" : "text-emerald-600"}>
+        <Detail label="Falta receber" className="max-sm:col-span-2">
+          <span className={remaining > 0 ? "text-pending" : "text-income"}>
             {formatBRL(remaining)}
           </span>
         </Detail>
-        {sale.note && <Detail label="Nota">{sale.note}</Detail>}
+        {sale.note && (
+          <Detail label="Nota" className="col-span-full font-serif">
+            {sale.note}
+          </Detail>
+        )}
       </dl>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-medium">Parcelas</h2>
-        <ul className="border-t border-zinc-200 text-sm dark:border-zinc-800">
+      <section className="flex flex-col gap-4">
+        <Eyebrow as="h2">Parcelas</Eyebrow>
+        <ul className={`divide-y divide-line-soft text-[15px] ${cardClass}`}>
           {saleInstallments.map((installment) => {
             const overdue = !installment.entryId && installment.dueDate < today;
             return (
               <li
                 key={installment.id}
-                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-zinc-100 py-3 dark:border-zinc-900"
+                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 py-4"
               >
-                <div className="flex flex-col gap-0.5">
-                  <p className="font-medium">
+                <div className="flex flex-col gap-1 tabular-nums">
+                  <p>
                     {installment.number}ª parcela
-                    <span className="font-normal text-zinc-500">
+                    <span className="text-muted">
                       {" "}
                       de {saleInstallments.length} ·{" "}
                       {formatBRL(Number(installment.amount))}
                     </span>
                   </p>
-                  <p className="text-zinc-500">
+                  <p className="text-sm text-muted">
                     Vence {formatDate(installment.dueDate)} ·{" "}
                     {installment.paidDate ? (
-                      <span className="text-emerald-600">
+                      <span className="text-income">
                         Paga em {formatDate(installment.paidDate)}
                       </span>
                     ) : overdue ? (
-                      <span className="font-medium text-red-600">Atrasada</span>
+                      <span className="text-cost">Atrasada</span>
                     ) : (
                       <span>A vencer</span>
                     )}
@@ -100,11 +104,19 @@ export default async function SalePage({ params }: PageProps<"/sales/[id]">) {
   );
 }
 
-function Detail({ label, children }: { label: string; children: React.ReactNode }) {
+function Detail({
+  label,
+  className = "",
+  children,
+}: {
+  label: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div>
-      <dt className="text-zinc-500">{label}</dt>
-      <dd className="mt-0.5">{children}</dd>
+    <div className={`flex flex-col gap-2 bg-surface p-5 ${className}`}>
+      <dt className={labelClass}>{label}</dt>
+      <dd className="text-[17px] tabular-nums">{children}</dd>
     </div>
   );
 }

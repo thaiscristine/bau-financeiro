@@ -4,8 +4,19 @@ import { useEffect, useRef, useState } from "react";
 import type { StockMovementFormState } from "./actions";
 import type { Category } from "@/db/schema";
 import { todayISO } from "@/lib/format";
-import { Field, FormError, SubmitButton, useFormAction } from "@/components/form";
-import { inputClass } from "@/components/styles";
+import {
+  ChoiceGroup,
+  Field,
+  FormError,
+  SubmitButton,
+  useFormAction,
+} from "@/components/form";
+import {
+  formCardClass,
+  hintClass,
+  inputClass,
+  panelClass,
+} from "@/components/styles";
 
 export function StockMovementForm({
   action,
@@ -36,29 +47,17 @@ export function StockMovementForm({
     categories[0];
 
   return (
-    <form ref={formRef} {...formProps} className="flex max-w-xl flex-col gap-4">
-      <fieldset className="flex gap-4">
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="radio"
-            name="reason"
-            value="restock"
-            checked={reason === "restock"}
-            onChange={() => setReason("restock")}
-          />
-          Reposição
-        </label>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="radio"
-            name="reason"
-            value="adjustment"
-            checked={reason === "adjustment"}
-            onChange={() => setReason("adjustment")}
-          />
-          Ajuste
-        </label>
-      </fieldset>
+    <form ref={formRef} {...formProps} className={formCardClass}>
+      <ChoiceGroup
+        name="reason"
+        legend="Motivo"
+        value={reason}
+        onChange={setReason}
+        options={[
+          { value: "restock", label: "Reposição" },
+          { value: "adjustment", label: "Ajuste" },
+        ]}
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field
@@ -88,8 +87,8 @@ export function StockMovementForm({
       </div>
 
       {reason === "restock" && (
-        <div className="flex flex-col gap-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-          <p className="text-xs text-zinc-500">
+        <div className={panelClass}>
+          <p className={hintClass}>
             Se a organização pagou por estes itens, informe o valor: a saída é
             registrada nos lançamentos. Deixe em branco para itens doados.
           </p>

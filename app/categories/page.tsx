@@ -2,7 +2,14 @@ import { requireSession } from "@/lib/dal";
 import { listCategoriesWithUsage } from "@/lib/categories";
 import { Page } from "@/components/page";
 import { DeleteButton } from "@/components/delete-button";
-import { tableHeadCell, tableHeadRow, tableRow } from "@/components/styles";
+import {
+  tableCell,
+  tableClass,
+  tableHeadCell,
+  tableHeadRow,
+  tableRow,
+  tableWrapClass,
+} from "@/components/styles";
 import {
   createCategory,
   deleteCategory,
@@ -17,35 +24,35 @@ export default async function CategoriesPage() {
 
   return (
     <Page title="Categorias">
-      <p className="max-w-xl text-sm text-zinc-500">
-        De onde vem ou para onde vai o dinheiro. As categorias são usadas nos
-        lançamentos e nos itens do estoque.
-      </p>
-      <ul className="max-w-xl list-disc pl-5 text-sm text-zinc-500">
-        <li>
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">Exige bandeirante</span>:
-          o lançamento precisa dizer de qual bandeirante veio o dinheiro, como na
-          contribuição mensal.
-        </li>
-        <li>
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">
-            Só pela tela Vendas
-          </span>
-          : não aparece no novo lançamento, para que toda venda atualize o estoque.
-        </li>
-      </ul>
+      <div className="flex max-w-2xl flex-col gap-4 font-serif text-[17px] leading-relaxed text-muted">
+        <p>
+          De onde vem ou para onde vai o dinheiro. As categorias são usadas nos
+          lançamentos e nos itens do estoque.
+        </p>
+        <ul className="flex flex-col gap-2">
+          <li>
+            <span className="text-ink">Exige bandeirante</span>:
+            o lançamento precisa dizer de qual bandeirante veio o dinheiro, como na
+            contribuição mensal.
+          </li>
+          <li>
+            <span className="text-ink">Só pela tela Vendas</span>
+            : não aparece no novo lançamento, para que toda venda atualize o estoque.
+          </li>
+        </ul>
+      </div>
 
       <NewCategoryForm action={createCategory} />
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
+      <div className={tableWrapClass}>
+        <table className={tableClass}>
           <thead>
             <tr className={tableHeadRow}>
               <th className={tableHeadCell}>Nome</th>
               <th className={`${tableHeadCell} text-center`}>Exige bandeirante</th>
               <th className={`${tableHeadCell} text-center`}>Só pela tela Vendas</th>
               <th className={tableHeadCell}>Em uso</th>
-              <th className="py-2">
+              <th className={tableHeadCell}>
                 <span className="sr-only">Ações</span>
               </th>
             </tr>
@@ -55,13 +62,13 @@ export default async function CategoriesPage() {
               const inUse = category.entryCount + category.itemCount > 0;
               return (
                 <tr key={category.id} className={tableRow}>
-                  <td className="py-2 pr-4">
+                  <td className={tableCell}>
                     <RenameCategoryForm
                       action={renameCategory.bind(null, category.id)}
                       name={category.name}
                     />
                   </td>
-                  <td className="py-2 pr-4">
+                  <td className={tableCell}>
                     <div className="flex justify-center">
                       <RuleToggle
                         action={setCategoryRule.bind(
@@ -75,7 +82,7 @@ export default async function CategoriesPage() {
                       />
                     </div>
                   </td>
-                  <td className="py-2 pr-4">
+                  <td className={tableCell}>
                     <div className="flex justify-center">
                       <RuleToggle
                         action={setCategoryRule.bind(
@@ -89,10 +96,10 @@ export default async function CategoriesPage() {
                       />
                     </div>
                   </td>
-                  <td className="py-2 pr-4 whitespace-nowrap text-zinc-500">
+                  <td className={`${tableCell} whitespace-nowrap text-muted`}>
                     {usageLabel(category.entryCount, category.itemCount)}
                   </td>
-                  <td className="py-2 text-right whitespace-nowrap">
+                  <td className={`${tableCell} text-right whitespace-nowrap`}>
                     {!inUse && (
                       <DeleteButton
                         action={deleteCategory.bind(null, category.id)}

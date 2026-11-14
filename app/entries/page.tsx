@@ -2,124 +2,156 @@ import Link from "next/link";
 import { requireSession } from "@/lib/dal";
 import { listEntries } from "@/lib/entries";
 import { formatBRL, formatDate } from "@/lib/format";
-import { Nav } from "@/components/nav";
+import { EmptyState, Eyebrow, Page } from "@/components/page";
+import {
+  cardClass,
+  linkClass,
+  tableCell,
+  tableClass,
+  tableHeadCell,
+  tableHeadRow,
+  tableRow,
+  tableWrapClass,
+} from "@/components/styles";
 import { deleteEntry } from "./actions";
 import { DeleteButton } from "@/components/delete-button";
+
+type EntryRow = Awaited<ReturnType<typeof listEntries>>[number];
 
 export default async function EntriesPage() {
   await requireSession();
   const rows = await listEntries();
 
   return (
-    <>
-      <Nav />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Lançamentos</h1>
-          <Link
-            href="/entries/new"
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
-          >
-            Novo lançamento
-          </Link>
-        </div>
-
-        {rows.length === 0 ? (
-          <p className="text-sm text-zinc-500">Nenhum lançamento ainda.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+    <Page
+      title="Lançamentos"
+      action={{ href: "/entries/new", label: "Novo lançamento" }}
+    >
+      {rows.length === 0 ? (
+        <EmptyState>Nenhum lançamento ainda.</EmptyState>
+      ) : (
+        <>
+          <ul className={`divide-y divide-line-soft sm:hidden ${cardClass}`}>
+            {rows.map((entry) => (
+              <li key={entry.id} className="flex justify-between gap-4 p-4">
+                <div className="flex min-w-0 flex-col gap-2">
+                  <TypeLabel type={entry.type} />
+                  <p className="text-[15px]">
+                    {entry.categoryName}
+                    <span className="text-muted tabular-nums">
+                      {" · "}
+                      {formatDate(entry.entryDate)}
+                    </span>
+                  </p>
+                  {entry.counterparty && (
+                    <p className="truncate text-[15px]">{entry.counterparty}</p>
+                  )}
+                  {entry.note && (
+                    <p className="truncate font-serif text-[15px] text-muted">
+                      {entry.note}
+                    </p>
+                  )}
+                </div>
+                <div className="flex shrink-0 flex-col items-end justify-between gap-2">
+                  <p
+                    className={`text-[17px] tracking-[-0.01em] tabular-nums ${
+                      entry.type === "income" ? "text-income" : "text-cost"
+                    }`}
+                  >
+                    {formatBRL(Number(entry.amount))}
+                  </p>
+                  <div className="flex gap-4 text-sm">
+                    <EntryActions entry={entry} />
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className={`hidden sm:block ${tableWrapClass}`}>
+            <table className={tableClass}>
               <thead>
-                <tr className="border-b border-zinc-200 dark:border-zinc-800">
-                  <th className="py-2 pr-4 font-medium text-zinc-500">
-                    Data
-                  </th>
-                  <th className="py-2 pr-4 font-medium text-zinc-500">
-                    Tipo
-                  </th>
-                  <th className="py-2 pr-4 font-medium text-zinc-500">
-                    Categoria
-                  </th>
-                  <th className="py-2 pr-4 font-medium text-zinc-500">
-                    Pagador / Fornecedor
-                  </th>
-                  <th className="py-2 pr-4 font-medium text-zinc-500">
-                    Valor
-                  </th>
-                  <th className="py-2 pr-4 font-medium text-zinc-500">
-                    Nota
-                  </th>
-                  <th className="py-2">
+                <tr className={tableHeadRow}>
+                  <th className={tableHeadCell}>Data</th>
+                  <th className={tableHeadCell}>Tipo</th>
+                  <th className={tableHeadCell}>Categoria</th>
+                  <th className={tableHeadCell}>Pagador / Fornecedor</th>
+                  <th className={`${tableHeadCell} text-right`}>Valor</th>
+                  <th className={tableHeadCell}>Nota</th>
+                  <th className={tableHeadCell}>
                     <span className="sr-only">Ações</span>
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((entry) => (
-                  <tr
-                    key={entry.id}
-                    className="border-b border-zinc-100 dark:border-zinc-900"
-                  >
-                    <td className="py-2 pr-4">
+                  <tr key={entry.id} className={tableRow}>
+                    <td className={`${tableCell} whitespace-nowrap`}>
                       {formatDate(entry.entryDate)}
                     </td>
-                    <td className="py-2 pr-4">
-                      {entry.type === "income" ? "Entrada" : "Saída"}
+                    <td className={`${tableCell} whitespace-nowrap`}>
+                      <TypeLabel type={entry.type} />
                     </td>
-                    <td className="py-2 pr-4">
-                      {entry.categoryName}
-                    </td>
-                    <td className="py-2 pr-4">{entry.counterparty ?? ""}</td>
+                    <td className={tableCell}>{entry.categoryName}</td>
+                    <td className={tableCell}>{entry.counterparty ?? ""}</td>
                     <td
-                      className={`py-2 pr-4 ${
-                        entry.type === "income"
-                          ? "text-emerald-600"
-                          : "text-red-600"
+                      className={`${tableCell} text-right whitespace-nowrap ${
+                        entry.type === "income" ? "text-income" : "text-cost"
                       }`}
                     >
                       {formatBRL(Number(entry.amount))}
                     </td>
-                    <td className="py-2 pr-4 text-zinc-500">
+                    <td className={`${tableCell} font-serif text-muted`}>
                       {entry.note ?? ""}
                     </td>
-                    <td className="py-2 text-right whitespace-nowrap">
-                      {entry.saleId || entry.itemId ? (
-                        <div className="flex justify-end">
-                          <Link
-                            href={
-                              entry.saleId
-                                ? `/sales/${entry.saleId}`
-                                : `/inventory/${entry.itemId}`
-                            }
-                            className="text-zinc-500 underline-offset-4 hover:text-zinc-900 hover:underline dark:hover:text-zinc-100"
-                          >
-                            {entry.saleId ? "Ver venda" : "Ver estoque"}
-                          </Link>
-                        </div>
-                      ) : (
-                        <div className="flex justify-end gap-3">
-                          <Link
-                            href={`/entries/${entry.id}/edit`}
-                            className="text-zinc-500 underline-offset-4 hover:text-zinc-900 hover:underline dark:hover:text-zinc-100"
-                          >
-                            Editar
-                          </Link>
-                          <DeleteButton
-                            action={deleteEntry.bind(null, entry.id)}
-                            label="Excluir"
-                            confirmMessage="Excluir este lançamento? Não dá para desfazer."
-                            variant="link"
-                          />
-                        </div>
-                      )}
+                    <td className={`${tableCell} text-right whitespace-nowrap`}>
+                      <div className="flex justify-end gap-4">
+                        <EntryActions entry={entry} />
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        )}
-      </main>
+        </>
+      )}
+    </Page>
+  );
+}
+
+function TypeLabel({ type }: { type: EntryRow["type"] }) {
+  return type === "income" ? (
+    <Eyebrow as="span">Entrada</Eyebrow>
+  ) : (
+    <Eyebrow as="span" tone="orange">
+      Saída
+    </Eyebrow>
+  );
+}
+
+// Installment payments and restock purchases are changed from where they came from
+function EntryActions({ entry }: { entry: EntryRow }) {
+  if (entry.saleId || entry.itemId) {
+    return (
+      <Link
+        href={entry.saleId ? `/sales/${entry.saleId}` : `/inventory/${entry.itemId}`}
+        className={linkClass}
+      >
+        {entry.saleId ? "Ver venda" : "Ver estoque"}
+      </Link>
+    );
+  }
+  return (
+    <>
+      <Link href={`/entries/${entry.id}/edit`} className={linkClass}>
+        Editar
+      </Link>
+      <DeleteButton
+        action={deleteEntry.bind(null, entry.id)}
+        label="Excluir"
+        confirmMessage="Excluir este lançamento? Não dá para desfazer."
+        variant="link"
+      />
     </>
   );
 }

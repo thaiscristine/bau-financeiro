@@ -5,9 +5,9 @@ export function StockLabel({
   tracksStock: boolean;
   stock: number;
 }) {
-  if (!tracksStock) return <span className="text-zinc-500">Serviço</span>;
+  if (!tracksStock) return <span className="text-muted">Serviço</span>;
   return (
-    <span className={stock > 0 ? "" : "font-medium text-red-600"}>
+    <span className={stock > 0 ? "" : "text-cost"}>
       {stock} {stock === 1 ? "unidade" : "unidades"}
     </span>
   );

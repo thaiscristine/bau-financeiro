@@ -3,7 +3,14 @@
 import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import type { CategoryFormState } from "./actions";
 import { FormError, SubmitButton, useFormAction } from "@/components/form";
-import { inputClass, linkClass, primaryButtonClass } from "@/components/styles";
+import {
+  cardClass,
+  checkboxClass,
+  inputClass,
+  labelClass,
+  linkClass,
+  primaryButtonClass,
+} from "@/components/styles";
 
 type CategoryAction = (
   state: CategoryFormState,
@@ -19,8 +26,8 @@ export function NewCategoryForm({ action }: { action: CategoryAction }) {
   }, [state?.saved]);
 
   return (
-    <form ref={formRef} {...formProps} className="flex max-w-xl flex-col gap-2">
-      <label htmlFor="new-category" className="text-sm font-medium">
+    <form ref={formRef} {...formProps} className={`flex max-w-xl flex-col gap-3 p-5 ${cardClass}`}>
+      <label htmlFor="new-category" className={labelClass}>
         Nova categoria
       </label>
       <div className="flex gap-2">
@@ -29,7 +36,7 @@ export function NewCategoryForm({ action }: { action: CategoryAction }) {
           name="name"
           required
           placeholder="Ex.: Rifa, Evento beneficente"
-          className={`${inputClass} flex-1`}
+          className={`${inputClass} min-w-0 flex-1`}
         />
         <SubmitButton
           pending={pending}
@@ -79,11 +86,11 @@ export function RenameCategoryForm({
           autoFocus
           defaultValue={name}
           aria-label="Nome da categoria"
-          className={`${inputClass} flex-1 py-1`}
+          className={`${inputClass} h-9 min-w-0 flex-1`}
         />
         <SubmitButton
           pending={pending}
-          className={`${primaryButtonClass} py-1`}
+          className={`${primaryButtonClass} h-9 px-3 text-sm`}
         />
         <button type="button" onClick={() => setEditing(false)} className={linkClass}>
           Cancelar
@@ -121,7 +128,7 @@ export function RuleToggle({
           await action();
         })
       }
-      className="h-4 w-4"
+      className={checkboxClass}
     />
   );
 }
