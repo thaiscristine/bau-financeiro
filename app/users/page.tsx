@@ -10,16 +10,21 @@ import {
   tableRow,
   tableWrapClass,
 } from "@/components/styles";
-import { createUser, deleteUser } from "./actions";
-import { NewUserForm } from "./new-user-form";
+import { changePassword, createUser, deleteUser, resetPassword } from "./actions";
+import { ChangePasswordForm } from "./change-password-form";
+import { NewUserDialog } from "./new-user-dialog";
+import { ResetPasswordForm } from "./reset-password-form";
 
 export default async function UsersPage() {
   const session = await requireSession();
   const rows = await listActiveUsers();
   const currentUserId = Number(session.user.id);
+  const teammates = rows
+    .filter((user) => user.id !== currentUserId)
+    .map((user) => ({ id: user.id, name: user.name }));
 
   return (
-    <Page title="Usuários">
+    <Page title="Usuários" aside={<NewUserDialog action={createUser} />}>
       <p className="max-w-2xl font-serif text-[17px] leading-relaxed text-muted">
         Quem pode entrar no sistema. Ao excluir um usuário, ele perde o acesso na
         hora, mas as transações e vendas que registrou continuam no histórico.
@@ -65,9 +70,17 @@ export default async function UsersPage() {
         </table>
       </div>
 
-      <Section title="Novo usuário">
-        <NewUserForm action={createUser} />
-      </Section>
+      <div className="grid gap-10 lg:grid-cols-2 lg:gap-8">
+        <Section title="Trocar a sua senha">
+          <ChangePasswordForm action={changePassword} />
+        </Section>
+
+        {teammates.length > 0 && (
+          <Section title="Redefinir a senha de outra pessoa">
+            <ResetPasswordForm action={resetPassword} teammates={teammates} />
+          </Section>
+        )}
+      </div>
     </Page>
   );
 }
