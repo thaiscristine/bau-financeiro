@@ -1,4 +1,3 @@
-import { Nav } from "./nav";
 import { Eyebrow } from "./eyebrow";
 
 export function Page({
@@ -12,18 +11,35 @@ export function Page({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <Nav />
-      <main className="mx-auto flex w-full max-w-6xl min-w-0 flex-1 flex-col gap-10 px-4 pt-12 pb-20 sm:px-8 sm:pt-16">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-4xl leading-none tracking-[-0.03em] sm:text-[54px]">
-            {title}
-          </h1>
-          {aside}
-        </div>
-        {children}
-      </main>
-    </>
+    <main className={mainClass}>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h1 className={titleClass}>{title}</h1>
+        {aside}
+      </div>
+      {children}
+    </main>
+  );
+}
+
+const mainClass =
+  "mx-auto flex w-full max-w-6xl min-w-0 flex-1 flex-col gap-10 px-4 pt-12 pb-20 sm:px-8 sm:pt-16";
+
+const titleClass = "text-4xl leading-none tracking-[-0.03em] sm:text-[54px]";
+
+// Shown under the nav while the next page loads, laid out like a Page so the
+// content lands where the placeholders were
+export function PageSkeleton() {
+  const block = "bg-sunken motion-safe:animate-pulse";
+  return (
+    <main className={mainClass} aria-busy="true">
+      <span className="sr-only">Carregando…</span>
+      <div className={`h-9 w-56 sm:h-[54px] sm:w-80 ${block}`} />
+      <div className={`h-32 border border-line ${block}`} />
+      <div className="flex flex-col gap-4">
+        <div className={`h-4 w-40 ${block}`} />
+        <div className={`h-64 border border-line ${block}`} />
+      </div>
+    </main>
   );
 }
 

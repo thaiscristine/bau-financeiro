@@ -18,6 +18,16 @@ test("logging in with the right password opens the dashboard", async ({
   await expect(page).toHaveURL("/dashboard");
 });
 
+test("opening the login page while logged in goes to the dashboard", async ({
+  page,
+}) => {
+  await login(page, "ana@example.com", "senha-da-ana");
+  await expect(page).toHaveURL("/dashboard");
+
+  await page.goto("/login");
+  await expect(page).toHaveURL("/dashboard");
+});
+
 async function lockOut(page: Page, email: string) {
   for (let i = 1; i <= 5; i++) {
     await login(page, email, `errada-${i}`);
@@ -87,6 +97,9 @@ test("logging out ends the session even where the cookie was copied", async ({
   const otherPage = await elsewhere.newPage();
   await otherPage.goto("/dashboard");
   await expect(otherPage).toHaveURL("/login");
+  // The cookie still reads as logged in, but the login page doesn't send it
+  // back to the dashboard
+  await expect(otherPage.getByRole("button", { name: "Entrar" })).toBeVisible();
   await elsewhere.close();
 });
 

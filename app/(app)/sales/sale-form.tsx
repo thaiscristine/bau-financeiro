@@ -5,7 +5,7 @@ import type { SaleFormState } from "./actions";
 import { formatBRL, formatDate, todayISO } from "@/lib/format";
 import { planInstallments, toCents } from "@/lib/installments";
 import { NEW_KID } from "@/lib/validation";
-import { AgeGroupSelect } from "@/app/kids/age-group-select";
+import { AgeGroupSelect } from "@/app/(app)/kids/age-group-select";
 import { Field, FormError, SubmitButton, useFormAction } from "@/components/form";
 import {
   hintClass,

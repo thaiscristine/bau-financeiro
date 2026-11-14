@@ -1,6 +1,7 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { getToken } from "next-auth/jwt";
+import { authConfig } from "@/auth.config";
 import { cookies } from "next/headers";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
@@ -26,7 +27,7 @@ export class TooManyLoginAttempts extends CredentialsSignin {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  trustHost: true,
+  ...authConfig,
   providers: [
     Credentials({
       credentials: {
@@ -77,11 +78,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  // The cookie expires after a week without use. The session row behind it
-  // caps the total length and lets a logout end it everywhere it was copied.
-  session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
-  pages: { signIn: "/login" },
   callbacks: {
+    ...authConfig.callbacks,
     async jwt({ token, user }) {
       if (user) {
         token.userId = user.id;
@@ -99,12 +97,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       token.userId = String(userId);
       return token;
-    },
-    session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.userId as string;
-      }
-      return session;
     },
   },
   logger: {
