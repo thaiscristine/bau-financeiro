@@ -173,8 +173,8 @@ export default async function HelpPage() {
                 <Term>Contribuições em aberto por ramo</Term>: quantos meses de
                 contribuição do período ainda não foram pagos em cada ramo, o
                 valor em aberto e quanto disso já está atrasado (o mês acabou).
-                Não mostra nomes; para saber quem deve, abra a página de cada
-                bandeirante ou gere um relatório.
+                Clique num ramo para ver quem deve e quanto; clique no nome
+                para abrir a página da bandeirante.
               </Li>
             </ul>
           </Topic>

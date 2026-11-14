@@ -128,7 +128,7 @@ test("the panel shows the current month by default", async ({ page }) => {
     "Doação\tR$ 100,00",
   ]);
 
-  // Unpaid monthly contributions per age group, without naming who owes
+  // Unpaid monthly contributions per age group; who owes is one click away
   await expect(
     section(page, "Contribuições em aberto por ramo").locator("th").nth(2)
   ).toHaveText(/^Em aberto\s*R\$\s65,00$/);
@@ -140,6 +140,39 @@ test("the panel shows the current month by default", async ({ page }) => {
   ]);
   await expect(page.getByText("Clara")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Por mês" })).toHaveCount(0);
+});
+
+test("an age group's row lists who owes and links to them", async ({ page }) => {
+  await page.getByRole("link", { name: "Escolher datas" }).click();
+  await page.getByLabel("De").fill(lastMonth.first);
+  await page.getByLabel("Até").fill(nextMonth.last);
+  await page.getByRole("button", { name: "Aplicar" }).click();
+  await expect(page).toHaveURL(/period=custom/);
+
+  // A click anywhere on the row opens it
+  await section(page, "Contribuições em aberto por ramo")
+    .locator("tr", { hasText: "B1" })
+    .getByText("R$ 45,00")
+    .click();
+  const dialog = page.getByRole("dialog", { name: "Em aberto - B1" });
+  await expect(dialog).toBeVisible();
+  const rows = (await dialog.locator("tbody tr").allInnerTexts()).map((row) =>
+    row.replaceAll("\u00a0", " ")
+  );
+  expect(rows).toEqual(["Clara\t2\tR$ 45,00\tR$ 20,00"]);
+  await expect(dialog.locator("tfoot")).toContainText("45,00");
+
+  // Closing and opening another group shows only that group
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await page.getByRole("button", { name: "Guias" }).click();
+  const guias = page.getByRole("dialog", { name: "Em aberto - Guias" });
+  await expect(guias.locator("tbody tr")).toHaveText([/^Bia/]);
+
+  // A click anywhere on a bandeirante's row opens their page
+  await guias.locator("tbody tr").getByText("R$ 30,00").click();
+  await expect(page).toHaveURL(/\/kids\/\d+$/);
+  await expect(page.getByRole("heading", { name: "Bia" })).toBeVisible();
 });
 
 test("the previous and next months have their own figures", async ({ page }) => {
