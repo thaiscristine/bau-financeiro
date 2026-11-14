@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { AGE_GROUPS } from "./age-groups";
 import { PAYMENT_METHODS } from "./payment-methods";
+import { FUND_STATUSES, NO_FUND_REQUEST } from "./fund";
 
 const id = (message: string) =>
   z.coerce.number({ error: message }).int({ error: message }).positive({ error: message });
@@ -28,6 +29,12 @@ const optionalAgeGroup = z.preprocess(
 const paymentMethod = z.enum(PAYMENT_METHODS, {
   error: "Selecione a forma de pagamento.",
 });
+
+const installmentCount = z.coerce
+  .number({ error: "Informe o número de parcelas." })
+  .int({ error: "O número de parcelas deve ser inteiro." })
+  .min(1, { error: "Informe pelo menos 1 parcela." })
+  .max(24, { error: "Use no máximo 24 parcelas." });
 
 export const entryFormSchema = z.object({
   type: z.enum(["income", "cost"], { error: "Selecione o tipo." }),
@@ -189,15 +196,88 @@ export const saleFormSchema = z.object({
     .int({ error: "A quantidade deve ser um número inteiro." })
     .positive({ error: "A quantidade deve ser maior que zero." }),
   unitPrice: money,
-  installmentCount: z.coerce
-    .number({ error: "Informe o número de parcelas." })
-    .int({ error: "O número de parcelas deve ser inteiro." })
-    .min(1, { error: "Informe pelo menos 1 parcela." })
-    .max(24, { error: "Use no máximo 24 parcelas." }),
+  installmentCount,
   saleDate: requiredDate,
   firstDueDate: requiredDate,
   note: optionalText,
 });
+
+export const eventFormSchema = z
+  .object({
+    name: z.string().trim().min(1, { error: "Informe o nome do evento." }),
+    startDate: requiredDate,
+    // Empty for a one-day event
+    endDate: z.preprocess(
+      (value) => (value === "" || value === null ? undefined : value),
+      z.string().optional()
+    ),
+    price: money,
+    note: optionalText,
+  })
+  .refine((value) => !value.endDate || value.endDate >= value.startDate, {
+    error: "A data de término não pode ser antes do início.",
+  });
+
+// Value of the participant select that signs up a guest by name
+export const GUEST = "guest";
+
+export const participantSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("kid"), kidId: id("Selecione o bandeirante.") }),
+  z.object({
+    kind: z.literal("guest"),
+    guestName: z.string().trim().min(1, { error: "Informe o nome do convidado." }),
+  }),
+]);
+
+// Fundo Lisah: not asked for (undefined), asked for, granted with an amount, or denied
+const fundFields = {
+  fundStatus: z.preprocess(
+    (value) => (value === NO_FUND_REQUEST || value === "" || value === null ? undefined : value),
+    z.enum(FUND_STATUSES, { error: "Selecione a situação do Fundo Lisah." }).optional()
+  ),
+  fundAmount: optionalMoney,
+};
+
+const fundAmountWhenGranted = {
+  check: (value: { fundStatus?: string; fundAmount?: number }) =>
+    value.fundStatus !== "granted" || value.fundAmount !== undefined,
+  message: { error: "Informe quanto o Fundo Lisah concedeu." },
+};
+
+export const participantFormSchema = z
+  .object({
+    total: money,
+    installmentCount,
+    firstDueDate: requiredDate,
+    note: optionalText,
+    ...fundFields,
+  })
+  .refine(fundAmountWhenGranted.check, fundAmountWhenGranted.message);
+
+export const participantFundFormSchema = z
+  .object(fundFields)
+  .refine(fundAmountWhenGranted.check, fundAmountWhenGranted.message);
+
+export const EXPENSE_STATUSES = ["paid", "pending"] as const;
+
+export const eventExpenseFormSchema = z
+  .object({
+    description: z.string().trim().min(1, { error: "Informe a despesa." }),
+    kind: optionalText,
+    amount: money,
+    expenseDate: requiredDate,
+    supplier: optionalText,
+    note: optionalText,
+    status: z.enum(EXPENSE_STATUSES, { error: "Informe se a despesa já foi paga." }),
+    // The select's empty option means "not informed"
+    paymentMethod: z.preprocess(
+      (value) => (value === "" || value === null ? undefined : value),
+      paymentMethod.optional()
+    ),
+  })
+  .refine((value) => value.status !== "paid" || value.paymentMethod !== undefined, {
+    error: "Selecione a forma de pagamento.",
+  });
 
 export const paymentFormSchema = z.object({
   paidDate: requiredDate,

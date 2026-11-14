@@ -15,6 +15,7 @@ import {
 import { sql } from "drizzle-orm";
 import { AGE_GROUPS } from "../lib/age-groups";
 import { PAYMENT_METHODS } from "../lib/payment-methods";
+import { FUND_STATUSES } from "../lib/fund";
 
 export const entryTypeEnum = pgEnum("entry_type", ["income", "cost"]);
 
@@ -27,6 +28,8 @@ export const stockMovementReasonEnum = pgEnum("stock_movement_reason", [
 export const ageGroupEnum = pgEnum("age_group", AGE_GROUPS);
 
 export const paymentMethodEnum = pgEnum("payment_method", PAYMENT_METHODS);
+
+export const fundStatusEnum = pgEnum("fund_status", FUND_STATUSES);
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -228,6 +231,97 @@ export const contributions = pgTable(
     check("contributions_paid_month_is_due", sql`${table.entryId} is null or ${table.due}`),
   ]
 );
+
+// A camp, outing or any activity people sign up and pay for. price is what a
+// participant pays unless their sign-up says otherwise.
+export const events = pgTable("events", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  startDate: date("start_date").notNull(),
+  // Empty for a one-day event
+  endDate: date("end_date"),
+  price: numeric("price", { precision: 12, scale: 2 }).notNull(),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Someone signed up for an event: a registered kid, or a guest known only by
+// name inside this event. total is the fee; what they pay is the total less what
+// Fundo Lisah granted (fundAmount), split in event_installments.
+export const eventParticipants = pgTable(
+  "event_participants",
+  {
+    id: serial("id").primaryKey(),
+    eventId: integer("event_id")
+      .references(() => events.id, { onDelete: "cascade" })
+      .notNull(),
+    kidId: integer("kid_id").references(() => kids.id),
+    guestName: text("guest_name"),
+    total: numeric("total", { precision: 12, scale: 2 }).notNull(),
+    // Empty when Fundo Lisah wasn't asked for; fundAmount is set only when granted
+    fundStatus: fundStatusEnum("fund_status"),
+    fundAmount: numeric("fund_amount", { precision: 12, scale: 2 }),
+    note: text("note"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    unique().on(table.eventId, table.kidId),
+    check(
+      "event_participants_kid_or_guest",
+      sql`(${table.kidId} is null) <> (${table.guestName} is null)`
+    ),
+    check(
+      "event_participants_fund_amount_when_granted",
+      sql`(${table.fundStatus} is not distinct from 'granted') = (${table.fundAmount} is not null)`
+    ),
+    check(
+      "event_participants_fund_within_total",
+      sql`${table.fundAmount} is null or (${table.fundAmount} > 0 and ${table.fundAmount} <= ${table.total})`
+    ),
+  ]
+);
+
+// Like a sale's installments: paid when it points to the income entry that
+// recorded the payment
+export const eventInstallments = pgTable(
+  "event_installments",
+  {
+    id: serial("id").primaryKey(),
+    participantId: integer("participant_id")
+      .references(() => eventParticipants.id, { onDelete: "cascade" })
+      .notNull(),
+    number: integer("number").notNull(),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+    dueDate: date("due_date").notNull(),
+    entryId: integer("entry_id")
+      .references(() => entries.id, { onDelete: "set null" })
+      .unique(),
+  },
+  (table) => [unique().on(table.participantId, table.number)]
+);
+
+// Something bought for an event. Paid when it points to the cost entry that
+// recorded the payment; until then it is still to be paid.
+export const eventExpenses = pgTable("event_expenses", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id")
+    .references(() => events.id, { onDelete: "cascade" })
+    .notNull(),
+  description: text("description").notNull(),
+  // What kind of expense, such as food or transport, typed freely
+  kind: text("kind"),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  expenseDate: date("expense_date").notNull(),
+  supplier: text("supplier"),
+  note: text("note"),
+  entryId: integer("entry_id")
+    .references(() => entries.id, { onDelete: "set null" })
+    .unique(),
+  createdById: integer("created_by_id")
+    .references(() => users.id)
+    .notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 export type Category = typeof categories.$inferSelect;
 export type Entry = typeof entries.$inferSelect;

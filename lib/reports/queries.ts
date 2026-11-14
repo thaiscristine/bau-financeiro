@@ -5,6 +5,9 @@ import { db } from "@/db";
 import {
   categories,
   entries,
+  eventInstallments,
+  eventParticipants,
+  events,
   installments,
   items,
   kids,
@@ -18,6 +21,7 @@ import { periodRange, type ReportFilters } from "./filters";
 import { statusLabel, type FilterNames, type ReportRow } from "./build";
 
 const saleKids = alias(kids, "sale_kids");
+const eventKids = alias(kids, "event_kids");
 
 function dateBetween(column: AnyPgColumn, filters: ReportFilters, today: string) {
   const { from, to } = periodRange(filters, today);
@@ -30,7 +34,8 @@ function containsPattern(text: string) {
 }
 
 async function entryRows(filters: ReportFilters, today: string): Promise<ReportRow[]> {
-  const kidName = sql<string | null>`coalesce(${saleKids.name}, ${kids.name})`;
+  // An event guest has no kid, so their typed name stands in
+  const kidName = sql<string | null>`coalesce(${saleKids.name}, ${kids.name}, ${eventKids.name}, ${eventParticipants.guestName})`;
   const rows = await db
     .select({
       date: entries.entryDate,
@@ -46,18 +51,27 @@ async function entryRows(filters: ReportFilters, today: string): Promise<ReportR
     .from(entries)
     .innerJoin(categories, eq(categories.id, entries.categoryId))
     .innerJoin(users, eq(users.id, entries.createdById))
-    // An installment payment names its kid through the sale
+    // An installment payment names its kid through the sale or the event
     .leftJoin(installments, eq(installments.entryId, entries.id))
     .leftJoin(sales, eq(sales.id, installments.saleId))
     .leftJoin(saleKids, eq(saleKids.id, sales.kidId))
     .leftJoin(kids, eq(kids.id, entries.kidId))
+    .leftJoin(eventInstallments, eq(eventInstallments.entryId, entries.id))
+    .leftJoin(eventParticipants, eq(eventParticipants.id, eventInstallments.participantId))
+    .leftJoin(eventKids, eq(eventKids.id, eventParticipants.kidId))
     .where(
       and(
         ...dateBetween(entries.entryDate, filters, today),
         filters.entryType !== "all" ? eq(entries.type, filters.entryType) : undefined,
         filters.categoryIds.length > 0 ? inArray(entries.categoryId, filters.categoryIds) : undefined,
         filters.paymentMethods.length > 0 ? inArray(entries.paymentMethod, filters.paymentMethods) : undefined,
-        filters.kidId ? or(eq(entries.kidId, filters.kidId), eq(sales.kidId, filters.kidId)) : undefined,
+        filters.kidId
+          ? or(
+              eq(entries.kidId, filters.kidId),
+              eq(sales.kidId, filters.kidId),
+              eq(eventParticipants.kidId, filters.kidId)
+            )
+          : undefined,
         filters.createdById ? eq(entries.createdById, filters.createdById) : undefined,
         filters.search
           ? ilike(
@@ -78,13 +92,44 @@ async function entryRows(filters: ReportFilters, today: string): Promise<ReportR
   }));
 }
 
+// Lojinha sales and event sign-ups alike; an event's name fills the item column
 async function installmentRows(filters: ReportFilters, today: string): Promise<ReportRow[]> {
-  const statusCondition = {
-    paid: isNotNull(installments.entryId),
-    open: and(isNull(installments.entryId), gte(installments.dueDate, today)),
-    overdue: and(isNull(installments.entryId), lt(installments.dueDate, today)),
+  const [saleRows, eventRows] = await Promise.all([
+    saleInstallmentRows(filters, today),
+    // Picking an item leaves only sales
+    filters.itemId ? [] : eventInstallmentRows(filters, today),
+  ]);
+
+  // The sort is stable, so rows with the same due date and kid keep the order
+  // they were created in, sales first
+  return [...saleRows, ...eventRows]
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.kid.localeCompare(b.kid, "pt-BR"))
+    .map(({ number, count, entryId, ...row }) => ({
+      ...row,
+      installment: `${number}/${count}`,
+      amount: Number(row.amount),
+      status: statusLabel(entryId ? "paid" : row.dueDate < today ? "overdue" : "open"),
+      paymentMethod: row.paymentMethod ? PAYMENT_METHOD_LABELS[row.paymentMethod] : null,
+    }));
+}
+
+function installmentStatus(
+  column: { entryId: AnyPgColumn; dueDate: AnyPgColumn },
+  filters: ReportFilters,
+  today: string
+) {
+  const condition = {
+    paid: isNotNull(column.entryId),
+    open: and(isNull(column.entryId), gte(column.dueDate, today)),
+    overdue: and(isNull(column.entryId), lt(column.dueDate, today)),
   };
-  const rows = await db
+  return filters.statuses.length > 0
+    ? or(...filters.statuses.map((status) => condition[status]))
+    : undefined;
+}
+
+async function saleInstallmentRows(filters: ReportFilters, today: string) {
+  return db
     .select({
       kid: kids.name,
       guardian: kids.guardianName,
@@ -109,22 +154,45 @@ async function installmentRows(filters: ReportFilters, today: string): Promise<R
     .where(
       and(
         ...dateBetween(installments.dueDate, filters, today),
-        filters.statuses.length > 0
-          ? or(...filters.statuses.map((status) => statusCondition[status]))
-          : undefined,
+        installmentStatus(installments, filters, today),
         filters.kidId ? eq(sales.kidId, filters.kidId) : undefined,
         filters.itemId ? eq(sales.itemId, filters.itemId) : undefined
       )
     )
-    .orderBy(asc(installments.dueDate), asc(kids.name), asc(installments.id));
+    .orderBy(asc(installments.id));
+}
 
-  return rows.map(({ number, count, entryId, ...row }) => ({
-    ...row,
-    installment: `${number}/${count}`,
-    amount: Number(row.amount),
-    status: statusLabel(entryId ? "paid" : row.dueDate < today ? "overdue" : "open"),
-    paymentMethod: row.paymentMethod ? PAYMENT_METHOD_LABELS[row.paymentMethod] : null,
-  }));
+async function eventInstallmentRows(filters: ReportFilters, today: string) {
+  return db
+    .select({
+      kid: sql<string>`coalesce(${kids.name}, ${eventParticipants.guestName})`,
+      guardian: kids.guardianName,
+      phone: sql<string | null>`coalesce(${kids.guardianPhone}, ${kids.contact})`,
+      item: events.name,
+      number: eventInstallments.number,
+      count: sql<number>`(
+        select count(*)::int from event_installments other
+        where other.participant_id = "event_installments"."participant_id"
+      )`,
+      dueDate: eventInstallments.dueDate,
+      amount: eventInstallments.amount,
+      entryId: eventInstallments.entryId,
+      paidDate: entries.entryDate,
+      paymentMethod: entries.paymentMethod,
+    })
+    .from(eventInstallments)
+    .innerJoin(eventParticipants, eq(eventParticipants.id, eventInstallments.participantId))
+    .innerJoin(events, eq(events.id, eventParticipants.eventId))
+    .leftJoin(kids, eq(kids.id, eventParticipants.kidId))
+    .leftJoin(entries, eq(entries.id, eventInstallments.entryId))
+    .where(
+      and(
+        ...dateBetween(eventInstallments.dueDate, filters, today),
+        installmentStatus(eventInstallments, filters, today),
+        filters.kidId ? eq(eventParticipants.kidId, filters.kidId) : undefined
+      )
+    )
+    .orderBy(asc(eventInstallments.id));
 }
 
 async function saleRows(filters: ReportFilters, today: string): Promise<ReportRow[]> {

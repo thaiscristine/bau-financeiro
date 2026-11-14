@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { entries, kids, sales } from "@/db/schema";
+import { entries, eventParticipants, kids, sales } from "@/db/schema";
 import { kidFormSchema, parseForm } from "@/lib/validation";
 import { requireSession } from "@/lib/dal";
 import { paysMonthlyFee } from "@/lib/age-groups";
@@ -98,13 +98,18 @@ export async function updateKid(
 export async function deleteKid(id: number) {
   await requireSession();
 
-  const [[sale], [entry]] = await Promise.all([
+  const [[sale], [entry], [participant]] = await Promise.all([
     db.select({ id: sales.id }).from(sales).where(eq(sales.kidId, id)).limit(1),
     db.select({ id: entries.id }).from(entries).where(eq(entries.kidId, id)).limit(1),
+    db
+      .select({ id: eventParticipants.id })
+      .from(eventParticipants)
+      .where(eq(eventParticipants.kidId, id))
+      .limit(1),
   ]);
-  if (sale || entry) {
+  if (sale || entry || participant) {
     throw new Error(
-      "Este bandeirante tem vendas ou contribuições registradas e não pode ser excluído."
+      "Este bandeirante tem vendas, contribuições ou eventos registrados e não pode ser excluído."
     );
   }
 

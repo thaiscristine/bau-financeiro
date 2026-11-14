@@ -1,5 +1,10 @@
 import { requireSession } from "@/lib/dal";
-import { listCategoriesWithUsage, SHOP_CATEGORY_NAME } from "@/lib/categories";
+import { listCategoriesWithUsage } from "@/lib/categories";
+import {
+  EVENTS_CATEGORY_NAME,
+  LOCKED_CATEGORY_NAMES,
+  SHOP_CATEGORY_NAME,
+} from "@/lib/category-names";
 import { Page } from "@/components/page";
 import { DeleteButton } from "@/components/delete-button";
 import {
@@ -27,8 +32,9 @@ export default async function CategoriesPage() {
       <div className="flex max-w-2xl flex-col gap-4 font-serif text-[17px] leading-relaxed text-muted">
         <p>
           De onde vem ou para onde vai o dinheiro. Os itens do estoque são todos
-          da categoria {SHOP_CATEGORY_NAME}, que por isso não pode ser renomeada
-          nem excluída.
+          da categoria {SHOP_CATEGORY_NAME}, e o que entra e sai dos eventos
+          fica em {EVENTS_CATEGORY_NAME}. Por isso essas duas não podem ser
+          renomeadas nem excluídas.
         </p>
         <ul className="flex flex-col gap-2">
           <li>
@@ -60,12 +66,14 @@ export default async function CategoriesPage() {
           </thead>
           <tbody>
             {rows.map((category) => {
-              const isShop = category.name === SHOP_CATEGORY_NAME;
+              const isLocked = LOCKED_CATEGORY_NAMES.includes(category.name);
+              // Recorded only from the Eventos screen, so its rules don't change
+              const isEvents = category.name === EVENTS_CATEGORY_NAME;
               const inUse = category.entryCount + category.itemCount > 0;
               return (
                 <tr key={category.id} className={tableRow}>
                   <td className={tableCell}>
-                    {isShop ? (
+                    {isLocked ? (
                       category.name
                     ) : (
                       <RenameCategoryForm
@@ -74,43 +82,51 @@ export default async function CategoriesPage() {
                       />
                     )}
                   </td>
-                  <td className={tableCell}>
-                    <div className="flex justify-center">
-                      <RuleToggle
-                        action={setCategoryRule.bind(
-                          null,
-                          category.id,
-                          "requiresKid",
-                          !category.requiresKid
-                        )}
-                        checked={category.requiresKid}
-                        label={`${category.name}: exige bandeirante`}
-                        disabled={
-                          !category.requiresKid &&
-                          rows.some((other) => other.requiresKid)
-                        }
-                      />
-                    </div>
-                  </td>
-                  <td className={tableCell}>
-                    <div className="flex justify-center">
-                      <RuleToggle
-                        action={setCategoryRule.bind(
-                          null,
-                          category.id,
-                          "allowsManualEntry",
-                          !category.allowsManualEntry
-                        )}
-                        checked={!category.allowsManualEntry}
-                        label={`${category.name}: só pela tela Lojinha`}
-                      />
-                    </div>
-                  </td>
+                  {isEvents ? (
+                    <td colSpan={2} className={`${tableCell} text-center text-muted`}>
+                      Só pela tela Eventos
+                    </td>
+                  ) : (
+                    <>
+                      <td className={tableCell}>
+                        <div className="flex justify-center">
+                          <RuleToggle
+                            action={setCategoryRule.bind(
+                              null,
+                              category.id,
+                              "requiresKid",
+                              !category.requiresKid
+                            )}
+                            checked={category.requiresKid}
+                            label={`${category.name}: exige bandeirante`}
+                            disabled={
+                              !category.requiresKid &&
+                              rows.some((other) => other.requiresKid)
+                            }
+                          />
+                        </div>
+                      </td>
+                      <td className={tableCell}>
+                        <div className="flex justify-center">
+                          <RuleToggle
+                            action={setCategoryRule.bind(
+                              null,
+                              category.id,
+                              "allowsManualEntry",
+                              !category.allowsManualEntry
+                            )}
+                            checked={!category.allowsManualEntry}
+                            label={`${category.name}: só pela tela Lojinha`}
+                          />
+                        </div>
+                      </td>
+                    </>
+                  )}
                   <td className={`${tableCell} whitespace-nowrap text-muted`}>
                     {usageLabel(category.entryCount, category.itemCount)}
                   </td>
                   <td className={`${tableCell} text-right whitespace-nowrap`}>
-                    {!inUse && !isShop && (
+                    {!inUse && !isLocked && (
                       <DeleteButton
                         action={deleteCategory.bind(null, category.id)}
                         label="Excluir"

@@ -29,6 +29,7 @@ const LINKS: NavSection[] = [
       { href: "/sales/report", label: "Relatório" },
     ],
   },
+  { href: "/events", label: "Eventos" },
   { href: "/kids", label: "Bandeirantes" },
   { href: "/reports", label: "Relatórios" },
   {

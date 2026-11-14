@@ -2,10 +2,9 @@ import "server-only";
 import { asc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { categories, entries, items } from "@/db/schema";
+import { EVENTS_CATEGORY_NAME, SHOP_CATEGORY_NAME } from "@/lib/category-names";
 
-// Every inventory item belongs to this category, so installment payments land
-// in it. It can't be renamed or deleted.
-export const SHOP_CATEGORY_NAME = "Lojinha";
+type Executor = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export async function getShopCategoryId() {
   const [category] = await db
@@ -14,6 +13,20 @@ export async function getShopCategoryId() {
     .where(eq(categories.name, SHOP_CATEGORY_NAME))
     .limit(1);
   return category?.id;
+}
+
+// A migration creates the category; inserting it when missing keeps event
+// payments working on a database that lost it, such as a wiped test database
+export async function eventsCategoryId(tx: Executor) {
+  await tx
+    .insert(categories)
+    .values({ name: EVENTS_CATEGORY_NAME, allowsManualEntry: false })
+    .onConflictDoNothing();
+  const [category] = await tx
+    .select({ id: categories.id })
+    .from(categories)
+    .where(eq(categories.name, EVENTS_CATEGORY_NAME));
+  return category.id;
 }
 
 export async function listCategories() {

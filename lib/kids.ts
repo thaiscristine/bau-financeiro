@@ -1,19 +1,33 @@
 import "server-only";
-import { asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { installments, kids, sales } from "@/db/schema";
+import { eventInstallments, eventParticipants, installments, kids, sales } from "@/db/schema";
 
-// Kids with the amount they still owe in unpaid installments
+// Kids with the amount they still owe in unpaid installments, of Lojinha
+// sales and of events
 export async function listKids() {
-  const owed = db
-    .select({
-      kidId: sales.kidId,
-      amount: sql<string>`sum(${installments.amount})`.as("owed_amount"),
-    })
+  const saleDebts = db
+    .select({ kidId: sales.kidId, amount: installments.amount })
     .from(installments)
     .innerJoin(sales, eq(sales.id, installments.saleId))
-    .where(isNull(installments.entryId))
-    .groupBy(sales.kidId)
+    .where(isNull(installments.entryId));
+  // Guests have no kid, so they are left out
+  const eventDebts = db
+    .select({
+      kidId: sql<number>`${eventParticipants.kidId}`.as("kid_id"),
+      amount: eventInstallments.amount,
+    })
+    .from(eventInstallments)
+    .innerJoin(eventParticipants, eq(eventParticipants.id, eventInstallments.participantId))
+    .where(and(isNull(eventInstallments.entryId), isNotNull(eventParticipants.kidId)));
+  const debts = saleDebts.unionAll(eventDebts).as("debts");
+  const owed = db
+    .select({
+      kidId: debts.kidId,
+      amount: sql<string>`sum(${debts.amount})`.as("owed_amount"),
+    })
+    .from(debts)
+    .groupBy(debts.kidId)
     .as("owed");
 
   return db

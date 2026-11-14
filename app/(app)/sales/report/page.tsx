@@ -7,7 +7,7 @@ import { periodRange } from "@/lib/reports/filters";
 import { parseSalesReportPeriod, periodQuery, type SalesReportPeriod } from "@/lib/sales-report/period";
 import { getSalesByMonth, getSalesTotals, listDebtors, listTopItems } from "@/lib/sales-report/queries";
 import { EmptyState, Page, Section } from "@/components/page";
-import { Eyebrow } from "@/components/eyebrow";
+import { Stat, statGridClass } from "@/components/stat";
 import {
   cardClass,
   chipClass,
@@ -22,10 +22,6 @@ import {
   tableRow,
   tableWrapClass,
 } from "@/components/styles";
-
-// The gaps show the line color behind, drawing the dividers for any column count
-const statGridClass = "grid gap-px border border-line bg-line";
-
 
 export default async function SalesReportPage({ searchParams }: PageProps<"/sales/report">) {
   await requireSession();
@@ -362,32 +358,6 @@ function MonthValue({ label, value, tone }: { label: string; value: number; tone
     <div className="flex flex-col gap-1">
       <dt className="font-mono text-[11px] tracking-[0.05em] text-muted uppercase">{label}</dt>
       <dd className={`text-sm ${value > 0 ? tone : "text-muted/60"}`}>{formatBRL(value)}</dd>
-    </div>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  hint,
-  tone = "",
-  square,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  tone?: string;
-  square: "blue" | "orange" | "ink";
-}) {
-  return (
-    <div role="group" aria-label={label} className="flex flex-col gap-6 bg-surface p-5 sm:p-6">
-      <Eyebrow as="span" tone={square}>
-        {label}
-      </Eyebrow>
-      <p className={`text-[28px] leading-none tracking-[-0.02em] tabular-nums sm:text-[32px] ${tone}`}>
-        {value}
-        {hint && <span className="mt-2 block text-[13px] tracking-normal text-muted">{hint}</span>}
-      </p>
     </div>
   );
 }
