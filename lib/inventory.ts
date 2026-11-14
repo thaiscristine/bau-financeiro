@@ -1,7 +1,7 @@
 import "server-only";
 import { asc, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { categories, entries, items, stockMovements } from "@/db/schema";
+import { entries, items, stockMovements } from "@/db/schema";
 
 // Drizzle leaves columns unqualified in single-table selects, where "id" inside a
 // subquery would mean the subquery's own table. Correlated subqueries therefore
@@ -18,12 +18,9 @@ export async function listItems() {
       name: items.name,
       price: items.price,
       tracksStock: items.tracksStock,
-      categoryId: items.categoryId,
-      categoryName: categories.name,
       stock: stockExpr,
     })
     .from(items)
-    .innerJoin(categories, eq(categories.id, items.categoryId))
     .orderBy(asc(items.name));
 }
 
@@ -34,7 +31,6 @@ export async function getItem(id: number) {
       name: items.name,
       price: items.price,
       tracksStock: items.tracksStock,
-      categoryId: items.categoryId,
       stock: stockExpr,
       hasSales: sql<boolean>`exists(
         select 1 from sales sale where sale.item_id = "items"."id"

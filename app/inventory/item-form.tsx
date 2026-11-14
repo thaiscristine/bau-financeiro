@@ -14,19 +14,16 @@ import { RestockCostFields } from "./restock-cost-fields";
 
 type ItemValues = {
   name: string;
-  categoryId: number;
   price: string;
   tracksStock: boolean;
 };
 
 export function ItemForm({
   action,
-  categories,
   costCategories = [],
   item,
 }: {
   action: (state: ItemFormState, formData: FormData) => Promise<ItemFormState>;
-  categories: Category[];
   // Only needed when creating, for what was paid for the initial stock
   costCategories?: Category[];
   item?: ItemValues;
@@ -47,21 +44,6 @@ export function ItemForm({
         />
       </Field>
 
-      <Field id="categoryId" label="Categoria" hint="De onde vem o valor deste item.">
-        <select
-          id="categoryId"
-          name="categoryId"
-          required
-          defaultValue={item?.categoryId}
-          className={inputClass}
-        >
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-      </Field>
 
       <Field id="price" label="Preço de venda (R$)">
         <input

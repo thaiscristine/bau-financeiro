@@ -28,7 +28,6 @@ export default async function InventoryPage() {
             <thead>
               <tr className={tableHeadRow}>
                 <th className={tableHeadCell}>Item</th>
-                <th className={tableHeadCell}>Categoria</th>
                 <th className={tableHeadCell}>Preço</th>
                 <th className={tableHeadCell}>Disponível</th>
                 <th className={tableHeadCell}>
@@ -40,7 +39,6 @@ export default async function InventoryPage() {
               {rows.map((item) => (
                 <tr key={item.id} className={tableRow}>
                   <td className={tableCell}>{item.name}</td>
-                  <td className={tableCell}>{item.categoryName}</td>
                   <td className={`${tableCell} whitespace-nowrap`}>
                     {formatBRL(Number(item.price))}
                   </td>

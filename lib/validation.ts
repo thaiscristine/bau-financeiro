@@ -60,7 +60,6 @@ export const kidFormSchema = z
 
 export const itemFormSchema = z.object({
   name: z.string().trim().min(1, { error: "Informe o nome do item." }),
-  categoryId: id("Selecione a categoria."),
   price: money,
   tracksStock: z.boolean(),
 });

@@ -1,5 +1,5 @@
 import { requireSession } from "@/lib/dal";
-import { listCategoriesWithUsage } from "@/lib/categories";
+import { listCategoriesWithUsage, SHOP_CATEGORY_NAME } from "@/lib/categories";
 import { Page } from "@/components/page";
 import { DeleteButton } from "@/components/delete-button";
 import {
@@ -26,8 +26,9 @@ export default async function CategoriesPage() {
     <Page title="Categorias">
       <div className="flex max-w-2xl flex-col gap-4 font-serif text-[17px] leading-relaxed text-muted">
         <p>
-          De onde vem ou para onde vai o dinheiro. As categorias são usadas nas
-          transações e nos itens do estoque.
+          De onde vem ou para onde vai o dinheiro. Os itens do estoque são todos
+          da categoria {SHOP_CATEGORY_NAME}, que por isso não pode ser renomeada
+          nem excluída.
         </p>
         <ul className="flex flex-col gap-2">
           <li>
@@ -59,14 +60,19 @@ export default async function CategoriesPage() {
           </thead>
           <tbody>
             {rows.map((category) => {
+              const isShop = category.name === SHOP_CATEGORY_NAME;
               const inUse = category.entryCount + category.itemCount > 0;
               return (
                 <tr key={category.id} className={tableRow}>
                   <td className={tableCell}>
-                    <RenameCategoryForm
-                      action={renameCategory.bind(null, category.id)}
-                      name={category.name}
-                    />
+                    {isShop ? (
+                      category.name
+                    ) : (
+                      <RenameCategoryForm
+                        action={renameCategory.bind(null, category.id)}
+                        name={category.name}
+                      />
+                    )}
                   </td>
                   <td className={tableCell}>
                     <div className="flex justify-center">
@@ -100,7 +106,7 @@ export default async function CategoriesPage() {
                     {usageLabel(category.entryCount, category.itemCount)}
                   </td>
                   <td className={`${tableCell} text-right whitespace-nowrap`}>
-                    {!inUse && (
+                    {!inUse && !isShop && (
                       <DeleteButton
                         action={deleteCategory.bind(null, category.id)}
                         label="Excluir"

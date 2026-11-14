@@ -3,6 +3,19 @@ import { asc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { categories, entries, items } from "@/db/schema";
 
+// Every inventory item belongs to this category, so installment payments land
+// in it. It can't be renamed or deleted.
+export const SHOP_CATEGORY_NAME = "Lojinha";
+
+export async function getShopCategoryId() {
+  const [category] = await db
+    .select({ id: categories.id })
+    .from(categories)
+    .where(eq(categories.name, SHOP_CATEGORY_NAME))
+    .limit(1);
+  return category?.id;
+}
+
 export async function listCategories() {
   return db.select().from(categories).orderBy(asc(categories.name));
 }
