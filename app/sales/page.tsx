@@ -9,7 +9,7 @@ export default async function SalesPage() {
   const rows = await listSales();
 
   return (
-    <Page title="Lojinha" aside={<NewSaleDialog />}>
+    <Page title="Vendas" aside={<NewSaleDialog />}>
       {rows.length === 0 ? (
         <EmptyState>Nenhuma venda ainda.</EmptyState>
       ) : (
