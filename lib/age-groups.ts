@@ -28,3 +28,19 @@ export const PAYING_AGE_GROUPS: readonly AgeGroup[] = AGE_GROUPS.filter(
 export function paysMonthlyFee(ageGroup: AgeGroup | null | undefined) {
   return ageGroup != null && PAYING_AGE_GROUPS.includes(ageGroup);
 }
+
+// The ?ramo= filter on the bandeirantes list: an age group, or "sem" for the
+// ones without a group
+export const NO_AGE_GROUP = "sem";
+
+export type AgeGroupFilter = AgeGroup | typeof NO_AGE_GROUP;
+
+// Anything that is not a known filter means "everyone"
+export function parseAgeGroupFilter(
+  value: string | string[] | undefined
+): AgeGroupFilter | null {
+  const filter = Array.isArray(value) ? value[0] : value;
+  return filter === NO_AGE_GROUP || AGE_GROUPS.includes(filter as AgeGroup)
+    ? (filter as AgeGroupFilter)
+    : null;
+}
