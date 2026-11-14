@@ -96,3 +96,9 @@ test("periodRange crosses year boundaries and leap years", () => {
   assert.deepEqual(range("quarter", "2026-02-15"), { from: "2026-01-01", to: "2026-03-31" });
   assert.deepEqual(range("quarter", "2026-06-30"), { from: "2026-04-01", to: "2026-06-30" });
 });
+
+test("an impossible custom date is dropped instead of reaching the database", () => {
+  const filters = parseReportFilters(new URLSearchParams("type=sales&period=custom&from=2026-02-31&to=2026-03-10"));
+  assert.equal(filters.from, null);
+  assert.equal(filters.to, "2026-03-10");
+});
