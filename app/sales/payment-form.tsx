@@ -3,6 +3,7 @@
 import type { PaymentFormState } from "./actions";
 import { todayISO } from "@/lib/format";
 import { FormError, SubmitButton, useFormAction } from "@/components/form";
+import { useCelebrate } from "@/components/confetti";
 import { inputClass, secondaryButtonClass } from "@/components/styles";
 
 export function PaymentForm({
@@ -10,7 +11,17 @@ export function PaymentForm({
 }: {
   action: (state: PaymentFormState, formData: FormData) => Promise<PaymentFormState>;
 }) {
-  const [state, formProps, pending] = useFormAction(action);
+  // A paid installment is money coming in, so it gets confetti. Fired here
+  // rather than in an effect: once paid, this form is swapped for the undo
+  // button in the same render.
+  const celebrate = useCelebrate();
+  const [state, formProps, pending] = useFormAction(
+    async (prevState: PaymentFormState, formData: FormData) => {
+      const next = await action(prevState, formData);
+      if (next?.paid) celebrate();
+      return next;
+    }
+  );
 
   return (
     <form {...formProps} className="flex flex-col gap-1">
