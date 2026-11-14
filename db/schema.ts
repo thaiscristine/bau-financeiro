@@ -10,6 +10,7 @@ import {
   boolean,
   unique,
   check,
+  index,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -31,6 +32,36 @@ export const users = pgTable("users", {
   // movements they recorded keep pointing to them.
   deletedAt: timestamp("deleted_at"),
 });
+
+// One row per logged-in browser. The session cookie only carries the id, so
+// deleting the row ends that session for good, even if the cookie was copied.
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: text("id").primaryKey(),
+    userId: integer("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("sessions_user_id_idx").on(table.userId)]
+);
+
+// Recent login attempts, used to slow down password guessing. A successful
+// login removes the rows for its e-mail, so what stays are the failures.
+export const loginAttempts = pgTable(
+  "login_attempts",
+  {
+    id: serial("id").primaryKey(),
+    email: text("email").notNull(),
+    ip: text("ip"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("login_attempts_email_idx").on(table.email, table.createdAt),
+    index("login_attempts_ip_idx").on(table.ip, table.createdAt),
+  ]
+);
 
 // Where the money comes from or goes to (donation, monthly contribution, ...).
 // Shared by entries and items so reports by origin cover everything.

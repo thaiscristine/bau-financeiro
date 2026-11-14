@@ -10,7 +10,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "seed": "tsx --env-file=.env.local scripts/seed-users.ts",
-    "test": "tsx --test 'lib/**/*.test.ts'"
+    "test": "tsx --test 'lib/**/*.test.ts'",
+    "test:db": "tsx tests/prepare-db.ts && tsx --import ./tests/db/env.ts --test --test-concurrency=1 'tests/db/**/*.test.ts'",
+    "test:e2e": "tsx tests/prepare-db.ts && playwright test"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -25,6 +27,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",

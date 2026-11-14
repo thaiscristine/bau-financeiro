@@ -8,6 +8,7 @@ import { users } from "@/db/schema";
 import { parseForm, userFormSchema } from "@/lib/validation";
 import { requireSession } from "@/lib/dal";
 import { pgErrorCode, PG_UNIQUE_VIOLATION } from "@/lib/db-errors";
+import { deleteUserSessions } from "@/lib/sessions";
 
 export type UserFormState = { error?: string; saved?: number } | undefined;
 
@@ -71,6 +72,7 @@ export async function deleteUser(id: number) {
     .update(users)
     .set({ deletedAt: new Date() })
     .where(and(eq(users.id, id), isNull(users.deletedAt)));
+  await deleteUserSessions(id);
 
   revalidatePath("/users");
 }
