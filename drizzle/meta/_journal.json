@@ -92,6 +92,13 @@
       "when": 1794667900335,
       "tag": "0012_report_templates_data",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794672946635,
+      "tag": "0013_auth_sessions_and_login_attempts",
+      "breakpoints": true
     }
   ]
 }

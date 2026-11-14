@@ -113,11 +113,13 @@ export function FormSuccess({ message }: { message?: string }) {
 
 export function SubmitButton({
   pending,
+  disabled = false,
   label = "Salvar",
   pendingLabel = "Salvando...",
   className = `${primaryButtonClass} h-11`,
 }: {
   pending?: boolean;
+  disabled?: boolean;
   label?: string;
   pendingLabel?: string;
   className?: string;
@@ -125,7 +127,7 @@ export function SubmitButton({
   const status = useFormStatus();
   const busy = pending ?? status.pending;
   return (
-    <button type="submit" disabled={busy} className={className}>
+    <button type="submit" disabled={busy || disabled} className={className}>
       {busy ? pendingLabel : label}
     </button>
   );
