@@ -45,6 +45,10 @@ export const tableHeadRow = "border-b border-line bg-sunken/60";
 export const tableRow =
   "border-b border-line-soft transition-colors last:border-b-0 hover:bg-canvas";
 export const tableCell = "px-5 py-3.5";
+// The heading row of a group of rows, such as the ones of an age group. Not
+// uppercase like the column headings: it would turn "GAs" into "GAS".
+export const tableGroupHeadRow = "border-b border-line-soft bg-canvas";
+export const tableGroupHeadCell = "px-5 py-2 text-left text-[13px] font-medium text-muted";
 
 export const linkClass =
   "text-muted underline-offset-4 transition-colors hover:text-ink hover:underline";

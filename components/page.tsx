@@ -2,19 +2,26 @@ import { Eyebrow } from "./eyebrow";
 
 export function Page({
   title,
+  subtitle,
   aside,
   children,
 }: {
   title: string;
+  // A line under the title, such as the bandeirante's age group
+  subtitle?: React.ReactNode;
   // The header's right side, such as a button opening a modal
   aside?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <main className={mainClass}>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className={titleClass}>{title}</h1>
-        {aside}
+      {/* The subtitle sits under the row so the aside lines up with the title */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <h1 className={titleClass}>{title}</h1>
+          {aside}
+        </div>
+        {subtitle && <div className="text-[15px] text-muted">{subtitle}</div>}
       </div>
       {children}
     </main>

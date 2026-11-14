@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { AGE_GROUP_LABELS, type AgeGroup } from "@/lib/age-groups";
 import { formatBRL } from "@/lib/format";
 import { Modal, openModal } from "@/components/modal";
+import { AgeGroupLabel } from "@/components/age-group";
 import {
   tableCell,
   tableClass,
@@ -70,7 +71,7 @@ export function OpenContributions({ groups }: { groups: Group[] }) {
                     aria-haspopup="dialog"
                     className={`underline-offset-4 hover:underline ${group.ageGroup ? "" : "text-muted"}`}
                   >
-                    {groupLabel(group.ageGroup)}
+                    {group.ageGroup ? <AgeGroupLabel ageGroup={group.ageGroup} /> : "Sem ramo"}
                   </button>
                 </td>
                 <td className={`${tableCell} text-right max-sm:hidden`}>

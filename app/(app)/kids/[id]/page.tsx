@@ -9,6 +9,7 @@ import { todayISO } from "@/lib/format";
 import { EmptyState, Page } from "@/components/page";
 import { Eyebrow } from "@/components/eyebrow";
 import { DeleteButton } from "@/components/delete-button";
+import { AgeGroupLabel } from "@/components/age-group";
 import { SalesTable } from "@/app/(app)/sales/sales-table";
 import { KidEventsTable } from "@/app/(app)/events/kid-events-table";
 import { NewSaleDialog } from "@/app/(app)/sales/new-sale-dialog";
@@ -38,7 +39,11 @@ export default async function KidPage({
   if (!kid) notFound();
 
   return (
-    <Page title={kid.name} aside={<NewSaleDialog defaultKidId={id} />}>
+    <Page
+      title={kid.name}
+      subtitle={kid.ageGroup && <AgeGroupLabel ageGroup={kid.ageGroup} />}
+      aside={<NewSaleDialog defaultKidId={id} />}
+    >
       {/* The kid's details first, with their sales and events beside them on wide screens */}
       <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-8">
         <section className="flex min-w-0 flex-col gap-3">

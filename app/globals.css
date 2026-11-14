@@ -19,6 +19,13 @@
   /* A profit, on its own tinted band so the good news stands out */
   --profit: light-dark(#15803d, #4ade80);
   --profit-soft: light-dark(#ecf8f0, #13261a);
+  /* Age group (ramo) colors; the dark values are lifted so they read on the dark canvas */
+  --ramo-ciranda: light-dark(#f5c400, #f7d038);
+  --ramo-b1: light-dark(#1d6fd8, #4b8ff0);
+  --ramo-b2: light-dark(#1f9a4b, #3dbb6a);
+  --ramo-guias: light-dark(#800020, #b23a52);
+  --ramo-white: light-dark(#ffffff, #f1eee9);
+  --ramo-coordenacao: light-dark(#1b2a52, #4a64a8);
   /* Dims the page behind a modal; the dark page needs more to set it apart */
   --backdrop: light-dark(rgb(17 17 17 / 0.6), rgb(0 0 0 / 0.85));
 }

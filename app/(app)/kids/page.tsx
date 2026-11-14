@@ -11,6 +11,7 @@ import {
 } from "@/lib/age-groups";
 import { EmptyState, Page } from "@/components/page";
 import { FormDialog } from "@/components/form-dialog";
+import { AgeGroupLabel } from "@/components/age-group";
 import {
   linkClass,
   tableCell,
@@ -93,7 +94,7 @@ export default async function KidsPage({ searchParams }: PageProps<"/kids">) {
                         {/* On phones the age group, contact and responsible person go under the name */}
                         {showAgeGroup && kid.ageGroup && (
                           <span className="block text-[13px] text-muted sm:hidden">
-                            {AGE_GROUP_LABELS[kid.ageGroup]}
+                            <AgeGroupLabel ageGroup={kid.ageGroup} />
                           </span>
                         )}
                         <span className="block text-[13px] text-muted sm:hidden">
@@ -112,7 +113,7 @@ export default async function KidsPage({ searchParams }: PageProps<"/kids">) {
                         <td
                           className={`${tableCell} whitespace-nowrap max-sm:hidden`}
                         >
-                          {kid.ageGroup ? AGE_GROUP_LABELS[kid.ageGroup] : ""}
+                          {kid.ageGroup && <AgeGroupLabel ageGroup={kid.ageGroup} />}
                         </td>
                       )}
                       <td className={`${tableCell} text-muted max-sm:hidden`}>
