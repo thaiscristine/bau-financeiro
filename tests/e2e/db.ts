@@ -13,12 +13,26 @@ export function reset() {
   return resetDatabase(pool);
 }
 
-export async function createUser(name: string, email: string, password: string) {
-  const passwordHash = await bcrypt.hash(password, 10);
+// Cost 12 is what the app uses; a lower one stands in for an older hash
+export async function createUser(
+  name: string,
+  email: string,
+  password: string,
+  cost = 12
+) {
+  const passwordHash = await bcrypt.hash(password, cost);
   await pool.query(
     "insert into users (name, email, password_hash) values ($1, $2, $3)",
     [name, email, passwordHash]
   );
+}
+
+export async function passwordHashOf(email: string) {
+  const { rows } = await pool.query<{ password_hash: string }>(
+    "select password_hash from users where email = $1",
+    [email]
+  );
+  return rows[0].password_hash;
 }
 
 // A service item, so a sale needs no stock

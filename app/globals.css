@@ -16,6 +16,8 @@
   --income: light-dark(#0007cb, #8c91ff);
   --cost: light-dark(#c2410c, #ff8a4c);
   --pending: light-dark(#a16207, #f2c14e);
+  /* Dims the page behind a modal; the dark page needs more to set it apart */
+  --backdrop: light-dark(rgb(17 17 17 / 0.6), rgb(0 0 0 / 0.85));
 }
 
 :root[data-theme="light"] {
@@ -38,6 +40,7 @@
   --color-income: var(--income);
   --color-cost: var(--cost);
   --color-pending: var(--pending);
+  --color-backdrop: var(--backdrop);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-serif: var(--font-source-serif);
@@ -49,6 +52,16 @@ body {
 }
 
 @layer base {
+  /* Scrolling over an open modal or its backdrop shouldn't move the page */
+  dialog:modal {
+    overscroll-behavior: contain;
+  }
+
+  dialog::backdrop {
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
+
   input[type="date"]::-webkit-calendar-picker-indicator {
     opacity: 0.5;
   }

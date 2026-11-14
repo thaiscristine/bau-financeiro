@@ -6,10 +6,13 @@ import { primaryButtonClass } from "./styles";
 export function Page({
   title,
   action,
+  aside,
   children,
 }: {
   title: string;
   action?: { href: string; label: string };
+  // Anything else for the header's right side, such as a button opening a modal
+  aside?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -25,6 +28,7 @@ export function Page({
               {action.label}
             </Link>
           )}
+          {aside}
         </div>
         {children}
       </main>

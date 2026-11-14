@@ -46,16 +46,50 @@ export const reportTemplateFormSchema = z.object({
     .max(80, { error: "Use no máximo 80 caracteres no nome." }),
 });
 
+// bcrypt ignores everything after the first 72 bytes, so longer passwords
+// would quietly match any other password that starts the same way. Accented
+// letters take two bytes, which the message mentions.
+export const PASSWORD_MIN_LENGTH = 8;
+export const PASSWORD_MAX_BYTES = 72;
+
+export const newPasswordSchema = z
+  .string()
+  .min(PASSWORD_MIN_LENGTH, {
+    error: `A senha precisa ter pelo menos ${PASSWORD_MIN_LENGTH} caracteres.`,
+  })
+  .refine((value) => new TextEncoder().encode(value).length <= PASSWORD_MAX_BYTES, {
+    error: `A senha pode ter no máximo ${PASSWORD_MAX_BYTES} caracteres (letras com acento contam como dois).`,
+  });
+
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email({ error: "Informe um e-mail válido." }));
+
 export const userFormSchema = z.object({
   name: z.string().trim().min(1, { error: "Informe o nome." }),
-  email: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .pipe(z.email({ error: "Informe um e-mail válido." })),
-  password: z
-    .string()
-    .min(8, { error: "A senha precisa ter pelo menos 8 caracteres." }),
+  email: emailSchema,
+  password: newPasswordSchema,
+});
+
+export const passwordChangeFormSchema = z
+  .object({
+    currentPassword: z.string().min(1, { error: "Informe a senha atual." }),
+    newPassword: newPasswordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((value) => value.newPassword === value.confirmPassword, {
+    error: "A confirmação não é igual à nova senha.",
+  })
+  .refine((value) => value.newPassword !== value.currentPassword, {
+    error: "A nova senha precisa ser diferente da atual.",
+  });
+
+export const passwordResetFormSchema = z.object({
+  userId: id("Selecione a pessoa."),
+  newPassword: newPasswordSchema,
+  ownPassword: z.string().min(1, { error: "Informe a sua senha." }),
 });
 
 export const kidFormSchema = z

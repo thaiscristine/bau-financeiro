@@ -104,7 +104,7 @@ export function FormError({ error }: { error?: string }) {
 export function FormSuccess({ message }: { message?: string }) {
   if (!message) return null;
   return (
-    <p role="status" className="flex items-center gap-2 font-serif text-[15px] text-income">
+    <p role="status" className="flex items-baseline gap-2 font-serif text-[15px] text-income">
       <span aria-hidden>✓</span>
       {message}
     </p>

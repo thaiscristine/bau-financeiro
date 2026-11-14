@@ -1,6 +1,7 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
+import { getToken } from "next-auth/jwt";
+import { cookies } from "next/headers";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
@@ -9,6 +10,7 @@ import {
   clientIp,
   registerLoginAttempt,
 } from "@/lib/login-throttle";
+import { hashPassword, verifyPassword } from "@/lib/passwords";
 import {
   createSession,
   deleteSession,
@@ -57,14 +59,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             )
           )
           .limit(1);
-        if (!user) return null;
-
-        const passwordMatches = await bcrypt.compare(
+        // Runs even without an account, so unknown e-mails take just as long
+        const { matches, needsRehash } = await verifyPassword(
           password,
-          user.passwordHash
+          user?.passwordHash ?? null
         );
-        if (!passwordMatches) return null;
+        if (!user || !matches) return null;
 
+        if (needsRehash) {
+          await db
+            .update(users)
+            .set({ passwordHash: await hashPassword(password) })
+            .where(eq(users.id, user.id));
+        }
         await clearLoginAttempts(normalizedEmail);
         return { id: String(user.id), name: user.name, email: user.email };
       },
@@ -118,3 +125,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+// The session row behind this request's cookie. Over HTTPS Auth.js names the
+// cookie with a __Secure- prefix, and the name is also the decryption salt.
+export async function currentSessionId() {
+  const cookieStore = await cookies();
+  const token = await getToken({
+    req: { headers: { cookie: cookieStore.toString() } },
+    secret: process.env.AUTH_SECRET,
+    secureCookie: cookieStore.has("__Secure-authjs.session-token"),
+  });
+  return typeof token?.sessionId === "string" ? token.sessionId : null;
+}

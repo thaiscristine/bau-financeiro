@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, eq, gt, isNull, lt, sql } from "drizzle-orm";
+import { and, eq, gt, isNull, lt, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { sessions, users } from "@/db/schema";
 
@@ -39,4 +39,11 @@ export async function deleteSession(id: string) {
 
 export async function deleteUserSessions(userId: number) {
   await db.delete(sessions).where(eq(sessions.userId, userId));
+}
+
+// Logs the user out on every browser except the one making the request
+export async function deleteOtherUserSessions(userId: number, keepId: string) {
+  await db
+    .delete(sessions)
+    .where(and(eq(sessions.userId, userId), ne(sessions.id, keepId)));
 }
