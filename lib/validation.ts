@@ -31,6 +31,18 @@ export const categoryFormSchema = z.object({
   name: z.string().trim().min(1, { error: "Informe o nome da categoria." }),
 });
 
+export const userFormSchema = z.object({
+  name: z.string().trim().min(1, { error: "Informe o nome." }),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(z.email({ error: "Informe um e-mail válido." })),
+  password: z
+    .string()
+    .min(8, { error: "A senha precisa ter pelo menos 8 caracteres." }),
+});
+
 export const kidFormSchema = z.object({
   name: z.string().trim().min(1, { error: "Informe o nome." }),
   contact: optionalText,

@@ -32,7 +32,8 @@ async function main() {
   if (existing) {
     await db
       .update(users)
-      .set({ name: person.name, passwordHash })
+      // Also restores a removed user, so the seed is a way back in
+      .set({ name: person.name, passwordHash, deletedAt: null })
       .where(eq(users.email, person.email));
     console.log(`Updated ${person.email}`);
   } else {

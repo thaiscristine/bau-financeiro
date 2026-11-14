@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/inventory", label: "Estoque" },
   { href: "/kids", label: "Bandeirantes" },
   { href: "/categories", label: "Categorias" },
+  { href: "/users", label: "Usuários" },
 ];
 
 // "Novo lançamento" has its own button in the header, so it does not

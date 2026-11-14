@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 
@@ -23,7 +23,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const [user] = await db
           .select()
           .from(users)
-          .where(eq(users.email, email))
+          .where(
+            and(
+              eq(sql`lower(${users.email})`, email.trim().toLowerCase()),
+              isNull(users.deletedAt)
+            )
+          )
           .limit(1);
         if (!user) return null;
 
@@ -40,11 +45,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.userId = user.id;
+        return token;
       }
-      return token;
+
+      // A removed user is logged out on their next request instead of keeping
+      // access until the session expires. Returning null clears the cookie.
+      const [active] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(
+          and(eq(users.id, Number(token.userId)), isNull(users.deletedAt))
+        )
+        .limit(1);
+      return active ? token : null;
     },
     session({ session, token }) {
       if (session.user) {
