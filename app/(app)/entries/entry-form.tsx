@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { EntryFormState } from "./actions";
 import { todayISO } from "@/lib/format";
+import { EVENTS_CATEGORY_NAME } from "@/lib/category-names";
 import type { Category, Entry } from "@/db/schema";
 import {
   ChoiceGroup,
@@ -40,9 +41,9 @@ export function EntryForm({
   const inDialog = useFormDialog(state?.saved);
   const [type, setType] = useState(entry?.type ?? "income");
 
-  // Categories closed to manual entries (product sales go through Lojinha) and
-  // the monthly contribution (paid month by month on the bandeirante page) are
-  // hidden, unless this entry already uses one
+  // Categories closed to manual entries (product sales go through Lojinha,
+  // event money through Eventos) and the monthly contribution (paid month by
+  // month on the bandeirante page) are hidden, unless this entry already uses one
   const options = categories.filter(
     (category) =>
       (category.allowsManualEntry && !category.requiresKid) ||
@@ -51,7 +52,13 @@ export function EntryForm({
   const [categoryId, setCategoryId] = useState(entry?.categoryId ?? options[0]?.id);
   const category = options.find((option) => option.id === categoryId);
   const hiddenShopCategories = categories.filter(
-    (option) => !options.includes(option) && !option.allowsManualEntry
+    (option) =>
+      !options.includes(option) &&
+      !option.allowsManualEntry &&
+      option.name !== EVENTS_CATEGORY_NAME
+  );
+  const hidesEvents = categories.some(
+    (option) => !options.includes(option) && option.name === EVENTS_CATEGORY_NAME
   );
   const hiddenContributionCategories = categories.filter(
     (option) => !options.includes(option) && option.allowsManualEntry
@@ -133,6 +140,15 @@ export function EntryForm({
               Lojinha
             </Link>
             , que também atualiza o estoque.
+          </p>
+        )}
+        {hidesEvents && (
+          <p className={hintClass}>
+            {EVENTS_CATEGORY_NAME}: registre pela tela{" "}
+            <Link href="/events" className="text-ink underline underline-offset-2">
+              Eventos
+            </Link>
+            , em cada evento.
           </p>
         )}
       </Field>

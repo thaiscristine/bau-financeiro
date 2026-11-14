@@ -8,6 +8,8 @@ import {
   categories,
   contributions,
   entries,
+  eventExpenses,
+  eventInstallments,
   installments,
   kids,
   stockMovements,
@@ -15,13 +17,14 @@ import {
 } from "@/db/schema";
 import { entryFormSchema, parseForm } from "@/lib/validation";
 import { requireSession } from "@/lib/dal";
+import { EVENTS_CATEGORY_NAME } from "@/lib/category-names";
 
 export type EntryFormState =
   | { error?: string; saved?: number; savedType?: Entry["type"] }
   | undefined;
 
 const MANAGED_ELSEWHERE =
-  "Esta transação foi criada por uma venda, reposição de estoque ou contribuição mensal. Altere-a por lá.";
+  "Esta transação foi criada por uma venda, reposição de estoque, contribuição mensal ou evento. Altere-a por lá.";
 
 // Validates the form and the rules of the chosen category. An entry that already
 // had a category closed to manual entries may keep it when edited.
@@ -54,7 +57,10 @@ async function parseEntryForm(formData: FormData, currentCategoryId?: number) {
   if (!category.allowsManualEntry && categoryId !== currentCategoryId) {
     return {
       ok: false,
-      error: `${category.name} é registrada pela tela Lojinha, para o estoque ser atualizado.`,
+      error:
+        category.name === EVENTS_CATEGORY_NAME
+          ? `${category.name} é registrada pela tela Eventos, em cada evento.`
+          : `${category.name} é registrada pela tela Lojinha, para o estoque ser atualizado.`,
     } as const;
   }
 
@@ -89,27 +95,38 @@ async function parseEntryForm(formData: FormData, currentCategoryId?: number) {
   } as const;
 }
 
-// Installment payments, restock purchases and monthly contributions are changed
-// from where they were created
+// Installment payments, restock purchases, monthly contributions and event
+// money are changed from where they were created
 async function isManagedElsewhere(id: number) {
-  const [[installment], [movement], [contribution]] = await Promise.all([
-    db
-      .select({ id: installments.id })
-      .from(installments)
-      .where(eq(installments.entryId, id))
-      .limit(1),
-    db
-      .select({ id: stockMovements.id })
-      .from(stockMovements)
-      .where(eq(stockMovements.entryId, id))
-      .limit(1),
-    db
-      .select({ id: contributions.id })
-      .from(contributions)
-      .where(eq(contributions.entryId, id))
-      .limit(1),
-  ]);
-  return Boolean(installment || movement || contribution);
+  const [[installment], [movement], [contribution], [eventInstallment], [eventExpense]] =
+    await Promise.all([
+      db
+        .select({ id: installments.id })
+        .from(installments)
+        .where(eq(installments.entryId, id))
+        .limit(1),
+      db
+        .select({ id: stockMovements.id })
+        .from(stockMovements)
+        .where(eq(stockMovements.entryId, id))
+        .limit(1),
+      db
+        .select({ id: contributions.id })
+        .from(contributions)
+        .where(eq(contributions.entryId, id))
+        .limit(1),
+      db
+        .select({ id: eventInstallments.id })
+        .from(eventInstallments)
+        .where(eq(eventInstallments.entryId, id))
+        .limit(1),
+      db
+        .select({ id: eventExpenses.id })
+        .from(eventExpenses)
+        .where(eq(eventExpenses.entryId, id))
+        .limit(1),
+    ]);
+  return Boolean(installment || movement || contribution || eventInstallment || eventExpense);
 }
 
 function revalidateEntries() {

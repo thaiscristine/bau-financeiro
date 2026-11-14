@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { addMonths, planInstallments, toCents } from "./installments";
+import { addMonths, planInstallments, replanUnpaid, toCents } from "./installments";
 
 test("installments add up to the exact total", () => {
   const plan = planInstallments(10000, 3, "2026-01-10");
@@ -37,4 +37,35 @@ test("due dates clamp to the end of shorter months", () => {
 test("toCents avoids floating point drift", () => {
   assert.equal(toCents("19.99"), 1999);
   assert.equal(toCents(0.1 + 0.2), 30);
+});
+
+test("a smaller balance is spread over the unpaid installments", () => {
+  assert.deepEqual(replanUnpaid(10000, [7, 8, 9]), {
+    update: [
+      { id: 7, amountCents: 3334 },
+      { id: 8, amountCents: 3333 },
+      { id: 9, amountCents: 3333 },
+    ],
+    remove: [],
+    addCents: 0,
+  });
+});
+
+test("nothing left to pay removes the unpaid installments", () => {
+  assert.deepEqual(replanUnpaid(0, [7, 8]), { update: [], remove: [7, 8], addCents: 0 });
+});
+
+test("installments that would get less than a cent are removed", () => {
+  assert.deepEqual(replanUnpaid(2, [7, 8, 9]), {
+    update: [
+      { id: 7, amountCents: 1 },
+      { id: 8, amountCents: 1 },
+    ],
+    remove: [9],
+    addCents: 0,
+  });
+});
+
+test("a balance with every installment paid needs a new one", () => {
+  assert.deepEqual(replanUnpaid(5000, []), { update: [], remove: [], addCents: 5000 });
 });

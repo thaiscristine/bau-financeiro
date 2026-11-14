@@ -1,12 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, ne, notInArray } from "drizzle-orm";
 import { db } from "@/db";
 import { categories } from "@/db/schema";
 import { categoryFormSchema, parseForm } from "@/lib/validation";
 import { requireSession } from "@/lib/dal";
-import { SHOP_CATEGORY_NAME } from "@/lib/categories";
+import { EVENTS_CATEGORY_NAME, LOCKED_CATEGORY_NAMES } from "@/lib/category-names";
 import { pgErrorCode, PG_FOREIGN_KEY_VIOLATION, PG_UNIQUE_VIOLATION } from "@/lib/db-errors";
 
 export type CategoryFormState = { error?: string; saved?: number } | undefined;
@@ -29,10 +29,10 @@ async function saveCategory(id: number | null, formData: FormData) {
       const updated = await db
         .update(categories)
         .set(result.data)
-        .where(and(eq(categories.id, id), ne(categories.name, SHOP_CATEGORY_NAME)))
+        .where(and(eq(categories.id, id), notInArray(categories.name, LOCKED_CATEGORY_NAMES)))
         .returning({ id: categories.id });
       if (updated.length === 0) {
-        return { error: `A categoria ${SHOP_CATEGORY_NAME} não pode ser renomeada.` };
+        return { error: "Esta categoria não pode ser renomeada." };
       }
     }
   } catch (error) {
@@ -70,7 +70,7 @@ export async function deleteCategory(id: number) {
   try {
     await db
       .delete(categories)
-      .where(and(eq(categories.id, id), ne(categories.name, SHOP_CATEGORY_NAME)));
+      .where(and(eq(categories.id, id), notInArray(categories.name, LOCKED_CATEGORY_NAMES)));
   } catch (error) {
     if (pgErrorCode(error) === PG_FOREIGN_KEY_VIOLATION) {
       throw new Error("Esta categoria está em uso e não pode ser excluída.");
@@ -100,10 +100,11 @@ export async function setCategoryRule(
     if (other) return;
   }
 
+  // Event money is only recorded from the Eventos screen, so its rules stay put
   await db
     .update(categories)
     .set({ [rule]: value })
-    .where(eq(categories.id, id));
+    .where(and(eq(categories.id, id), ne(categories.name, EVENTS_CATEGORY_NAME)));
 
   revalidateCategories();
 }

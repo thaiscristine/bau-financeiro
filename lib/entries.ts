@@ -6,6 +6,9 @@ import {
   categories,
   contributions,
   entries,
+  eventExpenses,
+  eventInstallments,
+  eventParticipants,
   installments,
   kids,
   sales,
@@ -14,10 +17,12 @@ import {
 import type { DateRange } from "@/lib/dashboard-period";
 
 const saleKids = alias(kids, "sale_kids");
+const eventKids = alias(kids, "event_kids");
 
 // saleId is set when the entry records an installment payment, itemId when it
-// paid for a restock and contributionKidId when it paid a month's contribution.
-// Those entries are managed from there, not edited directly.
+// paid for a restock, contributionKidId when it paid a month's contribution and
+// eventId when it is an event payment or expense. Those entries are managed
+// from there, not edited directly.
 export async function listEntries() {
   return db
     .select({
@@ -28,11 +33,12 @@ export async function listEntries() {
       paymentMethod: entries.paymentMethod,
       entryDate: entries.entryDate,
       categoryName: categories.name,
-      // The kid of an installment payment or contribution, otherwise the typed name
-      counterparty: sql<string | null>`coalesce(${saleKids.name}, ${kids.name}, ${entries.counterparty})`,
+      // Who paid an installment, contribution or event, otherwise the typed name
+      counterparty: sql<string | null>`coalesce(${saleKids.name}, ${kids.name}, ${eventKids.name}, ${eventParticipants.guestName}, ${entries.counterparty})`,
       saleId: installments.saleId,
       itemId: stockMovements.itemId,
       contributionKidId: contributions.kidId,
+      eventId: sql<number | null>`coalesce(${eventParticipants.eventId}, ${eventExpenses.eventId})`,
     })
     .from(entries)
     .innerJoin(categories, eq(categories.id, entries.categoryId))
@@ -42,6 +48,10 @@ export async function listEntries() {
     .leftJoin(saleKids, eq(saleKids.id, sales.kidId))
     .leftJoin(kids, eq(kids.id, entries.kidId))
     .leftJoin(stockMovements, eq(stockMovements.entryId, entries.id))
+    .leftJoin(eventInstallments, eq(eventInstallments.entryId, entries.id))
+    .leftJoin(eventParticipants, eq(eventParticipants.id, eventInstallments.participantId))
+    .leftJoin(eventKids, eq(eventKids.id, eventParticipants.kidId))
+    .leftJoin(eventExpenses, eq(eventExpenses.entryId, entries.id))
     .orderBy(desc(entries.entryDate), desc(entries.id));
 }
 
@@ -52,11 +62,15 @@ export async function getEntry(id: number) {
       saleId: installments.saleId,
       itemId: stockMovements.itemId,
       contributionKidId: contributions.kidId,
+      eventId: sql<number | null>`coalesce(${eventParticipants.eventId}, ${eventExpenses.eventId})`,
     })
     .from(entries)
     .leftJoin(contributions, eq(contributions.entryId, entries.id))
     .leftJoin(installments, eq(installments.entryId, entries.id))
     .leftJoin(stockMovements, eq(stockMovements.entryId, entries.id))
+    .leftJoin(eventInstallments, eq(eventInstallments.entryId, entries.id))
+    .leftJoin(eventParticipants, eq(eventParticipants.id, eventInstallments.participantId))
+    .leftJoin(eventExpenses, eq(eventExpenses.entryId, entries.id))
     .where(eq(entries.id, id))
     .limit(1);
   return row;

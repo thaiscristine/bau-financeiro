@@ -120,6 +120,27 @@
       "when": 1794683155002,
       "tag": "0016_entry_payment_method",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794687482438,
+      "tag": "0017_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794687482893,
+      "tag": "0018_events_category_data",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794689078772,
+      "tag": "0019_event_fund",
+      "breakpoints": true
     }
   ]
 }

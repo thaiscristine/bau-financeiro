@@ -15,6 +15,27 @@ export function planInstallments(
   }));
 }
 
+// Spreads what is still owed over the unpaid installments (in number order)
+// after the amount owed changed, keeping their numbers and due dates. Leftover
+// cents go to the first ones; trailing installments that would get nothing are
+// removed. With no unpaid installment left to hold a new balance, one is added.
+export function replanUnpaid(remainingCents: number, unpaidIds: number[]) {
+  if (remainingCents <= 0) return { update: [], remove: unpaidIds, addCents: 0 };
+  if (unpaidIds.length === 0) return { update: [], remove: [], addCents: remainingCents };
+
+  const count = Math.min(unpaidIds.length, remainingCents);
+  const base = Math.floor(remainingCents / count);
+  const remainder = remainingCents - base * count;
+  return {
+    update: unpaidIds.slice(0, count).map((id, index) => ({
+      id,
+      amountCents: base + (index < remainder ? 1 : 0),
+    })),
+    remove: unpaidIds.slice(count),
+    addCents: 0,
+  };
+}
+
 // Adds months to a YYYY-MM-DD date, clamping to the last day of shorter months
 // (31/01 + 1 month = 28/02 or 29/02).
 export function addMonths(isoDate: string, months: number) {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/dal";
-import { SHOP_CATEGORY_NAME } from "@/lib/categories";
+import { EVENTS_CATEGORY_NAME, SHOP_CATEGORY_NAME } from "@/lib/category-names";
 import { PASSWORD_MIN_LENGTH } from "@/lib/validation";
 import { LOW_STOCK } from "@/lib/reports/definitions";
 import { Page } from "@/components/page";
@@ -19,6 +19,7 @@ const TOPICS = [
   { id: "lojinha", title: "Lojinha: vendas e parcelas" },
   { id: "estoque", title: "Estoque" },
   { id: "relatorio-lojinha", title: "Relatório da Lojinha" },
+  { id: "eventos", title: "Eventos" },
   { id: "bandeirantes", title: "Bandeirantes" },
   { id: "relatorios", title: "Relatórios" },
   { id: "categorias", title: "Categorias" },
@@ -65,29 +66,30 @@ export default async function HelpPage() {
               ou sai vira uma <Term>transação</Term>, e o saldo é sempre a soma
               delas. Por isso, mesmo quando o registro começa em outra tela (uma
               parcela paga na Lojinha, uma contribuição paga na página do
-              bandeirante, uma compra de mercadoria no Estoque), a transação
-              correspondente é criada sozinha.
+              bandeirante, uma compra de mercadoria no Estoque, uma inscrição ou
+              despesa de evento), a transação correspondente é criada sozinha.
             </P>
             <ul className="flex flex-col gap-3 font-serif text-[17px] leading-relaxed">
               <Li>
                 <Term>Entrada</Term>: dinheiro que chegou (doação, contribuição
-                mensal, cantina, parcela de uma venda).
+                mensal, cantina, parcela de uma venda ou de um evento).
               </Li>
               <Li>
                 <Term>Saída</Term>: dinheiro que foi gasto (fornecedores,
-                aluguel, compra de mercadoria).
+                aluguel, compra de mercadoria, despesas de eventos).
               </Li>
               <Li>
                 <Term>Categoria</Term>: de onde veio ou para onde foi o
                 dinheiro. É o que organiza o Painel e os Relatórios.
               </Li>
               <Li>
-                <Term>Bandeirante</Term>: quem compra na Lojinha ou paga a
-                contribuição mensal.
+                <Term>Bandeirante</Term>: quem compra na Lojinha, paga a
+                contribuição mensal ou se inscreve em eventos.
               </Li>
               <Li>
-                <Term>Parcela</Term>: cada pagamento mensal de uma venda. A
-                venda pode ser paga de uma vez ou em até 24 parcelas.
+                <Term>Parcela</Term>: cada pagamento mensal de uma venda ou de
+                uma inscrição em evento. Pode ser pago de uma vez ou em até 24
+                parcelas.
               </Li>
               <Li>
                 <Term>Contribuição mensal</Term>: o valor que cada bandeirante
@@ -158,8 +160,9 @@ export default async function HelpPage() {
               </Li>
               <Li>
                 <Term>A receber em parcelas</Term>: o que falta receber das
-                parcelas que vencem no período. <Term>Parcelas atrasadas</Term>:
-                a parte disso que já passou do vencimento.
+                parcelas de vendas e de eventos que vencem no período.{" "}
+                <Term>Parcelas atrasadas</Term>: a parte disso que já passou do
+                vencimento.
               </Li>
               <Li>
                 <Term>Por origem</Term> soma o que entrou em cada categoria, com
@@ -167,9 +170,9 @@ export default async function HelpPage() {
               </Li>
               <Li>
                 <Term>Por forma de pagamento</Term> mostra o que entrou e saiu
-                em dinheiro, Pix, débito e crédito no período. Com o período{" "}
-                <Ui>Tudo</Ui>, o saldo em dinheiro é o que deveria estar no
-                caixa.
+                em dinheiro, Pix, débito e crédito no período. Em{" "}
+                <Ui>Escolher datas</Ui>, com o início antes da primeira
+                transação, o saldo em dinheiro é o que deveria estar no caixa.
               </Li>
               <Li>
                 <Term>Contribuições em aberto por ramo</Term>: quantos meses de
@@ -220,11 +223,12 @@ export default async function HelpPage() {
             </P>
             <Note>
               Transações criadas pela Lojinha (parcelas pagas), pelo Estoque
-              (compra de mercadoria) ou pela página do bandeirante
-              (contribuição mensal) mostram <Ui>Ver venda</Ui>,{" "}
-              <Ui>Ver estoque</Ui> ou <Ui>Ver bandeirante</Ui> no lugar de
-              Editar. Corrija pela tela de origem, assim a venda, o estoque ou
-              os meses de contribuição ficam certos também.
+              (compra de mercadoria), pela página do bandeirante (contribuição
+              mensal) ou por um evento mostram <Ui>Ver venda</Ui>,{" "}
+              <Ui>Ver estoque</Ui>, <Ui>Ver bandeirante</Ui> ou{" "}
+              <Ui>Ver evento</Ui> no lugar de Editar. Corrija pela tela de
+              origem, assim a venda, o estoque, os meses de contribuição ou o
+              evento ficam certos também.
             </Note>
             <Note>
               Transações registradas antes de a forma de pagamento existir
@@ -238,7 +242,8 @@ export default async function HelpPage() {
             <Note>
               A categoria {SHOP_CATEGORY_NAME} não aparece em Nova transação:
               vendas de itens são registradas pela Lojinha, que também baixa o
-              estoque.
+              estoque. Do mesmo jeito, {EVENTS_CATEGORY_NAME} é registrada só
+              pela tela Eventos.
             </Note>
           </Topic>
 
@@ -384,11 +389,118 @@ export default async function HelpPage() {
             </P>
           </Topic>
 
+          <Topic id="eventos" screen="/events">
+            <P>
+              Acampamentos, passeios, encontros e qualquer atividade em que as
+              pessoas se inscrevem e pagam. Cada evento junta as inscrições, as
+              parcelas de cada participante e as despesas, com o saldo sempre à
+              vista. Tudo que é pago entra em Transações na categoria{" "}
+              {EVENTS_CATEGORY_NAME}, então o Painel e os Relatórios já contam
+              o evento.
+            </P>
+            <Task title="Criar um evento">
+              <Steps>
+                <li>
+                  Clique em <Ui>Novo evento</Ui>.
+                </li>
+                <li>
+                  Preencha o <Ui>Nome</Ui>, o <Ui>Início</Ui> e, se durar mais
+                  de um dia, o <Ui>Término</Ui>.
+                </li>
+                <li>
+                  Informe o <Ui>Valor por participante (R$)</Ui>: é o valor que
+                  já vem preenchido em cada inscrição.
+                </li>
+                <li>
+                  Clique em <Ui>Criar evento</Ui>.
+                </li>
+              </Steps>
+            </Task>
+            <Task title="Inscrever um participante">
+              <Steps>
+                <li>
+                  No evento, clique em <Ui>Inscrever participante</Ui>.
+                </li>
+                <li>
+                  Escolha o bandeirante. Para alguém sem cadastro, escolha{" "}
+                  <Ui>Convidado (não cadastrado)</Ui> e digite o nome: ele fica
+                  só neste evento.
+                </li>
+                <li>
+                  Confira o <Ui>Valor (R$)</Ui>. Mude para dar desconto ou uma
+                  vaga gratuita.
+                </li>
+                <li>
+                  Em <Ui>Parcelas</Ui>, informe em quantas vezes será pago e o{" "}
+                  <Ui>Vencimento da 1ª parcela</Ui>, como numa venda.
+                </li>
+                <li>
+                  Clique em <Ui>Inscrever</Ui>.
+                </li>
+              </Steps>
+              <P>
+                Para receber, clique em <Ui>Ver</Ui> no participante e use{" "}
+                <Ui>Marcar como paga</Ui> em cada parcela. Quem desistiu sai
+                com <Ui>Cancelar inscrição</Ui>, que também tira das transações
+                o que já tinha sido pago.
+              </P>
+            </Task>
+            <Task title="Fundo Lisah">
+              <P>
+                O bandeirante pode pedir o Fundo Lisah para pagar parte ou todo
+                o valor do evento. O valor concedido funciona como desconto: sai
+                do que ele paga, e nenhum dinheiro entra ou sai das transações.
+              </P>
+              <Steps>
+                <li>
+                  Na inscrição, ou depois em <Ui>Ver</Ui> no participante,
+                  escolha em <Ui>Fundo Lisah</Ui>: <Ui>Pediu, aguardando</Ui>,{" "}
+                  <Ui>Concedido</Ui> ou <Ui>Negado</Ui>.
+                </li>
+                <li>
+                  Se foi concedido, informe o <Ui>Valor concedido (R$)</Ui> e
+                  clique em <Ui>Salvar</Ui>.
+                </li>
+              </Steps>
+              <P>
+                As parcelas que ainda não foram pagas são recalculadas, com as
+                mesmas datas; as pagas ficam como estão. Se o fundo cobre tudo,
+                o participante aparece como <Ui>Coberto</Ui>. O evento mostra
+                quanto o fundo cobriu e quantos pedidos estão aguardando.
+              </P>
+            </Task>
+            <Task title="Registrar uma despesa">
+              <Steps>
+                <li>
+                  No evento, clique em <Ui>Nova despesa</Ui>.
+                </li>
+                <li>
+                  Preencha a <Ui>Despesa</Ui>, o <Ui>Valor (R$)</Ui> e a{" "}
+                  <Ui>Data</Ui>. <Ui>Tipo</Ui> (alimentação, transporte...) e{" "}
+                  <Ui>Fornecedor</Ui> são opcionais.
+                </li>
+                <li>
+                  Escolha <Ui>Pago</Ui> e a forma de pagamento, ou{" "}
+                  <Ui>A pagar</Ui> se ainda vai ser paga (um reembolso, por
+                  exemplo).
+                </li>
+              </Steps>
+              <P>
+                Uma despesa paga entra como saída em Transações. A pagar fica
+                esperando até alguém usar <Ui>Marcar como paga</Ui>.
+              </P>
+            </Task>
+            <Note>
+              <Term>Saldo disponível</Term> é o que foi recebido menos todas as
+              despesas, pagas ou não: o que sobra depois de pagar tudo.
+            </Note>
+          </Topic>
+
           <Topic id="bandeirantes" screen="/kids">
             <P>
-              O cadastro de quem compra na Lojinha e paga contribuições. A
-              coluna <Term>A pagar</Term> mostra quanto cada um ainda deve em
-              parcelas.
+              O cadastro de quem compra na Lojinha, paga contribuições e vai
+              aos eventos. A coluna <Term>A pagar</Term> mostra quanto cada um
+              ainda deve em parcelas de vendas e de eventos.
             </P>
             <Task title="Cadastrar um bandeirante">
               <Steps>
@@ -464,8 +576,8 @@ export default async function HelpPage() {
               <Steps>
                 <li>
                   Escolha o tipo de relatório: <Term>Transações</Term>,{" "}
-                  <Term>Parcelas</Term>, <Term>Vendas da Lojinha</Term> ou{" "}
-                  <Term>Estoque</Term>.
+                  <Term>Parcelas</Term> (da Lojinha e dos eventos),{" "}
+                  <Term>Vendas da Lojinha</Term> ou <Term>Estoque</Term>.
                 </li>
                 <li>
                   Em <Ui>Filtros</Ui>, escolha o período e o que mais quiser
@@ -525,8 +637,9 @@ export default async function HelpPage() {
             </ul>
             <Note>
               Uma categoria só pode ser excluída quando não está em uso. A
-              categoria {SHOP_CATEGORY_NAME} é a dos itens do estoque e não pode
-              ser renomeada nem excluída.
+              categoria {SHOP_CATEGORY_NAME} é a dos itens do estoque e{" "}
+              {EVENTS_CATEGORY_NAME} é a dos eventos; essas duas não podem ser
+              renomeadas nem excluídas.
             </Note>
           </Topic>
 
@@ -570,9 +683,10 @@ export default async function HelpPage() {
             </Faq>
             <Faq question="Não encontro o botão Excluir.">
               Ele só aparece quando excluir não estraga o histórico: um item sem
-              vendas, um bandeirante sem vendas nem contribuições, uma categoria
-              que não está em uso. Transações da Lojinha, do Estoque e das
-              contribuições mensais são desfeitas pela tela de origem.
+              vendas, um bandeirante sem vendas, contribuições nem eventos, uma
+              categoria que não está em uso. Transações da Lojinha, do Estoque,
+              das contribuições mensais e dos eventos são desfeitas pela tela de
+              origem.
             </Faq>
             <Faq question="Registrei uma venda errada.">
               Abra a venda e use <Ui>Excluir venda</Ui>, depois registre de novo.

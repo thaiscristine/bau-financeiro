@@ -9,8 +9,11 @@ import { inputClass, secondaryButtonClass } from "@/components/styles";
 
 export function PaymentForm({
   action,
+  incoming = true,
 }: {
   action: (state: PaymentFormState, formData: FormData) => Promise<PaymentFormState>;
+  // False when the payment is money going out, such as an expense
+  incoming?: boolean;
 }) {
   // A paid installment is money coming in, so it gets confetti. Fired here
   // rather than in an effect: once paid, this form is swapped for the undo
@@ -19,7 +22,7 @@ export function PaymentForm({
   const [state, formProps, pending] = useFormAction(
     async (prevState: PaymentFormState, formData: FormData) => {
       const next = await action(prevState, formData);
-      if (next?.paid) celebrate();
+      if (next?.paid && incoming) celebrate();
       return next;
     }
   );

@@ -148,9 +148,16 @@ function TypeLabel({ type }: { type: EntryRow["type"] }) {
   );
 }
 
-// Installment payments, restock purchases and monthly contributions are changed
-// from where they came from
+// Installment payments, restock purchases, monthly contributions and event
+// money are changed from where they came from
 function EntryActions({ entry }: { entry: EntryRow }) {
+  if (entry.eventId) {
+    return (
+      <Link href={`/events/${entry.eventId}`} className={linkClass}>
+        Ver evento
+      </Link>
+    );
+  }
   if (entry.contributionKidId) {
     return (
       <Link href={`/kids/${entry.contributionKidId}`} className={linkClass}>

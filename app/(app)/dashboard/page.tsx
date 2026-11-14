@@ -2,6 +2,7 @@ import { requireSession } from "@/lib/dal";
 import { getIncomeByCategory, getTotals, getTotalsByPaymentMethod } from "@/lib/entries";
 import { paymentMethodLabel } from "@/lib/payment-methods";
 import { getReceivables } from "@/lib/sales";
+import { getEventReceivables } from "@/lib/events";
 import { ensureContributions, getContributionsByAgeGroup } from "@/lib/contributions";
 import { parseDashboardPeriod } from "@/lib/dashboard-period";
 import { toSearchParams } from "@/lib/reports/filters";
@@ -30,14 +31,26 @@ export default async function DashboardPage({
     today
   );
   await ensureContributions(today);
-  const [totals, incomeByCategory, byPaymentMethod, receivables, contributionsByAgeGroup] =
-    await Promise.all([
-      getTotals(range),
-      getIncomeByCategory(range),
-      getTotalsByPaymentMethod(range),
-      getReceivables(today, range),
-      getContributionsByAgeGroup(today, range),
-    ]);
+  const [
+    totals,
+    incomeByCategory,
+    byPaymentMethod,
+    saleReceivables,
+    eventReceivables,
+    contributionsByAgeGroup,
+  ] = await Promise.all([
+    getTotals(range),
+    getIncomeByCategory(range),
+    getTotalsByPaymentMethod(range),
+    getReceivables(today, range),
+    getEventReceivables(today, range),
+    getContributionsByAgeGroup(today, range),
+  ]);
+  // Installments of Lojinha sales and of events alike
+  const receivables = {
+    pending: saleReceivables.pending + eventReceivables.pending,
+    overdue: saleReceivables.overdue + eventReceivables.overdue,
+  };
 
   return (
     <Page title="Painel">
