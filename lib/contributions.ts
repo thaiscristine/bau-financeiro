@@ -128,11 +128,14 @@ export async function listUnlinkedContributionEntries(kidId: number) {
 }
 
 // Unpaid months that overlap the range, added up per age group in age order,
-// with the kids who have no age group last (ageGroup null)
+// with the kids who have no age group last (ageGroup null). Each group also
+// lists who owes, most owed first.
 export async function getContributionsByAgeGroup(today: string, range: DateRange) {
   const late = lt(contributions.month, currentMonth(today));
   const rows = await db
     .select({
+      kidId: kids.id,
+      name: kids.name,
       ageGroup: kids.ageGroup,
       count: sql<number>`count(*)::int`,
       pending: sql<string>`sum(${contributions.amount})`,
@@ -148,16 +151,40 @@ export async function getContributionsByAgeGroup(today: string, range: DateRange
         lte(contributions.month, range.to)
       )
     )
-    .groupBy(kids.ageGroup)
+    .groupBy(kids.id)
     // Enum values sort in declaration order, which is age order
-    .orderBy(sql`${kids.ageGroup} asc nulls last`);
+    .orderBy(
+      sql`${kids.ageGroup} asc nulls last`,
+      sql`sum(${contributions.amount}) desc`,
+      asc(kids.name)
+    );
 
-  return rows.map((row) => ({
-    ageGroup: row.ageGroup,
-    count: row.count,
-    pending: Number(row.pending),
-    overdue: Number(row.overdue),
-  }));
+  const groups: {
+    ageGroup: AgeGroup | null;
+    count: number;
+    pending: number;
+    overdue: number;
+    kids: { id: number; name: string; count: number; pending: number; overdue: number }[];
+  }[] = [];
+  for (const row of rows) {
+    let group = groups.at(-1);
+    if (group?.ageGroup !== row.ageGroup) {
+      group = { ageGroup: row.ageGroup, count: 0, pending: 0, overdue: 0, kids: [] };
+      groups.push(group);
+    }
+    const kid = {
+      id: row.kidId,
+      name: row.name,
+      count: row.count,
+      pending: Number(row.pending),
+      overdue: Number(row.overdue),
+    };
+    group.count += kid.count;
+    group.pending += kid.pending;
+    group.overdue += kid.overdue;
+    group.kids.push(kid);
+  }
+  return groups;
 }
 
 // Monthly contributions are recorded in the category that requires a kid.

@@ -3,7 +3,6 @@ import { getIncomeByCategory, getTotals, getTotalsByPaymentMethod } from "@/lib/
 import { paymentMethodLabel } from "@/lib/payment-methods";
 import { getReceivables } from "@/lib/sales";
 import { ensureContributions, getContributionsByAgeGroup } from "@/lib/contributions";
-import { AGE_GROUP_LABELS } from "@/lib/age-groups";
 import { parseDashboardPeriod } from "@/lib/dashboard-period";
 import { toSearchParams } from "@/lib/reports/filters";
 import { formatBRL, todayISO } from "@/lib/format";
@@ -18,6 +17,7 @@ import {
   tableRow,
   tableWrapClass,
 } from "@/components/styles";
+import { OpenContributions } from "./open-contributions";
 import { PeriodFilter } from "./period-filter";
 
 export default async function DashboardPage({
@@ -38,10 +38,6 @@ export default async function DashboardPage({
       getReceivables(today, range),
       getContributionsByAgeGroup(today, range),
     ]);
-  const openContributions = contributionsByAgeGroup.reduce(
-    (sum, row) => sum + row.pending,
-    0
-  );
 
   return (
     <Page title="Painel">
@@ -154,51 +150,7 @@ export default async function DashboardPage({
         {contributionsByAgeGroup.length === 0 ? (
           <EmptyState>Nenhuma contribuição em aberto no período.</EmptyState>
         ) : (
-          <div className={tableWrapClass}>
-            <table className={tableClass}>
-              <thead>
-                <tr className={tableHeadRow}>
-                  <th className={tableHeadCell}>Ramo</th>
-                  <th className={`${tableHeadCell} text-right max-sm:hidden`}>
-                    Meses
-                  </th>
-                  <th className={`${tableHeadCell} text-right`}>
-                    Em aberto
-                    <span className="ml-2 text-pending">
-                      {formatBRL(openContributions)}
-                    </span>
-                  </th>
-                  <th className={`${tableHeadCell} text-right`}>Atrasado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {contributionsByAgeGroup.map((row) => (
-                  <tr key={row.ageGroup ?? "none"} className={tableRow}>
-                    <td className={`${tableCell} whitespace-nowrap`}>
-                      {row.ageGroup ? (
-                        AGE_GROUP_LABELS[row.ageGroup]
-                      ) : (
-                        <span className="text-muted">Sem ramo</span>
-                      )}
-                    </td>
-                    <td className={`${tableCell} text-right max-sm:hidden`}>
-                      {row.count}
-                    </td>
-                    <td
-                      className={`${tableCell} text-right whitespace-nowrap text-pending`}
-                    >
-                      {formatBRL(row.pending)}
-                    </td>
-                    <td
-                      className={`${tableCell} text-right whitespace-nowrap ${row.overdue > 0 ? "text-cost" : "text-muted/60"}`}
-                    >
-                      {formatBRL(row.overdue)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <OpenContributions groups={contributionsByAgeGroup} />
         )}
       </Section>
     </Page>
