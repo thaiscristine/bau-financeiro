@@ -373,8 +373,13 @@ export default async function HelpPage() {
                 parcelas pagas nele e do que foi pago por mercadoria.
               </Li>
               <Li>
+                <Term>Lucro</Term>: o que foi recebido menos o que foi pago em
+                reposição no período. Parcelas a receber só entram quando forem
+                pagas.
+              </Li>
+              <Li>
                 <Term>Mais vendidos</Term> e <Term>Por mês</Term>: os mesmos
-                valores por item e por mês.
+                valores por item e por mês, com o lucro de cada mês.
               </Li>
               <Li>
                 <Term>Quem deve</Term>, <Term>Estoque acabando</Term> e os
