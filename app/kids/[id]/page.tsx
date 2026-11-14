@@ -16,6 +16,7 @@ import { EmptyState, Page } from "@/components/page";
 import { Eyebrow } from "@/components/eyebrow";
 import { DeleteButton } from "@/components/delete-button";
 import { SalesTable } from "@/app/sales/sales-table";
+import { NewSaleDialog } from "@/app/sales/new-sale-dialog";
 import { KidForm } from "../kid-form";
 import { deleteKid, updateKid } from "../actions";
 
@@ -33,10 +34,7 @@ export default async function KidPage({ params }: PageProps<"/kids/[id]">) {
   if (!kid) notFound();
 
   return (
-    <Page
-      title={kid.name}
-      action={{ href: `/sales/new?kidId=${id}`, label: "Nova venda" }}
-    >
+    <Page title={kid.name} aside={<NewSaleDialog defaultKidId={id} />}>
       <section className="flex flex-col gap-3">
         <Eyebrow as="h2">Vendas</Eyebrow>
         {kidSales.length === 0 ? (

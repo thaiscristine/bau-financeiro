@@ -2,6 +2,7 @@ import { requireSession } from "@/lib/dal";
 import { listActiveUsers } from "@/lib/users";
 import { Page, Section } from "@/components/page";
 import { DeleteButton } from "@/components/delete-button";
+import { FormDialog } from "@/components/form-dialog";
 import {
   tableCell,
   tableClass,
@@ -12,7 +13,7 @@ import {
 } from "@/components/styles";
 import { changePassword, createUser, deleteUser, resetPassword } from "./actions";
 import { ChangePasswordForm } from "./change-password-form";
-import { NewUserDialog } from "./new-user-dialog";
+import { NewUserForm } from "./new-user-form";
 import { ResetPasswordForm } from "./reset-password-form";
 
 export default async function UsersPage() {
@@ -24,7 +25,14 @@ export default async function UsersPage() {
     .map((user) => ({ id: user.id, name: user.name }));
 
   return (
-    <Page title="Usuários" aside={<NewUserDialog action={createUser} />}>
+    <Page
+      title="Usuários"
+      aside={
+        <FormDialog label="Novo usuário">
+          <NewUserForm action={createUser} />
+        </FormDialog>
+      }
+    >
       <p className="max-w-2xl font-serif text-[17px] leading-relaxed text-muted">
         Quem pode entrar no sistema. Ao excluir um usuário, ele perde o acesso na
         hora, mas as transações e vendas que registrou continuam no histórico.

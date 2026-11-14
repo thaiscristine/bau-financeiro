@@ -46,3 +46,14 @@ export async function createItem(name: string, price: string) {
     [name, rows[0].id, price]
   );
 }
+
+export async function createCategory(name: string, { allowsManualEntry = true } = {}) {
+  await pool.query(
+    "insert into categories (name, allows_manual_entry) values ($1, $2)",
+    [name, allowsManualEntry]
+  );
+}
+
+export async function createKid(name: string) {
+  await pool.query("insert into kids (name) values ($1)", [name]);
+}

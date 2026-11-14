@@ -1,17 +1,13 @@
-import Link from "next/link";
 import { Nav } from "./nav";
 import { Eyebrow } from "./eyebrow";
-import { primaryButtonClass } from "./styles";
 
 export function Page({
   title,
-  action,
   aside,
   children,
 }: {
   title: string;
-  action?: { href: string; label: string };
-  // Anything else for the header's right side, such as a button opening a modal
+  // The header's right side, such as a button opening a modal
   aside?: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -23,11 +19,6 @@ export function Page({
           <h1 className="text-4xl leading-none tracking-[-0.03em] sm:text-[54px]">
             {title}
           </h1>
-          {action && (
-            <Link href={action.href} className={primaryButtonClass}>
-              {action.label}
-            </Link>
-          )}
           {aside}
         </div>
         {children}

@@ -2,10 +2,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/dal";
 import { listItemsPage } from "@/lib/inventory";
+import { listCategories } from "@/lib/categories";
 import { formatBRL } from "@/lib/format";
 import { PAGE_SIZE, pageCount, parsePage } from "@/lib/pagination";
 import { EmptyState, Page } from "@/components/page";
 import { Pagination } from "@/components/pagination";
+import { FormDialog } from "@/components/form-dialog";
+import { ItemForm } from "./item-form";
+import { createItem } from "./actions";
 import { StockLabel } from "./stock-label";
 import {
   linkClass,
@@ -20,7 +24,10 @@ import {
 export default async function InventoryPage({ searchParams }: PageProps<"/inventory">) {
   await requireSession();
   const page = parsePage((await searchParams).page);
-  const { rows, total } = await listItemsPage(page, PAGE_SIZE);
+  const [{ rows, total }, categories] = await Promise.all([
+    listItemsPage(page, PAGE_SIZE),
+    listCategories(),
+  ]);
 
   // A stale link (e.g. after items were removed) can point past the end
   const pages = pageCount(total);
@@ -29,7 +36,19 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
   }
 
   return (
-    <Page title="Estoque" action={{ href: "/inventory/new", label: "Novo item" }}>
+    <Page
+      title="Estoque"
+      aside={
+        <FormDialog label="Novo item">
+          <ItemForm
+            action={createItem}
+            costCategories={categories.filter(
+              (category) => category.allowsManualEntry && !category.requiresKid
+            )}
+          />
+        </FormDialog>
+      }
+    >
       {rows.length === 0 ? (
         <EmptyState>Nenhum item cadastrado ainda.</EmptyState>
       ) : (

@@ -11,11 +11,13 @@ import {
   SubmitButton,
   useFormAction,
 } from "@/components/form";
+import { useFormDialog } from "@/components/form-dialog";
 import {
   checkboxClass,
   formCardClass,
   hintClass,
   inputClass,
+  modalFormClass,
   panelClass,
 } from "@/components/styles";
 
@@ -27,6 +29,7 @@ export function KidForm({
   kid?: Kid;
 }) {
   const [state, formProps, pending] = useFormAction(action);
+  const inDialog = useFormDialog(state?.saved);
   const [isMinor, setIsMinor] = useState(kid?.isMinor ?? false);
   // The save the person has edited past, so the confirmation hides once
   // there are unsaved changes again
@@ -37,13 +40,14 @@ export function KidForm({
     <form
       {...formProps}
       onChange={() => setEditedAfter(state?.saved)}
-      className={formCardClass}
+      className={inDialog ? modalFormClass : formCardClass}
     >
       <Field id="name" label="Nome">
         <input
           id="name"
           name="name"
           required
+          data-autofocus
           defaultValue={kid?.name}
           className={inputClass}
         />
@@ -104,8 +108,14 @@ export function KidForm({
       )}
 
       <FormError error={state?.error} />
-      <FormSuccess message={justSaved ? "Dados salvos." : undefined} />
-      <SubmitButton pending={pending} />
+      {kid ? (
+        <>
+          <FormSuccess message={justSaved ? "Dados salvos." : undefined} />
+          <SubmitButton pending={pending} />
+        </>
+      ) : (
+        <SubmitButton pending={pending} label="Adicionar" pendingLabel="Adicionando..." />
+      )}
     </form>
   );
 }

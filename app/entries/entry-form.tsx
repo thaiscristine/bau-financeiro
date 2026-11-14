@@ -12,7 +12,8 @@ import {
   SubmitButton,
   useFormAction,
 } from "@/components/form";
-import { formCardClass, hintClass, inputClass } from "@/components/styles";
+import { useFormDialog } from "@/components/form-dialog";
+import { formCardClass, hintClass, inputClass, modalFormClass } from "@/components/styles";
 
 export function EntryForm({
   action,
@@ -26,6 +27,7 @@ export function EntryForm({
   entry?: Entry;
 }) {
   const [state, formProps, pending] = useFormAction(action);
+  const inDialog = useFormDialog(state?.saved);
   const [type, setType] = useState(entry?.type ?? "income");
 
   // Categories closed to manual entries (product sales go through Lojinha) are
@@ -38,7 +40,7 @@ export function EntryForm({
   const hiddenCategories = categories.filter((option) => !options.includes(option));
 
   return (
-    <form {...formProps} className={formCardClass}>
+    <form {...formProps} className={inDialog ? modalFormClass : formCardClass}>
       <ChoiceGroup
         name="type"
         legend="Tipo"
@@ -60,6 +62,7 @@ export function EntryForm({
             step="0.01"
             min="0.01"
             required
+            data-autofocus
             defaultValue={entry?.amount}
             className={`${inputClass} tabular-nums`}
           />
@@ -96,8 +99,8 @@ export function EntryForm({
           <p className={hintClass}>
             {hiddenCategories.map((option) => option.name).join(", ")}:
             registre pela tela{" "}
-            <Link href="/sales/new" className="text-ink underline underline-offset-2">
-              Nova venda
+            <Link href="/sales" className="text-ink underline underline-offset-2">
+              Lojinha
             </Link>
             , que também atualiza o estoque.
           </p>
@@ -126,7 +129,7 @@ export function EntryForm({
           ) : (
             <p className="font-serif text-[15px] text-muted">
               Nenhum bandeirante cadastrado.{" "}
-              <Link href="/kids/new" className="text-ink underline underline-offset-2">
+              <Link href="/kids" className="text-ink underline underline-offset-2">
                 Cadastrar bandeirante
               </Link>
             </p>
@@ -163,7 +166,11 @@ export function EntryForm({
       </Field>
 
       <FormError error={state?.error} />
-      <SubmitButton pending={pending} />
+      {entry ? (
+        <SubmitButton pending={pending} />
+      ) : (
+        <SubmitButton pending={pending} label="Adicionar" pendingLabel="Adicionando..." />
+      )}
     </form>
   );
 }

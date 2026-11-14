@@ -49,7 +49,7 @@ export async function createKid(
   await db.insert(kids).values(result.values);
 
   revalidatePath("/kids");
-  redirect("/kids");
+  return { saved: Date.now() };
 }
 
 export async function updateKid(
