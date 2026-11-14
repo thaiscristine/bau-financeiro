@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Logo } from "./logo";
 import { LogoutButton } from "./logout-button";
 import { NavLinks } from "./nav-links";
-import { primaryButtonClass } from "./styles";
 import { ThemeToggle } from "./theme-toggle";
 
 export function Nav() {
@@ -19,12 +18,6 @@ export function Nav() {
         <div className="ml-auto flex items-center gap-4 xl:order-last">
           <ThemeToggle />
           <LogoutButton />
-          <Link
-            href="/entries/new"
-            className={`${primaryButtonClass} h-9 px-3 text-sm`}
-          >
-            Nova transação
-          </Link>
         </div>
         <NavLinks />
       </div>

@@ -13,10 +13,7 @@ const LINKS = [
   { href: "/users", label: "Usuários" },
 ];
 
-// "Nova transação" has its own button in the header, so it does not
-// highlight any tab.
 function isActive(pathname: string, href: string) {
-  if (pathname === "/entries/new") return false;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
