@@ -49,7 +49,7 @@ async function parseEntryForm(formData: FormData, currentCategoryId?: number) {
   if (!category.allowsManualEntry && categoryId !== currentCategoryId) {
     return {
       ok: false,
-      error: `${category.name} é registrada pela tela Vendas, para o estoque ser atualizado.`,
+      error: `${category.name} é registrada pela tela Lojinha, para o estoque ser atualizado.`,
     } as const;
   }
 

@@ -28,7 +28,7 @@ export function EntryForm({
   const [state, formProps, pending] = useFormAction(action);
   const [type, setType] = useState(entry?.type ?? "income");
 
-  // Categories closed to manual entries (product sales go through Vendas) are
+  // Categories closed to manual entries (product sales go through Lojinha) are
   // hidden, unless this entry already uses one
   const options = categories.filter(
     (category) => category.allowsManualEntry || category.id === entry?.categoryId

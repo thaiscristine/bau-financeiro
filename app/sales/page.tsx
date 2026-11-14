@@ -8,7 +8,7 @@ export default async function SalesPage() {
   const rows = await listSales();
 
   return (
-    <Page title="Vendas" action={{ href: "/sales/new", label: "Nova venda" }}>
+    <Page title="Lojinha" action={{ href: "/sales/new", label: "Nova venda" }}>
       {rows.length === 0 ? (
         <EmptyState>Nenhuma venda ainda.</EmptyState>
       ) : (

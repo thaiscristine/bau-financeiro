@@ -36,7 +36,7 @@ export default async function CategoriesPage() {
             contribuição mensal.
           </li>
           <li>
-            <span className="text-ink">Só pela tela Vendas</span>
+            <span className="text-ink">Só pela tela Lojinha</span>
             : não aparece na nova transação, para que toda venda atualize o estoque.
           </li>
         </ul>
@@ -50,7 +50,7 @@ export default async function CategoriesPage() {
             <tr className={tableHeadRow}>
               <th className={tableHeadCell}>Nome</th>
               <th className={`${tableHeadCell} text-center`}>Exige bandeirante</th>
-              <th className={`${tableHeadCell} text-center`}>Só pela tela Vendas</th>
+              <th className={`${tableHeadCell} text-center`}>Só pela tela Lojinha</th>
               <th className={tableHeadCell}>Em uso</th>
               <th className={tableHeadCell}>
                 <span className="sr-only">Ações</span>
@@ -92,7 +92,7 @@ export default async function CategoriesPage() {
                           !category.allowsManualEntry
                         )}
                         checked={!category.allowsManualEntry}
-                        label={`${category.name}: só pela tela Vendas`}
+                        label={`${category.name}: só pela tela Lojinha`}
                       />
                     </div>
                   </td>
