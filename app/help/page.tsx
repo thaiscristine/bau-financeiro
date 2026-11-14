@@ -38,7 +38,10 @@ export default async function HelpPage() {
         na tela.
       </p>
 
-      <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-12">
+      <div
+        data-smooth-scroll
+        className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-12"
+      >
         <nav aria-label="Tópicos da ajuda" className="flex flex-col gap-3 lg:sticky lg:top-24">
           <Eyebrow as="h2" tone="ink">
             Nesta página

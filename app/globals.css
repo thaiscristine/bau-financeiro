@@ -52,6 +52,15 @@ body {
 }
 
 @layer base {
+  /* Links to a section of the same page (like the help topics) glide there.
+     Only on pages that ask for it, so changing pages still starts at the top
+     right away. */
+  @media (prefers-reduced-motion: no-preference) {
+    :root:has([data-smooth-scroll]) {
+      scroll-behavior: smooth;
+    }
+  }
+
   /* Scrolling over an open modal or its backdrop shouldn't move the page */
   dialog:modal {
     overscroll-behavior: contain;
