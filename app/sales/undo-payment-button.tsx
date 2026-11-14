@@ -10,7 +10,7 @@ export function UndoPaymentButton({ action }: { action: () => Promise<void> }) {
       onSubmit={(event) => {
         if (
           !window.confirm(
-            "Desfazer este pagamento? O lançamento de entrada correspondente será excluído."
+            "Desfazer este pagamento? A transação de entrada correspondente será excluída."
           )
         ) {
           event.preventDefault();

@@ -98,7 +98,7 @@ export default async function SalePage({ params }: PageProps<"/sales/[id]">) {
       <DeleteButton
         action={deleteSale.bind(null, id)}
         label="Excluir venda"
-        confirmMessage="Excluir esta venda? As parcelas pagas também saem dos lançamentos e as unidades voltam ao estoque."
+        confirmMessage="Excluir esta venda? As parcelas pagas também saem das transações e as unidades voltam ao estoque."
       />
     </Page>
   );

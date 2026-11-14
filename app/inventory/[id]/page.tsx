@@ -112,7 +112,7 @@ export default async function ItemPage({ params }: PageProps<"/inventory/[id]">)
                             label="Excluir"
                             confirmMessage={
                               movement.cost
-                                ? "Excluir esta movimentação? A saída registrada nos lançamentos também será excluída."
+                                ? "Excluir esta movimentação? A saída registrada nas transações também será excluída."
                                 : "Excluir esta movimentação?"
                             }
                             variant="link"

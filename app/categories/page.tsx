@@ -26,18 +26,18 @@ export default async function CategoriesPage() {
     <Page title="Categorias">
       <div className="flex max-w-2xl flex-col gap-4 font-serif text-[17px] leading-relaxed text-muted">
         <p>
-          De onde vem ou para onde vai o dinheiro. As categorias são usadas nos
-          lançamentos e nos itens do estoque.
+          De onde vem ou para onde vai o dinheiro. As categorias são usadas nas
+          transações e nos itens do estoque.
         </p>
         <ul className="flex flex-col gap-2">
           <li>
             <span className="text-ink">Exige bandeirante</span>:
-            o lançamento precisa dizer de qual bandeirante veio o dinheiro, como na
+            a transação precisa dizer de qual bandeirante veio o dinheiro, como na
             contribuição mensal.
           </li>
           <li>
             <span className="text-ink">Só pela tela Vendas</span>
-            : não aparece no novo lançamento, para que toda venda atualize o estoque.
+            : não aparece na nova transação, para que toda venda atualize o estoque.
           </li>
         </ul>
       </div>
@@ -122,7 +122,7 @@ export default async function CategoriesPage() {
 function usageLabel(entryCount: number, itemCount: number) {
   const parts = [];
   if (entryCount > 0) {
-    parts.push(`${entryCount} ${entryCount === 1 ? "lançamento" : "lançamentos"}`);
+    parts.push(`${entryCount} ${entryCount === 1 ? "transação" : "transações"}`);
   }
   if (itemCount > 0) {
     parts.push(`${itemCount} ${itemCount === 1 ? "item" : "itens"}`);

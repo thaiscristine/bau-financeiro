@@ -25,6 +25,9 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  // Set when the user is removed. The row stays so the entries, sales and stock
+  // movements they recorded keep pointing to them.
+  deletedAt: timestamp("deleted_at"),
 });
 
 // Where the money comes from or goes to (donation, monthly contribution, ...).
