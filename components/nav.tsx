@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { Logo } from "./logo";
 import { LogoutButton } from "./logout-button";
-import { NavLinks } from "./nav-links";
+import { HelpLink, NavLinks } from "./nav-links";
 import { ThemeToggle } from "./theme-toggle";
 
 export function Nav() {
   return (
     <header className="sticky top-0 z-10 border-b border-line bg-surface/95 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-8 px-4 sm:px-8 xl:h-16 xl:flex-nowrap">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-8 px-4 sm:px-8 xl:h-16 xl:flex-nowrap xl:gap-x-6">
         <Link
           href="/dashboard"
           className="flex h-14 items-center gap-3 text-xl tracking-[-0.04em] whitespace-nowrap xl:h-auto"
@@ -17,6 +17,7 @@ export function Nav() {
         </Link>
         <div className="ml-auto flex items-center gap-4 xl:order-last">
           <ThemeToggle />
+          <HelpLink />
           <LogoutButton />
         </div>
         <NavLinks />
