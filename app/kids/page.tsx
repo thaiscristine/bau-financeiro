@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireSession } from "@/lib/dal";
 import { listKids } from "@/lib/kids";
 import { formatBRL } from "@/lib/format";
+import { AGE_GROUP_LABELS } from "@/lib/age-groups";
 import { EmptyState, Page } from "@/components/page";
 import {
   linkClass,
@@ -27,6 +28,7 @@ export default async function KidsPage() {
             <thead>
               <tr className={tableHeadRow}>
                 <th className={tableHeadCell}>Nome</th>
+                <th className={`${tableHeadCell} max-sm:hidden`}>Ramo</th>
                 <th className={`${tableHeadCell} max-sm:hidden`}>Contato</th>
                 <th className={`${tableHeadCell} max-sm:hidden`}>Responsável</th>
                 <th className={tableHeadCell}>A pagar</th>
@@ -40,7 +42,12 @@ export default async function KidsPage() {
                 <tr key={kid.id} className={tableRow}>
                   <td className={tableCell}>
                     {kid.name}
-                    {/* On phones the contact and responsible person go under the name */}
+                    {/* On phones the age group, contact and responsible person go under the name */}
+                    {kid.ageGroup && (
+                      <span className="block text-[13px] text-muted sm:hidden">
+                        {AGE_GROUP_LABELS[kid.ageGroup]}
+                      </span>
+                    )}
                     <span className="block text-[13px] text-muted sm:hidden">
                       {kid.contact}
                     </span>
@@ -50,6 +57,9 @@ export default async function KidsPage() {
                         <span className="whitespace-nowrap">{kid.guardianPhone}</span>
                       </span>
                     )}
+                  </td>
+                  <td className={`${tableCell} whitespace-nowrap max-sm:hidden`}>
+                    {kid.ageGroup ? AGE_GROUP_LABELS[kid.ageGroup] : ""}
                   </td>
                   <td className={`${tableCell} text-muted max-sm:hidden`}>
                     {kid.contact ?? ""}

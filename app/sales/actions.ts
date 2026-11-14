@@ -54,6 +54,7 @@ export async function createSale(
           kind: "new",
           name: formData.get("newKidName") ?? "",
           contact: formData.get("newKidContact") ?? undefined,
+          ageGroup: formData.get("newKidAgeGroup"),
         }
       : { kind: "existing", kidId: kidChoice }
   );
@@ -187,7 +188,11 @@ async function resolveBuyer(
 
   const [kid] = await tx
     .insert(kids)
-    .values({ name: buyer.name, contact: buyer.contact ? buyer.contact : null })
+    .values({
+      name: buyer.name,
+      contact: buyer.contact ? buyer.contact : null,
+      ageGroup: buyer.ageGroup ?? null,
+    })
     .returning({ id: kids.id });
   return kid.id;
 }

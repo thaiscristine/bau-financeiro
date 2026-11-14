@@ -14,18 +14,21 @@ function parseKidForm(formData: FormData) {
   const result = parseForm(kidFormSchema, {
     name: formData.get("name"),
     contact: formData.get("contact"),
+    ageGroup: formData.get("ageGroup"),
     isMinor: formData.get("isMinor") === "on",
     // The form only renders these when the box is ticked, so they can be missing
     guardianName: formData.get("guardianName") ?? undefined,
     guardianPhone: formData.get("guardianPhone") ?? undefined,
   });
   if (!result.ok) return result;
-  const { name, contact, isMinor, guardianName, guardianPhone } = result.data;
+  const { name, contact, ageGroup, isMinor, guardianName, guardianPhone } =
+    result.data;
   return {
     ok: true,
     values: {
       name,
       contact: contact ? contact : null,
+      ageGroup: ageGroup ?? null,
       isMinor,
       // An adult has no responsible person on file
       guardianName: isMinor ? guardianName! : null,

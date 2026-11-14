@@ -5,6 +5,7 @@ import type { SaleFormState } from "./actions";
 import { formatBRL, formatDate, todayISO } from "@/lib/format";
 import { planInstallments, toCents } from "@/lib/installments";
 import { NEW_KID } from "@/lib/validation";
+import { AgeGroupSelect } from "@/app/kids/age-group-select";
 import { Field, FormError, SubmitButton, useFormAction } from "@/components/form";
 import {
   formCardClass,
@@ -93,6 +94,11 @@ export function SaleForm({
               className={inputClass}
             />
           </Field>
+          <div className="sm:col-span-2">
+            <Field id="newKidAgeGroup" label="Ramo (opcional)">
+              <AgeGroupSelect id="newKidAgeGroup" />
+            </Field>
+          </div>
           <p className={`${hintClass} sm:col-span-2`}>
             O bandeirante é cadastrado junto com a venda.
           </p>

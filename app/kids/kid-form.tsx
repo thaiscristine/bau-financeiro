@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { KidFormState } from "./actions";
 import type { Kid } from "@/db/schema";
+import { AgeGroupSelect } from "./age-group-select";
 import {
   Field,
   FormError,
@@ -55,6 +56,10 @@ export function KidForm({
           defaultValue={kid?.contact ?? ""}
           className={inputClass}
         />
+      </Field>
+
+      <Field id="ageGroup" label="Ramo (opcional)">
+        <AgeGroupSelect id="ageGroup" defaultValue={kid?.ageGroup} />
       </Field>
 
       <label className="flex cursor-pointer items-start gap-3 border border-line bg-canvas p-4">

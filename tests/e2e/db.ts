@@ -20,3 +20,15 @@ export async function createUser(name: string, email: string, password: string) 
     [name, email, passwordHash]
   );
 }
+
+// A service item, so a sale needs no stock
+export async function createItem(name: string, price: string) {
+  const { rows } = await pool.query<{ id: number }>(
+    "insert into categories (name) values ($1) returning id",
+    [`Categoria de ${name}`]
+  );
+  await pool.query(
+    "insert into items (name, category_id, price, tracks_stock) values ($1, $2, $3, false)",
+    [name, rows[0].id, price]
+  );
+}

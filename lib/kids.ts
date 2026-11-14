@@ -21,6 +21,7 @@ export async function listKids() {
       id: kids.id,
       name: kids.name,
       contact: kids.contact,
+      ageGroup: kids.ageGroup,
       isMinor: kids.isMinor,
       guardianName: kids.guardianName,
       guardianPhone: kids.guardianPhone,
