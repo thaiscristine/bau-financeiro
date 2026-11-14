@@ -3,6 +3,7 @@ import { Logo } from "./logo";
 import { LogoutButton } from "./logout-button";
 import { NavLinks } from "./nav-links";
 import { primaryButtonClass } from "./styles";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Nav() {
   return (
@@ -16,6 +17,7 @@ export function Nav() {
           <span className="max-sm:sr-only">Baú Financeiro</span>
         </Link>
         <div className="ml-auto flex items-center gap-4 xl:order-last">
+          <ThemeToggle />
           <LogoutButton />
           <Link
             href="/entries/new"

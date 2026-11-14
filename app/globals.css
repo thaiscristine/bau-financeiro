@@ -1,38 +1,30 @@
 @import "tailwindcss";
 
+/* Each token is light-dark(light, dark). The device setting picks one unless
+   <html data-theme> (from the theme switch) pins it. */
 :root {
-  --canvas: #faf9f6;
-  --surface: #ffffff;
-  --sunken: #f1eee9;
-  --line: #dedbd6;
-  --line-soft: #ece9e4;
-  --ink: #111111;
-  --muted: #6b6862;
-  --blue: #0007cb;
-  --orange: #ff5600;
-  --income: #0007cb;
-  --cost: #c2410c;
-  --pending: #a16207;
+  color-scheme: light dark;
+  --canvas: light-dark(#faf9f6, #111110);
+  --surface: light-dark(#ffffff, #1a1918);
+  --sunken: light-dark(#f1eee9, #232220);
+  --line: light-dark(#dedbd6, #34322f);
+  --line-soft: light-dark(#ece9e4, #2a2826);
+  --ink: light-dark(#111111, #f1eee9);
+  --muted: light-dark(#6b6862, #a19d96);
+  --blue: light-dark(#0007cb, #6f75ff);
+  --orange: light-dark(#ff5600, #ff7a33);
+  --income: light-dark(#0007cb, #8c91ff);
+  --cost: light-dark(#c2410c, #ff8a4c);
+  --pending: light-dark(#a16207, #f2c14e);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --canvas: #111110;
-    --surface: #1a1918;
-    --sunken: #232220;
-    --line: #34322f;
-    --line-soft: #2a2826;
-    --ink: #f1eee9;
-    --muted: #a19d96;
-    --blue: #6f75ff;
-    --orange: #ff7a33;
-    --income: #8c91ff;
-    --cost: #ff8a4c;
-    --pending: #f2c14e;
-  }
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
 @theme inline {
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
