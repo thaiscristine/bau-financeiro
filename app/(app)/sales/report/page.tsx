@@ -8,6 +8,7 @@ import { parseSalesReportPeriod, periodQuery, type SalesReportPeriod } from "@/l
 import { storeProfit } from "@/lib/sales-report/profit";
 import { getSalesByMonth, getSalesTotals, listDebtors, listTopItems } from "@/lib/sales-report/queries";
 import { EmptyState, Page, Section } from "@/components/page";
+import { LinkedRow } from "@/components/linked-row";
 import { Stat, statGridClass } from "@/components/stat";
 import {
   cardClass,
@@ -249,13 +250,11 @@ export default async function SalesReportPage({ searchParams }: PageProps<"/sale
               </thead>
               <tbody>
                 {debtors.map((kid) => (
-                  // relative + the link's after: overlay make the whole row
-                  // open the bandeirante, while it stays a real link
-                  <tr key={kid.id} className={`${tableRow} relative`}>
+                  <LinkedRow key={kid.id} className={tableRow}>
                     <td className={tableCell}>
                       <Link
                         href={`/kids/${kid.id}`}
-                        className="underline-offset-4 after:absolute after:inset-0 hover:underline"
+                        className="underline-offset-4 hover:underline"
                       >
                         {kid.name}
                       </Link>
@@ -282,7 +281,7 @@ export default async function SalesReportPage({ searchParams }: PageProps<"/sale
                         Ver
                       </Link>
                     </td>
-                  </tr>
+                  </LinkedRow>
                 ))}
               </tbody>
             </table>

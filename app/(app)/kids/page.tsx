@@ -11,6 +11,7 @@ import {
   type AgeGroupFilter,
 } from "@/lib/age-groups";
 import { EmptyState, Page } from "@/components/page";
+import { LinkedRow } from "@/components/linked-row";
 import { FormDialog } from "@/components/form-dialog";
 import { AgeGroupLabel } from "@/components/age-group";
 import {
@@ -89,9 +90,7 @@ export default async function KidsPage({ searchParams }: PageProps<"/kids">) {
                 </thead>
                 <tbody>
                   {rows.map((kid) => (
-                    // relative + the link's after: overlay make the whole row
-                    // open the bandeirante, while it stays a real link
-                    <tr key={kid.id} className={`${tableRow} relative`}>
+                    <LinkedRow key={kid.id} className={tableRow}>
                       <td className={tableCell}>
                         {kid.name}
                         {/* On phones the age group, contact and responsible person go under the name */}
@@ -138,12 +137,12 @@ export default async function KidsPage({ searchParams }: PageProps<"/kids">) {
                       <td className={`${tableCell} text-right`}>
                         <Link
                           href={`/kids/${kid.id}`}
-                          className={`${linkClass} after:absolute after:inset-0`}
+                          className={linkClass}
                         >
                           Ver
                         </Link>
                       </td>
-                    </tr>
+                    </LinkedRow>
                   ))}
                 </tbody>
               </table>
