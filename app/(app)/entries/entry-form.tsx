@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { EntryFormState } from "./actions";
 import { todayISO } from "@/lib/format";
-import { EVENTS_CATEGORY_NAME } from "@/lib/category-names";
+import { SCREEN_CATEGORIES } from "@/lib/category-names";
 import type { Category, Entry } from "@/db/schema";
 import {
   ChoiceGroup,
@@ -55,10 +55,10 @@ export function EntryForm({
     (option) =>
       !options.includes(option) &&
       !option.allowsManualEntry &&
-      option.name !== EVENTS_CATEGORY_NAME
+      !SCREEN_CATEGORIES[option.name]
   );
-  const hidesEvents = categories.some(
-    (option) => !options.includes(option) && option.name === EVENTS_CATEGORY_NAME
+  const hiddenScreenCategories = categories.filter(
+    (option) => !options.includes(option) && SCREEN_CATEGORIES[option.name]
   );
   const hiddenContributionCategories = categories.filter(
     (option) => !options.includes(option) && option.allowsManualEntry
@@ -142,15 +142,18 @@ export function EntryForm({
             , que também atualiza o estoque.
           </p>
         )}
-        {hidesEvents && (
-          <p className={hintClass}>
-            {EVENTS_CATEGORY_NAME}: registre pela tela{" "}
-            <Link href="/events" className="text-ink underline underline-offset-2">
-              Eventos
-            </Link>
-            , em cada evento.
-          </p>
-        )}
+        {hiddenScreenCategories.map((option) => {
+          const screen = SCREEN_CATEGORIES[option.name];
+          return (
+            <p key={option.id} className={hintClass}>
+              {option.name}: registre pela tela{" "}
+              <Link href={screen.href} className="text-ink underline underline-offset-2">
+                {screen.screen}
+              </Link>
+              , {screen.where}.
+            </p>
+          );
+        })}
       </Field>
 
       {category?.requiresKid ? (

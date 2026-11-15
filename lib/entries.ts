@@ -9,6 +9,7 @@ import {
   eventExpenses,
   eventInstallments,
   eventParticipants,
+  fixedCostMonths,
   installments,
   kids,
   sales,
@@ -21,8 +22,8 @@ const eventKids = alias(kids, "event_kids");
 
 // saleId is set when the entry records an installment payment, itemId when it
 // paid for a restock, contributionKidId when it paid a month's contribution and
-// eventId when it is an event payment or expense. Those entries are managed
-// from there, not edited directly.
+// eventId when it is an event payment or expense, fixedCostId when it paid a
+// fixed cost's month. Those entries are managed from there, not edited directly.
 export async function listEntries() {
   return db
     .select({
@@ -39,6 +40,7 @@ export async function listEntries() {
       itemId: stockMovements.itemId,
       contributionKidId: contributions.kidId,
       eventId: sql<number | null>`coalesce(${eventParticipants.eventId}, ${eventExpenses.eventId})`,
+      fixedCostId: fixedCostMonths.fixedCostId,
     })
     .from(entries)
     .innerJoin(categories, eq(categories.id, entries.categoryId))
@@ -52,6 +54,7 @@ export async function listEntries() {
     .leftJoin(eventParticipants, eq(eventParticipants.id, eventInstallments.participantId))
     .leftJoin(eventKids, eq(eventKids.id, eventParticipants.kidId))
     .leftJoin(eventExpenses, eq(eventExpenses.entryId, entries.id))
+    .leftJoin(fixedCostMonths, eq(fixedCostMonths.entryId, entries.id))
     .orderBy(desc(entries.entryDate), desc(entries.id));
 }
 
@@ -63,6 +66,7 @@ export async function getEntry(id: number) {
       itemId: stockMovements.itemId,
       contributionKidId: contributions.kidId,
       eventId: sql<number | null>`coalesce(${eventParticipants.eventId}, ${eventExpenses.eventId})`,
+      fixedCostId: fixedCostMonths.fixedCostId,
     })
     .from(entries)
     .leftJoin(contributions, eq(contributions.entryId, entries.id))
@@ -71,6 +75,7 @@ export async function getEntry(id: number) {
     .leftJoin(eventInstallments, eq(eventInstallments.entryId, entries.id))
     .leftJoin(eventParticipants, eq(eventParticipants.id, eventInstallments.participantId))
     .leftJoin(eventExpenses, eq(eventExpenses.entryId, entries.id))
+    .leftJoin(fixedCostMonths, eq(fixedCostMonths.entryId, entries.id))
     .where(eq(entries.id, id))
     .limit(1);
   return row;

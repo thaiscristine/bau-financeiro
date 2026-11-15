@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/dal";
-import { EVENTS_CATEGORY_NAME, SHOP_CATEGORY_NAME } from "@/lib/category-names";
+import {
+  EVENTS_CATEGORY_NAME,
+  FIXED_COSTS_CATEGORY_NAME,
+  SHOP_CATEGORY_NAME,
+} from "@/lib/category-names";
 import { PASSWORD_MIN_LENGTH } from "@/lib/validation";
 import { LOW_STOCK } from "@/lib/reports/definitions";
 import { Page } from "@/components/page";
@@ -16,6 +20,7 @@ const TOPICS = [
   { id: "primeiros-passos", title: "Primeiros passos" },
   { id: "painel", title: "Painel" },
   { id: "transacoes", title: "Transações" },
+  { id: "custos-fixos", title: "Custos fixos" },
   { id: "lojinha", title: "Lojinha: vendas e parcelas" },
   { id: "estoque", title: "Estoque" },
   { id: "relatorio-lojinha", title: "Relatório da Lojinha" },
@@ -181,6 +186,11 @@ export default async function HelpPage() {
                 Clique num ramo para ver quem deve e quanto; clique no nome
                 para abrir a página da bandeirante.
               </Li>
+              <Li>
+                <Term>Custos fixos a pagar</Term>: o que falta pagar dos custos
+                fixos dos meses do período. Fica laranja quando algum já passou
+                do vencimento; <Ui>Ver</Ui> abre a tela Custos fixos.
+              </Li>
             </ul>
           </Topic>
 
@@ -224,11 +234,12 @@ export default async function HelpPage() {
             <Note>
               Transações criadas pela Lojinha (parcelas pagas), pelo Estoque
               (compra de mercadoria), pela página do bandeirante (contribuição
-              mensal) ou por um evento mostram <Ui>Ver venda</Ui>,{" "}
-              <Ui>Ver estoque</Ui>, <Ui>Ver bandeirante</Ui> ou{" "}
-              <Ui>Ver evento</Ui> no lugar de Editar. Corrija pela tela de
-              origem, assim a venda, o estoque, os meses de contribuição ou o
-              evento ficam certos também.
+              mensal), por um evento ou por um custo fixo mostram{" "}
+              <Ui>Ver venda</Ui>, <Ui>Ver estoque</Ui>, <Ui>Ver bandeirante</Ui>,{" "}
+              <Ui>Ver evento</Ui> ou <Ui>Ver custo fixo</Ui> no lugar de
+              Editar. Corrija pela tela de origem, assim a venda, o estoque, os
+              meses de contribuição, o evento ou o custo fixo ficam certos
+              também.
             </Note>
             <Note>
               Transações registradas antes de a forma de pagamento existir
@@ -243,7 +254,71 @@ export default async function HelpPage() {
               A categoria {SHOP_CATEGORY_NAME} não aparece em Nova transação:
               vendas de itens são registradas pela Lojinha, que também baixa o
               estoque. Do mesmo jeito, {EVENTS_CATEGORY_NAME} é registrada só
-              pela tela Eventos.
+              pela tela Eventos e {FIXED_COSTS_CATEGORY_NAME} só pela tela
+              Custos fixos.
+            </Note>
+          </Topic>
+
+          <Topic id="custos-fixos" screen="/fixed-costs">
+            <P>
+              As contas que a organização paga todo mês, como aluguel, internet
+              e energia. Fica em Transações, na aba <Ui>Custos fixos</Ui>. Cada
+              custo é cobrado mês a mês, e cada pagamento entra em Transações
+              como saída na categoria {FIXED_COSTS_CATEGORY_NAME}, com o
+              fornecedor.
+            </P>
+            <Task title="Cadastrar um custo fixo">
+              <Steps>
+                <li>
+                  Clique em <Ui>Novo custo fixo</Ui>.
+                </li>
+                <li>
+                  Preencha o <Ui>Nome</Ui>, o <Ui>Fornecedor</Ui> (opcional), o{" "}
+                  <Ui>Valor (R$)</Ui> e o <Ui>Dia do vencimento</Ui>. Num mês
+                  sem esse dia, como fevereiro para o dia 31, vence no último
+                  dia do mês.
+                </li>
+                <li>
+                  Escolha o <Ui>Primeiro mês</Ui>. Pode ser um mês passado,
+                  para registrar o que já foi pago.
+                </li>
+                <li>
+                  Marque <Ui>O valor muda todo mês</Ui> para contas como
+                  energia e água.
+                </li>
+                <li>
+                  Clique em <Ui>Adicionar custo fixo</Ui>.
+                </li>
+              </Steps>
+            </Task>
+            <Task title="Pagar um mês">
+              <Steps>
+                <li>
+                  Na linha do custo, clique em <Ui>Pagar</Ui>.
+                </li>
+                <li>
+                  Confira o <Ui>Valor pago (R$)</Ui>: vem com o valor de
+                  costume, e pode ser mudado quando a conta veio diferente.
+                </li>
+                <li>
+                  Informe a <Ui>Data do pagamento</Ui> e a{" "}
+                  <Ui>Forma de pagamento</Ui>, e clique em{" "}
+                  <Ui>Registrar pagamento</Ui>.
+                </li>
+              </Steps>
+            </Task>
+            <P>
+              <Ui>Desfazer</Ui> volta o mês para em aberto e exclui a saída de
+              Transações. O quadro <Term>Últimos 6 meses</Term> mostra cada
+              custo lado a lado, com um ponto laranja no mês que venceu e não
+              foi pago; clique no nome do mês para abri-lo e pagar.
+            </P>
+            <Note>
+              Clique no nome de um custo para ver todos os seus meses e mudar
+              os dados. Um novo valor vale para os meses em aberto a partir do
+              atual; os meses passados ficam como foram cobrados.{" "}
+              <Ui>Encerrar custo fixo</Ui> para de cobrar a partir do mês
+              seguinte. Só dá para excluir um custo que nunca foi pago.
             </Note>
           </Topic>
 
@@ -670,8 +745,9 @@ export default async function HelpPage() {
             <Note>
               Uma categoria só pode ser excluída quando não está em uso. A
               categoria {SHOP_CATEGORY_NAME} é a dos itens do estoque e{" "}
-              {EVENTS_CATEGORY_NAME} é a dos eventos; essas duas não podem ser
-              renomeadas nem excluídas.
+              {EVENTS_CATEGORY_NAME} é a dos eventos, e{" "}
+              {FIXED_COSTS_CATEGORY_NAME} a dos custos fixos; essas três não
+              podem ser renomeadas nem excluídas.
             </Note>
           </Topic>
 

@@ -9,6 +9,7 @@ import {
   contributions,
   entries,
   eventExpenses,
+  fixedCostMonths,
   eventInstallments,
   installments,
   kids,
@@ -17,7 +18,7 @@ import {
 } from "@/db/schema";
 import { entryFormSchema, parseForm } from "@/lib/validation";
 import { requireSession } from "@/lib/dal";
-import { EVENTS_CATEGORY_NAME } from "@/lib/category-names";
+import { SCREEN_CATEGORIES } from "@/lib/category-names";
 
 export type EntryFormState =
   | { error?: string; saved?: number; savedType?: Entry["type"] }
@@ -55,12 +56,12 @@ async function parseEntryForm(formData: FormData, currentCategoryId?: number) {
   if (!category) return { ok: false, error: "Esta categoria não existe mais." } as const;
 
   if (!category.allowsManualEntry && categoryId !== currentCategoryId) {
+    const screen = SCREEN_CATEGORIES[category.name];
     return {
       ok: false,
-      error:
-        category.name === EVENTS_CATEGORY_NAME
-          ? `${category.name} é registrada pela tela Eventos, em cada evento.`
-          : `${category.name} é registrada pela tela Lojinha, para o estoque ser atualizado.`,
+      error: screen
+        ? `${category.name} é registrada pela tela ${screen.screen}, ${screen.where}.`
+        : `${category.name} é registrada pela tela Lojinha, para o estoque ser atualizado.`,
     } as const;
   }
 
@@ -95,10 +96,10 @@ async function parseEntryForm(formData: FormData, currentCategoryId?: number) {
   } as const;
 }
 
-// Installment payments, restock purchases, monthly contributions and event
-// money are changed from where they were created
+// Installment payments, restock purchases, monthly contributions, event money
+// and fixed cost payments are changed from where they were created
 async function isManagedElsewhere(id: number) {
-  const [[installment], [movement], [contribution], [eventInstallment], [eventExpense]] =
+  const [[installment], [movement], [contribution], [eventInstallment], [eventExpense], [fixedCost]] =
     await Promise.all([
       db
         .select({ id: installments.id })
@@ -125,8 +126,15 @@ async function isManagedElsewhere(id: number) {
         .from(eventExpenses)
         .where(eq(eventExpenses.entryId, id))
         .limit(1),
+      db
+        .select({ id: fixedCostMonths.id })
+        .from(fixedCostMonths)
+        .where(eq(fixedCostMonths.entryId, id))
+        .limit(1),
     ]);
-  return Boolean(installment || movement || contribution || eventInstallment || eventExpense);
+  return Boolean(
+    installment || movement || contribution || eventInstallment || eventExpense || fixedCost
+  );
 }
 
 function revalidateEntries() {

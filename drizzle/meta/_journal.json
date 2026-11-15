@@ -148,6 +148,20 @@
       "when": 1794691214977,
       "tag": "0020_event_charges",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794702454780,
+      "tag": "0021_fixed_costs",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794702455180,
+      "tag": "0022_fixed_costs_category_data",
+      "breakpoints": true
     }
   ]
 }

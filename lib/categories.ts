@@ -2,7 +2,11 @@ import "server-only";
 import { asc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { categories, entries, items } from "@/db/schema";
-import { EVENTS_CATEGORY_NAME, SHOP_CATEGORY_NAME } from "@/lib/category-names";
+import {
+  EVENTS_CATEGORY_NAME,
+  FIXED_COSTS_CATEGORY_NAME,
+  SHOP_CATEGORY_NAME,
+} from "@/lib/category-names";
 
 type Executor = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -15,18 +19,26 @@ export async function getShopCategoryId() {
   return category?.id;
 }
 
-// A migration creates the category; inserting it when missing keeps event
+// A migration creates these categories; inserting one when missing keeps
 // payments working on a database that lost it, such as a wiped test database
-export async function eventsCategoryId(tx: Executor) {
+async function lockedCategoryId(tx: Executor, name: string) {
   await tx
     .insert(categories)
-    .values({ name: EVENTS_CATEGORY_NAME, allowsManualEntry: false })
+    .values({ name, allowsManualEntry: false })
     .onConflictDoNothing();
   const [category] = await tx
     .select({ id: categories.id })
     .from(categories)
-    .where(eq(categories.name, EVENTS_CATEGORY_NAME));
+    .where(eq(categories.name, name));
   return category.id;
+}
+
+export function eventsCategoryId(tx: Executor) {
+  return lockedCategoryId(tx, EVENTS_CATEGORY_NAME);
+}
+
+export function fixedCostsCategoryId(tx: Executor) {
+  return lockedCategoryId(tx, FIXED_COSTS_CATEGORY_NAME);
 }
 
 export async function listCategories() {

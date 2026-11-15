@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireSession } from "@/lib/dal";
 import { getIncomeByCategory, getTotals, getTotalsByPaymentMethod } from "@/lib/entries";
 import { paymentMethodLabel } from "@/lib/payment-methods";
@@ -7,10 +8,12 @@ import { ensureContributions, getContributionsByAgeGroup } from "@/lib/contribut
 import { parseDashboardPeriod } from "@/lib/dashboard-period";
 import { toSearchParams } from "@/lib/reports/filters";
 import { formatBRL, todayISO } from "@/lib/format";
+import { ensureFixedCostMonths, getFixedCostsDue } from "@/lib/fixed-costs";
 import { EmptyState, Page, Section } from "@/components/page";
 import { Eyebrow } from "@/components/eyebrow";
 import {
   cardClass,
+  linkClass,
   tableCell,
   tableClass,
   tableHeadCell,
@@ -30,7 +33,7 @@ export default async function DashboardPage({
     toSearchParams(await searchParams),
     today
   );
-  await ensureContributions(today);
+  await Promise.all([ensureContributions(today), ensureFixedCostMonths(today)]);
   const [
     totals,
     incomeByCategory,
@@ -38,6 +41,7 @@ export default async function DashboardPage({
     saleReceivables,
     eventReceivables,
     contributionsByAgeGroup,
+    fixedCostsDue,
   ] = await Promise.all([
     getTotals(range),
     getIncomeByCategory(range),
@@ -45,6 +49,7 @@ export default async function DashboardPage({
     getReceivables(today, range),
     getEventReceivables(today, range),
     getContributionsByAgeGroup(today, range),
+    getFixedCostsDue(today, range),
   ]);
   // Installments of Lojinha sales and of events alike
   const receivables = {
@@ -65,7 +70,7 @@ export default async function DashboardPage({
             tone={totals.balance >= 0 ? "neutral" : "negative"}
           />
         </div>
-        <div className={`grid grid-cols-1 sm:grid-cols-2 ${cardClass}`}>
+        <div className={`grid grid-cols-1 sm:grid-cols-3 ${cardClass}`}>
           <StatCard
             label="A receber em parcelas"
             value={receivables.pending}
@@ -75,6 +80,12 @@ export default async function DashboardPage({
             label="Parcelas atrasadas"
             value={receivables.overdue}
             tone={receivables.overdue > 0 ? "negative" : "neutral"}
+          />
+          <StatCard
+            label="Custos fixos a pagar"
+            value={fixedCostsDue.pending}
+            tone={fixedCostsDue.overdue > 0 ? "negative" : "pending"}
+            href="/fixed-costs"
           />
         </div>
       </div>
@@ -181,14 +192,26 @@ function StatCard({
   label,
   value,
   tone,
+  href,
 }: {
   label: string;
   value: number;
   tone: keyof typeof TONES;
+  // The page with the details behind the figure
+  href?: string;
 }) {
   return (
     <div className="flex flex-col gap-8 border-line p-6 not-last:border-b sm:not-last:border-r sm:not-last:border-b-0">
-      <Eyebrow tone={TONES[tone].square}>{label}</Eyebrow>
+      {href ? (
+        <div className="flex items-center justify-between gap-3">
+          <Eyebrow tone={TONES[tone].square}>{label}</Eyebrow>
+          <Link href={href} className={`${linkClass} text-[13px] leading-4`}>
+            Ver
+          </Link>
+        </div>
+      ) : (
+        <Eyebrow tone={TONES[tone].square}>{label}</Eyebrow>
+      )}
       <p
         className={`text-4xl leading-none tracking-[-0.03em] tabular-nums ${TONES[tone].value}`}
       >

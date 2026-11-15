@@ -30,7 +30,8 @@ export function Modal({
       ref={ref}
       aria-labelledby={titleId}
       onClose={onClose}
-      className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg border border-line bg-surface text-ink backdrop:bg-backdrop"
+      // text-left: a modal opened from a right-aligned table cell would inherit it
+      className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg border border-line bg-surface text-left text-ink backdrop:bg-backdrop"
     >
       <div className="flex items-center justify-between gap-4 border-b border-line px-6 py-4 sm:px-8">
         <h2 id={titleId} className="text-2xl leading-tight tracking-[-0.03em]">

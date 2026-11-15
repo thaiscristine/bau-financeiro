@@ -2,7 +2,9 @@ import { requireSession } from "@/lib/dal";
 import { listCategoriesWithUsage } from "@/lib/categories";
 import {
   EVENTS_CATEGORY_NAME,
+  FIXED_COSTS_CATEGORY_NAME,
   LOCKED_CATEGORY_NAMES,
+  SCREEN_CATEGORIES,
   SHOP_CATEGORY_NAME,
 } from "@/lib/category-names";
 import { Page } from "@/components/page";
@@ -33,8 +35,9 @@ export default async function CategoriesPage() {
         <p>
           De onde vem ou para onde vai o dinheiro. Os itens do estoque são todos
           da categoria {SHOP_CATEGORY_NAME}, e o que entra e sai dos eventos
-          fica em {EVENTS_CATEGORY_NAME}. Por isso essas duas não podem ser
-          renomeadas nem excluídas.
+          fica em {EVENTS_CATEGORY_NAME}, assim como os pagamentos dos custos
+          fixos ficam em {FIXED_COSTS_CATEGORY_NAME}. Por isso essas três não
+          podem ser renomeadas nem excluídas.
         </p>
         <ul className="flex flex-col gap-2">
           <li>
@@ -67,8 +70,8 @@ export default async function CategoriesPage() {
           <tbody>
             {rows.map((category) => {
               const isLocked = LOCKED_CATEGORY_NAMES.includes(category.name);
-              // Recorded only from the Eventos screen, so its rules don't change
-              const isEvents = category.name === EVENTS_CATEGORY_NAME;
+              // Recorded only from its own screen, so its rules don't change
+              const screen = SCREEN_CATEGORIES[category.name];
               const inUse = category.entryCount + category.itemCount > 0;
               return (
                 <tr key={category.id} className={tableRow}>
@@ -82,9 +85,9 @@ export default async function CategoriesPage() {
                       />
                     )}
                   </td>
-                  {isEvents ? (
+                  {screen ? (
                     <td colSpan={2} className={`${tableCell} text-center text-muted`}>
-                      Só pela tela Eventos
+                      Só pela tela {screen.screen}
                     </td>
                   ) : (
                     <>

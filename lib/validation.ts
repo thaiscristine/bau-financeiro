@@ -296,6 +296,29 @@ export const paymentFormSchema = z.object({
   paymentMethod,
 });
 
+export const fixedCostFormSchema = z.object({
+  name: z.string().trim().min(1, { error: "Informe o nome do custo." }),
+  supplier: optionalText,
+  dueDay: z.coerce
+    .number({ error: "Informe o dia do vencimento." })
+    .int({ error: "O dia do vencimento deve ser inteiro." })
+    .min(1, { error: "Informe um dia entre 1 e 31." })
+    .max(31, { error: "Informe um dia entre 1 e 31." }),
+  amount: money,
+  // A checkbox: sent only when checked
+  variable: z.preprocess((value) => value === "on", z.boolean()),
+});
+
+// The month a new fixed cost starts being charged, from a month input
+export const fixedCostStartSchema = z.object({
+  startMonth: z
+    .string({ error: "Informe o mês do primeiro pagamento." })
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/, { error: "Informe o mês do primeiro pagamento." }),
+});
+
+// Paying a fixed cost confirms its amount, since bills like energy vary
+export const fixedCostPaymentFormSchema = paymentFormSchema.extend({ amount: money });
+
 export const contributionLinkFormSchema = z.object({
   contributionId: id("Selecione o mês."),
 });
