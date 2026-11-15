@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { categories } from "@/db/schema";
 import { categoryFormSchema, parseForm } from "@/lib/validation";
 import { requireSession } from "@/lib/dal";
-import { EVENTS_CATEGORY_NAME, LOCKED_CATEGORY_NAMES } from "@/lib/category-names";
+import { LOCKED_CATEGORY_NAMES, SCREEN_CATEGORIES } from "@/lib/category-names";
 import { pgErrorCode, PG_FOREIGN_KEY_VIOLATION, PG_UNIQUE_VIOLATION } from "@/lib/db-errors";
 
 export type CategoryFormState = { error?: string; saved?: number } | undefined;
@@ -100,11 +100,12 @@ export async function setCategoryRule(
     if (other) return;
   }
 
-  // Event money is only recorded from the Eventos screen, so its rules stay put
+  // Event money and fixed costs are only recorded from their screens, so their
+  // rules stay put
   await db
     .update(categories)
     .set({ [rule]: value })
-    .where(and(eq(categories.id, id), ne(categories.name, EVENTS_CATEGORY_NAME)));
+    .where(and(eq(categories.id, id), notInArray(categories.name, Object.keys(SCREEN_CATEGORIES))));
 
   revalidateCategories();
 }

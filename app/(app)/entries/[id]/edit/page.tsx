@@ -22,12 +22,13 @@ export default async function EditEntryPage({
     listKids(),
   ]);
   if (!row) notFound();
-  // Installment payments, restock purchases, monthly contributions and event
-  // money are changed from where they came from
+  // Installment payments, restock purchases, monthly contributions, event money
+  // and fixed cost payments are changed from where they came from
   if (row.saleId) redirect(`/sales/${row.saleId}`);
   if (row.itemId) redirect(`/inventory/${row.itemId}`);
   if (row.contributionKidId) redirect(`/kids/${row.contributionKidId}`);
   if (row.eventId) redirect(`/events/${row.eventId}`);
+  if (row.fixedCostId) redirect(`/fixed-costs/${row.fixedCostId}`);
   const { entry } = row;
 
   return (

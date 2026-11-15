@@ -8,7 +8,7 @@ import { ensureContributions, getContributionsByAgeGroup } from "@/lib/contribut
 import { parseDashboardPeriod } from "@/lib/dashboard-period";
 import { toSearchParams } from "@/lib/reports/filters";
 import { formatBRL, todayISO } from "@/lib/format";
-import { monthsUpTo, sampleMonths } from "@/lib/fixed-costs-preview";
+import { ensureFixedCostMonths, getFixedCostsDue } from "@/lib/fixed-costs";
 import { EmptyState, Page, Section } from "@/components/page";
 import { Eyebrow } from "@/components/eyebrow";
 import {
@@ -33,7 +33,7 @@ export default async function DashboardPage({
     toSearchParams(await searchParams),
     today
   );
-  await ensureContributions(today);
+  await Promise.all([ensureContributions(today), ensureFixedCostMonths(today)]);
   const [
     totals,
     incomeByCategory,
@@ -41,6 +41,7 @@ export default async function DashboardPage({
     saleReceivables,
     eventReceivables,
     contributionsByAgeGroup,
+    fixedCostsDue,
   ] = await Promise.all([
     getTotals(range),
     getIncomeByCategory(range),
@@ -48,17 +49,13 @@ export default async function DashboardPage({
     getReceivables(today, range),
     getEventReceivables(today, range),
     getContributionsByAgeGroup(today, range),
+    getFixedCostsDue(today, range),
   ]);
   // Installments of Lojinha sales and of events alike
   const receivables = {
     pending: saleReceivables.pending + eventReceivables.pending,
     overdue: saleReceivables.overdue + eventReceivables.overdue,
   };
-  // Sample figures until fixed costs are stored
-  const currentMonth = monthsUpTo(today, 1)[0];
-  const fixedCostsDue = sampleMonths(today)
-    .filter((row) => row.month === currentMonth && !row.paidDate)
-    .reduce((sum, row) => sum + row.amount, 0);
 
   return (
     <Page title="Painel">
@@ -85,9 +82,9 @@ export default async function DashboardPage({
             tone={receivables.overdue > 0 ? "negative" : "neutral"}
           />
           <StatCard
-            label="Custos fixos a pagar no mês"
-            value={fixedCostsDue}
-            tone="pending"
+            label="Custos fixos a pagar"
+            value={fixedCostsDue.pending}
+            tone={fixedCostsDue.overdue > 0 ? "negative" : "pending"}
             href="/fixed-costs"
           />
         </div>
@@ -205,14 +202,16 @@ function StatCard({
 }) {
   return (
     <div className="flex flex-col gap-8 border-line p-6 not-last:border-b sm:not-last:border-r sm:not-last:border-b-0">
-      <div className="flex items-center justify-between gap-3">
-        <Eyebrow tone={TONES[tone].square}>{label}</Eyebrow>
-        {href && (
+      {href ? (
+        <div className="flex items-center justify-between gap-3">
+          <Eyebrow tone={TONES[tone].square}>{label}</Eyebrow>
           <Link href={href} className={`${linkClass} text-[13px] leading-4`}>
             Ver
           </Link>
-        )}
-      </div>
+        </div>
+      ) : (
+        <Eyebrow tone={TONES[tone].square}>{label}</Eyebrow>
+      )}
       <p
         className={`text-4xl leading-none tracking-[-0.03em] tabular-nums ${TONES[tone].value}`}
       >

@@ -148,9 +148,16 @@ function TypeLabel({ type }: { type: EntryRow["type"] }) {
   );
 }
 
-// Installment payments, restock purchases, monthly contributions and event
-// money are changed from where they came from
+// Installment payments, restock purchases, monthly contributions, event money
+// and fixed cost payments are changed from where they came from
 function EntryActions({ entry }: { entry: EntryRow }) {
+  if (entry.fixedCostId) {
+    return (
+      <Link href={`/fixed-costs/${entry.fixedCostId}`} className={linkClass}>
+        Ver custo fixo
+      </Link>
+    );
+  }
   if (entry.eventId) {
     return (
       <Link href={`/events/${entry.eventId}`} className={linkClass}>

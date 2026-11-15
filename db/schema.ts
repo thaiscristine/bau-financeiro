@@ -341,6 +341,59 @@ export const eventExpenses = pgTable("event_expenses", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// A bill the organization pays every month, such as rent or internet. Each
+// month it is charged gets a row in fixed_cost_months, from startMonth to
+// endMonth, the last month charged once the cost is ended. amount is the usual
+// value; variable ones, like the energy bill, are confirmed when paid.
+export const fixedCosts = pgTable(
+  "fixed_costs",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    supplier: text("supplier"),
+    // Day of the month it is due; months without that day use their last one
+    dueDay: integer("due_day").notNull(),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+    variable: boolean("variable").notNull().default(false),
+    startMonth: date("start_month").notNull(),
+    endMonth: date("end_month"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    check("fixed_costs_due_day_in_month", sql`${table.dueDay} between 1 and 31`),
+    check("fixed_costs_start_month_is_first_day", sql`extract(day from ${table.startMonth}) = 1`),
+    check(
+      "fixed_costs_end_month_after_start",
+      sql`${table.endMonth} is null or (extract(day from ${table.endMonth}) = 1 and ${table.endMonth} >= ${table.startMonth})`
+    ),
+  ]
+);
+
+// One row per fixed cost per month it is charged (month is its first day).
+// Like a contribution, a month is paid when it points to the cost entry that
+// recorded the payment. The amount is kept per month, so changing the cost
+// leaves the months already charged as they were.
+export const fixedCostMonths = pgTable(
+  "fixed_cost_months",
+  {
+    id: serial("id").primaryKey(),
+    fixedCostId: integer("fixed_cost_id")
+      .references(() => fixedCosts.id, { onDelete: "cascade" })
+      .notNull(),
+    month: date("month").notNull(),
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+    entryId: integer("entry_id")
+      .references(() => entries.id, { onDelete: "set null" })
+      .unique(),
+  },
+  (table) => [
+    unique().on(table.fixedCostId, table.month),
+    check("fixed_cost_months_month_is_first_day", sql`extract(day from ${table.month}) = 1`),
+  ]
+);
+
+export type FixedCost = typeof fixedCosts.$inferSelect;
+
 export type Category = typeof categories.$inferSelect;
 export type Entry = typeof entries.$inferSelect;
 export type Kid = typeof kids.$inferSelect;
