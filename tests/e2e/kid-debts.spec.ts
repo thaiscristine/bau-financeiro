@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createItem, createKid, createUser, query, recordSale, reset } from "./db";
+import { likeOldSafari } from "./old-safari";
 import { login } from "./session";
 
 // The app's today, in the organization's timezone
@@ -30,6 +31,8 @@ function debtsSection(page: Page) {
 }
 
 test.beforeEach(async ({ page }) => {
+  // Every list here opens from the whole row
+  await likeOldSafari(page);
   await reset();
   await createUser("Ana", "ana@example.com", "senha-da-ana");
 
@@ -92,8 +95,7 @@ test("a bandeirante's page opens with everything they owe, per origin", async ({
   await expect(row).toContainText("R$ 95,00 atrasado");
   await expect(page.getByRole("row", { name: /Caio/ })).toContainText(money("0,00"));
 
-  // force: the row's link overlay covers the cell; see kids.spec.ts
-  await row.getByRole("cell", { name: "Bia" }).click({ force: true });
+  await row.getByRole("cell", { name: "Bia" }).click();
   await expect(page.getByRole("heading", { name: "Bia", level: 1 })).toBeVisible();
   const debts = debtsSection(page);
   await expect(stat(page, "A pagar")).toContainText(money("180,00"));
@@ -114,7 +116,10 @@ test("a bandeirante's page opens with everything they owe, per origin", async ({
   await expect(rows.nth(2)).toContainText(money("40,00"));
 
   // Each row opens where that charge is paid
-  await rows.nth(2).getByText("Evento").click({ force: true });
+  await rows.nth(1).getByText(/^Lojinha/).click();
+  await expect(page).toHaveURL(/\/sales\/\d+$/);
+  await page.goBack();
+  await rows.nth(2).getByText(/^Evento/).click();
   await expect(page).toHaveURL(/\/events\/\d+\/participants\/\d+$/);
   await page.goBack();
   await debtsSection(page).getByRole("link", { name: "Contribuição mensal" }).click();
@@ -141,7 +146,7 @@ test("a bandeirante's name opens their page from every list", async ({ page }) =
 
   // Anywhere on a debtor's row
   await page.goto("/sales/report");
-  await page.getByRole("row", { name: /Bia/ }).getByText(money("15,00")).click({ force: true });
+  await page.getByRole("row", { name: /Bia/ }).getByText(money("15,00")).click();
   await expectBia();
 
   await page.goto("/events");

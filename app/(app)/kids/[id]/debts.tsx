@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getKidDebts } from "@/lib/debts";
 import { formatBRL, formatDate } from "@/lib/format";
 import { EmptyState, Section } from "@/components/page";
+import { LinkedRow } from "@/components/linked-row";
 import { Stat, statGridClass } from "@/components/stat";
 import {
   tableCell,
@@ -108,16 +109,15 @@ export async function KidDebts({ kidId, today }: { kidId: number; today: string 
               </thead>
               <tbody>
                 {debts.map((debt) => (
-                  // relative + the link's after: overlay make the whole row
-                  // open where the charge is paid, while it stays a real link
-                  <tr
+                  // The whole row opens where the charge is paid
+                  <LinkedRow
                     key={`${debt.kind}-${debt.saleId ?? debt.participantId ?? 0}-${debt.chargeId ?? 0}`}
-                    className={`${tableRow} relative`}
+                    className={tableRow}
                   >
                     <td className={tableCell}>
                       <Link
                         href={debtHref(kidId, debt)}
-                        className="underline-offset-4 after:absolute after:inset-0 hover:underline"
+                        className="underline-offset-4 hover:underline"
                       >
                         {debt.label}
                       </Link>
@@ -142,7 +142,7 @@ export async function KidDebts({ kidId, today }: { kidId: number; today: string 
                     >
                       {formatBRL(debt.upcoming)}
                     </td>
-                  </tr>
+                  </LinkedRow>
                 ))}
               </tbody>
             </table>

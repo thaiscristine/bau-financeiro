@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { createItem, createKid, createUser, query, reset } from "./db";
+import { likeOldSafari } from "./old-safari";
 import { login } from "./session";
 
 test.beforeEach(async ({ page }) => {
@@ -110,16 +111,18 @@ test("the list can be filtered by age group", async ({ page }) => {
   await expect(page.getByRole("columnheader", { name: "Ramo" })).toBeVisible();
 });
 
-test("clicking anywhere on a row opens the bandeirante", async ({ page }) => {
-  await createKid("Bia");
+test("clicking anywhere on a row opens that bandeirante, even on older Safari", async ({
+  page,
+}) => {
+  await likeOldSafari(page);
+  for (const name of ["Bia", "Caio", "Duda"]) await createKid(name);
 
   await page.goto("/kids");
-  // force: the row's link overlay covers the cell, which is the point; the
-  // mouse still clicks where the name is and lands on that overlay
-  await page
-    .getByRole("row", { name: /Bia/ })
-    .getByRole("cell", { name: "Bia" })
-    .click({ force: true });
+  await page.getByRole("row", { name: /Bia/ }).getByRole("cell", { name: "Bia" }).click();
   await expect(page).toHaveURL(/\/kids\/\d+$/);
-  await expect(page.getByRole("heading", { name: "Bia" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Bia", level: 1 })).toBeVisible();
+
+  await page.goBack();
+  await page.getByRole("row", { name: /Caio/ }).getByRole("cell", { name: "Caio" }).click();
+  await expect(page.getByRole("heading", { name: "Caio", level: 1 })).toBeVisible();
 });
