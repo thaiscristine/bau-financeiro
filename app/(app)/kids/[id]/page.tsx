@@ -15,6 +15,7 @@ import { KidEventsTable } from "@/app/(app)/events/kid-events-table";
 import { NewSaleDialog } from "@/app/(app)/sales/new-sale-dialog";
 import { KidForm } from "../kid-form";
 import { KidContributions } from "./contributions";
+import { KidDebts } from "./debts";
 import { deleteKid, updateKid } from "../actions";
 
 export default async function KidPage({
@@ -44,6 +45,9 @@ export default async function KidPage({
       subtitle={kid.ageGroup && <AgeGroupLabel ageGroup={kid.ageGroup} />}
       aside={<NewSaleDialog defaultKidId={id} />}
     >
+      {/* What they owe comes first: it is what people open this page for */}
+      <KidDebts kidId={id} today={today} />
+
       {/* The kid's details first, with their sales and events beside them on wide screens */}
       <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-8">
         <section className="flex min-w-0 flex-col gap-3">
@@ -53,9 +57,9 @@ export default async function KidPage({
 
         <div className="flex min-w-0 flex-col gap-10">
           <section className="flex flex-col gap-3">
-            <Eyebrow as="h2">Vendas</Eyebrow>
+            <Eyebrow as="h2">Lojinha</Eyebrow>
             {kidSales.length === 0 ? (
-              <EmptyState>Nenhuma venda para este bandeirante.</EmptyState>
+              <EmptyState>Nenhuma compra na Lojinha para este bandeirante.</EmptyState>
             ) : (
               <SalesTable rows={kidSales} showKid={false} />
             )}

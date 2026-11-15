@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { listKids } from "@/lib/kids";
+import { listKidOptions } from "@/lib/kids";
 import { listItems } from "@/lib/inventory";
 import { FormDialog } from "@/components/form-dialog";
 import { SaleForm } from "./sale-form";
 import { createSale } from "./actions";
 
 export async function NewSaleDialog({ defaultKidId }: { defaultKidId?: number }) {
-  const [kids, items] = await Promise.all([listKids(), listItems()]);
+  const [kids, items] = await Promise.all([listKidOptions(), listItems()]);
 
   return (
     <FormDialog label="Nova venda">

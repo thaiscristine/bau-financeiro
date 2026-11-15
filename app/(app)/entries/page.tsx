@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireSession } from "@/lib/dal";
 import { listEntries } from "@/lib/entries";
 import { listCategories } from "@/lib/categories";
-import { listKids } from "@/lib/kids";
+import { listKidOptions } from "@/lib/kids";
 import { formatBRL, formatDate } from "@/lib/format";
 import { EmptyState, Page } from "@/components/page";
 import { FormDialog } from "@/components/form-dialog";
@@ -30,7 +30,7 @@ export default async function EntriesPage() {
   const [rows, categories, kids] = await Promise.all([
     listEntries(),
     listCategories(),
-    listKids(),
+    listKidOptions(),
   ]);
 
   return (
@@ -61,7 +61,9 @@ export default async function EntriesPage() {
                     </span>
                   </p>
                   {entry.counterparty && (
-                    <p className="truncate text-[15px]">{entry.counterparty}</p>
+                    <p className="truncate text-[15px]">
+                      <Counterparty entry={entry} />
+                    </p>
                   )}
                   {entry.note && (
                     <p className="truncate font-serif text-[15px] text-muted">
@@ -110,7 +112,9 @@ export default async function EntriesPage() {
                       <TypeLabel type={entry.type} />
                     </td>
                     <td className={tableCell}>{entry.categoryName}</td>
-                    <td className={tableCell}>{entry.counterparty ?? ""}</td>
+                    <td className={tableCell}>
+                      <Counterparty entry={entry} />
+                    </td>
                     <td
                       className={`${tableCell} text-right whitespace-nowrap ${
                         entry.type === "income" ? "text-income" : "text-cost"
@@ -135,6 +139,16 @@ export default async function EntriesPage() {
         </>
       )}
     </Page>
+  );
+}
+
+// A bandeirante's name opens their page
+function Counterparty({ entry }: { entry: EntryRow }) {
+  if (!entry.counterpartyKidId) return entry.counterparty ?? "";
+  return (
+    <Link href={`/kids/${entry.counterpartyKidId}`} className="underline-offset-4 hover:underline">
+      {entry.counterparty}
+    </Link>
   );
 }
 

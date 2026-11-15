@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/dal";
 import { listKids } from "@/lib/kids";
-import { formatBRL } from "@/lib/format";
+import { ensureContributions } from "@/lib/contributions";
+import { formatBRL, todayISO } from "@/lib/format";
 import {
   AGE_GROUPS,
   AGE_GROUP_LABELS,
@@ -28,7 +29,9 @@ import { createKid } from "./actions";
 export default async function KidsPage({ searchParams }: PageProps<"/kids">) {
   await requireSession();
   const ageGroup = parseAgeGroupFilter((await searchParams).ramo);
-  const allRows = await listKids();
+  const today = todayISO();
+  await ensureContributions(today);
+  const allRows = await listKids(today);
 
   // Filtered here rather than in SQL: the chips need every group's count anyway
   const counts = Object.fromEntries(
@@ -129,12 +132,8 @@ export default async function KidsPage({ searchParams }: PageProps<"/kids">) {
                           </>
                         )}
                       </td>
-                      <td
-                        className={`${tableCell} whitespace-nowrap ${
-                          Number(kid.owed) > 0 ? "text-pending" : "text-muted"
-                        }`}
-                      >
-                        {formatBRL(Number(kid.owed))}
+                      <td className={`${tableCell} whitespace-nowrap`}>
+                        <OwedAmount owed={Number(kid.owed)} overdue={Number(kid.overdue)} />
                       </td>
                       <td className={`${tableCell} text-right`}>
                         <Link
@@ -153,5 +152,21 @@ export default async function KidsPage({ searchParams }: PageProps<"/kids">) {
         </div>
       )}
     </Page>
+  );
+}
+
+// Red with what is late when part of it is, so the ones to chase stand out
+function OwedAmount({ owed, overdue }: { owed: number; overdue: number }) {
+  return (
+    <>
+      <span className={overdue > 0 ? "text-cost" : owed > 0 ? "text-pending" : "text-muted"}>
+        {formatBRL(owed)}
+      </span>
+      {overdue > 0 && (
+        <span className="block text-[13px] text-cost">
+          {overdue === owed ? "atrasado" : `${formatBRL(overdue)} atrasado`}
+        </span>
+      )}
+    </>
   );
 }

@@ -377,7 +377,17 @@ function ParticipantsTable<Row extends TableRow>({
               return (
                 <tr key={participant.id} className={tableRow}>
                   <td className={tableCell}>
-                    {participant.name}
+                    {/* A registered kid's name opens their page; guests have none */}
+                    {participant.kidId ? (
+                      <Link
+                        href={`/kids/${participant.kidId}`}
+                        className="underline-offset-4 hover:underline"
+                      >
+                        {participant.name}
+                      </Link>
+                    ) : (
+                      participant.name
+                    )}
                     {note?.(participant)}
                     <span
                       className={`block text-[13px] sm:hidden ${settled ? "text-income" : "text-muted"}`}
