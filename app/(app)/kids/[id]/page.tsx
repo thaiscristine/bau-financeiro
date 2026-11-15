@@ -57,9 +57,9 @@ export default async function KidPage({
 
         <div className="flex min-w-0 flex-col gap-10">
           <section className="flex flex-col gap-3">
-            <Eyebrow as="h2">Vendas</Eyebrow>
+            <Eyebrow as="h2">Lojinha</Eyebrow>
             {kidSales.length === 0 ? (
-              <EmptyState>Nenhuma venda para este bandeirante.</EmptyState>
+              <EmptyState>Nenhuma compra na Lojinha para este bandeirante.</EmptyState>
             ) : (
               <SalesTable rows={kidSales} showKid={false} />
             )}

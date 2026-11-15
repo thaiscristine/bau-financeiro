@@ -639,7 +639,7 @@ export default async function HelpPage() {
               origem (contribuição mensal, cada evento, cada cobrança extra e
               cada venda). Clique numa
               origem para ir aonde ela é paga. Depois vêm os dados, ao lado das
-              vendas; o botão <Ui>Nova venda</Ui> ali já vem com o bandeirante
+              compras na Lojinha; o botão <Ui>Nova venda</Ui> ali já vem com o bandeirante
               escolhido. Embaixo fica a contribuição mensal, mês a mês, com um
               seletor de ano.
             </P>
